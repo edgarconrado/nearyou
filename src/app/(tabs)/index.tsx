@@ -1,98 +1,289 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import Colors from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const categories = [
+    { id: 1, name: "Restaurantes", icon: "restaurant" },
+    { id: 2, name: "Hoteles", icon: "bed" },
+    { id: 3, name: "Tiendas", icon: "storefront" },
+    { id: 4, name: "Atracciones", icon: "ticket" },
+  ];
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const featuredBusinesses = [
+    {
+      id: 1,
+      name: "Restaurant El Mirador",
+      rating: 4.8,
+      category: "Cocina tradicional",
+      price: "$$",
+    },
+    {
+      id: 2,
+      name: "Hotel Vista Hermosa",
+      rating: 4.6,
+      category: "Hotel boutique",
+      price: "$$$",
+    },
+  ];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header oscuro */}
+        <View style={styles.header}>
+          <View style={styles.welcomeRow}>
+            <View style={styles.welcomeSection}>
+              <View style={styles.logoIcon}>
+                {/* <Ionicons name="location" size={28} color={Colors.primary} /> */}
+                <Image
+                  source={require("../../../assets/images/logo.png")}
+                  style={styles.logo}
+                />
+              </View>
+              <Text style={styles.welcomeText}>Bienvenido</Text>
+              <Text style={styles.userName}>Edgar</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Contenido principal */}
+        <View style={styles.content}>
+          {/* Barra de búsqueda */}
+          <View style={styles.searchBox}>
+            <Ionicons name="search" size={20} color={Colors.gray} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar restaurantes, hoteles, tiendas..."
+              placeholderTextColor={Colors.gray}
+            />
+          </View>
+
+          {/* Categorías */}
+          <Text style={styles.sectionTitle}>Categorías</Text>
+          <View style={styles.categoriesGrid}>
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={styles.categoryItem}
+                onPress={() => router.push("/explore")}
+              >
+                <View style={styles.categoryIconBox}>
+                  <Ionicons
+                    name={category.icon}
+                    size={32}
+                    color={Colors.primary}
+                  />
+                </View>
+                <Text style={styles.categoryLabel}>{category.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Destacados */}
+          <Text style={styles.sectionTitle}>Destacados</Text>
+          {featuredBusinesses.map((business) => (
+            <TouchableOpacity
+              key={business.id}
+              style={styles.businessCard}
+              onPress={() =>
+                router.push({
+                  pathname: "/detail",
+                  params: { businessId: business.id },
+                })
+              }
+            >
+              <View style={styles.businessImage} />
+              <View style={styles.businessInfo}>
+                <View style={styles.businessHeader}>
+                  <Text style={styles.businessName}>{business.name}</Text>
+                  <View style={styles.rating}>
+                    <Ionicons name="star" size={16} color={Colors.accent} />
+                    <Text style={styles.ratingText}>{business.rating}</Text>
+                  </View>
+                </View>
+                <Text style={styles.businessMeta}>
+                  {business.category} • {business.price}
+                </Text>
+                <View style={styles.businessFooter}>
+                  <View style={styles.distanceBadge}>
+                    <Ionicons
+                      name="location"
+                      size={14}
+                      color={Colors.textTertiary}
+                    />
+                    <Text style={styles.distanceText}>2.3 km</Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={Colors.gray}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    backgroundColor: Colors.darkBg,
+  },
+  welcomeRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  welcomeSection: {
+    alignItems: "center",
+  },
+  logoIcon: {
+    width: 56,
+    height: 56,
+    backgroundColor: Colors.darkBg,
+    borderRadius: 28,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  welcomeText: {
+    color: Colors.textLight,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  userName: {
+    color: Colors.white,
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  content: {
+    padding: 24,
+  },
+  searchBox: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+    ...Colors.shadow,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 15,
+    color: Colors.textPrimary,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: Colors.textPrimary,
+    marginBottom: 16,
+  },
+  categoriesGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 32,
+  },
+  categoryItem: {
+    alignItems: "center",
+    width: "23%",
+  },
+  categoryIconBox: {
+    width: 64,
+    height: 64,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  categoryLabel: {
+    fontSize: 12,
+    color: Colors.textPrimary,
+    textAlign: "center",
+  },
+  businessCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 16,
+    ...Colors.shadow,
+  },
+  businessImage: {
+    width: "100%",
+    height: 160,
+    backgroundColor: Colors.primaryLight,
+  },
+  businessInfo: {
+    padding: 16,
+  },
+  businessHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  businessName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  rating: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
+  businessMeta: {
+    color: Colors.textTertiary,
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  businessFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  distanceBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  distanceText: {
+    color: Colors.textTertiary,
+    fontSize: 12,
+  },
+  logo: {
+    width: 40,
+    height: 40,
   },
 });

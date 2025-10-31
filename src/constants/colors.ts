@@ -1,40 +1,40 @@
-// Paleta de colores en tonos ladrillo/naranja para TurismoLocal
-
 export default {
-  // Colores principales (naranja/ladrillo)
-  primary: '#9A3412',           // Naranja oscuro - Botones principales
-  primaryDark: '#7C2D12',       // Naranja muy oscuro - Hover states
-  primaryMedium: '#C2410C',     // Naranja medio
-  primaryLight: '#FED7AA',      // Naranja claro - Fondos, iconos
-  primaryVeryLight: '#FFF7ED',  // Naranja muy claro - Background
+  // Colores principales (dorado/amarillo)
+  primary: '#D4A24F',           // Dorado principal - Botones principales
+  primaryDark: '#B8873D',       // Dorado oscuro - Hover states
+  primaryMedium: '#E0B666',     // Dorado medio
+  primaryLight: '#F5D89A',      // Dorado claro - Fondos, iconos
+  primaryVeryLight: '#FFF9ED',  // Crema muy claro - Background
 
   // Colores complementarios
-  accent: '#FBBF24',            // Amarillo - Estrellas, medallas
+  accent: '#FFC107',            // Amarillo brillante - Estrellas
   success: '#10B981',           // Verde - Estados positivos, "Abierto"
   error: '#EF4444',             // Rojo - Errores, alertas
   warning: '#F59E0B',           // Naranja advertencia
 
   // Colores de texto
-  textPrimary: '#78350F',       // Marrón oscuro - Texto principal
-  textSecondary: '#C2410C',     // Naranja medio - Texto secundario
-  textTertiary: '#EA580C',      // Naranja claro - Metadatos
-  textLight: '#FED7AA',         // Naranja muy claro - Texto en fondos oscuros
+  textPrimary: '#1F2937',       // Gris muy oscuro - Texto principal
+  textSecondary: '#4B5563',     // Gris oscuro - Texto secundario
+  textTertiary: '#6B7280',      // Gris medio - Metadatos
+  textLight: '#F5D89A',         // Dorado claro - Texto en fondos oscuros
 
   // Colores neutros
   white: '#FFFFFF',
   black: '#000000',
+  darkBg: '#1F2937',            // Fondo oscuro del logo
   gray: '#6B7280',
-  grayDark: '#1F2937',
+  grayDark: '#374151',
   grayLight: '#F3F4F6',
   grayVeryLight: '#F9FAFB',
 
   // Fondos
-  background: '#FFF7ED',
+  background: '#FFF9ED',
   backgroundWhite: '#FFFFFF',
   backgroundCard: '#FFFFFF',
+  backgroundDark: '#1F2937',    // Para header
 
   // Bordes
-  border: '#FED7AA',
+  border: '#F5D89A',
   borderLight: '#FEF3C7',
 
   // Estados
@@ -43,9 +43,10 @@ export default {
   confirmed: '#065F46',         // Verde oscuro para confirmado
 
   // Gradientes (para usar con LinearGradient)
-  gradientPrimary: ['#9A3412', '#7C2D12'],
-  gradientLight: ['#FED7AA', '#FDBA74'],
-  gradientCard: ['#FDBA74', '#FB923C'],
+  gradientPrimary: ['#1F2937', '#374151'],  // Gris oscuro
+  gradientGold: ['#D4A24F', '#B8873D'],     // Dorado
+  gradientLight: ['#F5D89A', '#E0B666'],
+  gradientCard: ['#E0B666', '#D4A24F'],
 
   // Overlay
   overlay: 'rgba(0, 0, 0, 0.5)',
