@@ -1,50 +1,57 @@
-# Welcome to your Expo app 👋
+🌎 NearYou
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ES 🇪🇸
+LocalExplorer es una aplicación creada con Expo y React Native que te permite descubrir lugares de interés cerca de ti. Explora tu localidad, gana puntos y disfruta nuevas experiencias. 🎯✨
 
-## Get started
+EN 🇬🇧
+LocalExplorer is an app built with Expo and React Native that lets you discover nearby places of interest. Explore your city, earn points, and enjoy new experiences. 🎯✨
 
-1. Install dependencies
+📱 Capturas de pantalla / Screenshots
+Inicio / Home	Lugares / Places	Perfil / Profile
+<img src="assets/screenshots/home.png" width="250" />	<img src="assets/screenshots/places.png" width="250" />	<img src="assets/screenshots/profile.png" width="250" />
 
-   ```bash
-   npm install
-   ```
+📸 Coloca tus capturas de pantalla en la carpeta assets/screenshots/ y usa los nombres de archivo correspondientes.
 
-2. Start the app
+⚙️ Instalación / Installation
+📦 Clonar el repositorio / Clone the repository
+git clone https://github.com/tu-usuario/localexplorer.git
+cd localexplorer
 
-   ```bash
-   npx expo start
-   ```
+🚀 Instalar dependencias / Install dependencies
+npm install
+# o / or
+yarn install
 
-In the output, you'll find options to open the app in a
+▶️ Ejecutar la aplicación / Run the app
+npx expo start
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Esto abrirá Expo Developer Tools en tu navegador.
+Desde ahí podrás ejecutar la app en un emulador o dispositivo físico usando la app Expo Go.
 
-## Get a fresh project
+🛠️ Tecnologías / Technologies
 
-When you're ready, run:
+Expo
 
-```bash
-npm run reset-project
-```
+React Native
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Expo Router
 
-## Learn more
+Supabase
 
-To learn more about developing your project with Expo, look at the following resources:
+React Navigation
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+🧭 Objetivo / Goal
 
-## Join the community
+ES: Fomentar la exploración local mediante una experiencia interactiva que recompensa al usuario por descubrir nuevos lugares.
+EN: Encourage local exploration through an interactive experience that rewards users for discovering new places.
 
-Join our community of developers creating universal apps.
+💡 Próximas mejoras / Next Features
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+🗺️ Filtros avanzados por tipo de lugar.
+
+🏆 Sistema de logros y niveles.
+
+💬 Reseñas y calificaciones de usuarios.
+
+🌐 Modo multilenguaje (ES / EN).
