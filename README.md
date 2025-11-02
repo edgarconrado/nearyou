@@ -47,22 +47,6 @@ EN: Encourage local exploration through an interactive experience that rewards u
 * 🌐 Modo multilenguaje (ES / EN).
 
 
-
-## Usage
-
-```python
-import foobar
-
-# returns 'words'
-foobar.pluralize('word')
-
-# returns 'geese'
-foobar.pluralize('goose')
-
-# returns 'phenomenon'
-foobar.singularize('phenomena')
-```
-
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
