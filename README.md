@@ -9,7 +9,7 @@ EN 🇬🇧 NearYou is an app built with Expo and React Native that lets you dis
 Incluye un enlace a una demo (si está disponible) o captura de pantalla de la app.
 
 <p align="center">
-  <img src="url_a_captura.png" width="250" />
+  <img src="https://srv1923-files.hstgr.io/87208f40ac576964/files/public_html/purepechaLink/2c06d471-fc0f-46ea-b965-dd820d18d1a9.jfif" width="250" />
 </p>
 
 ## ⚙️ Instalacion / Installation
