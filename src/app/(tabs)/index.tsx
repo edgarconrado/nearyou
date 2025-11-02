@@ -1,39 +1,56 @@
+import BusinessCard from '@/components/BusinessCard';
+import CategoryButton from '@/components/CategoryButton';
+import SearchBar from '@/components/SearchBar';
 import Colors from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+interface Category {
+  id: number;
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+interface Business {
+  id: number;
+  name: string;
+  rating: number;
+  category: string;
+  price: string;
+  distance: string;
+}
 
 export default function HomeScreen() {
-  const categories = [
-    { id: 1, name: "Restaurantes", icon: "restaurant" },
-    { id: 2, name: "Hoteles", icon: "bed" },
-    { id: 3, name: "Tiendas", icon: "storefront" },
-    { id: 4, name: "Atracciones", icon: "ticket" },
+  const categories: Category[] = [
+    { id: 1, name: 'Restaurantes', icon: 'restaurant' },
+    { id: 2, name: 'Hoteles', icon: 'bed' },
+    { id: 3, name: 'Tiendas', icon: 'storefront' },
+    { id: 4, name: 'Atracciones', icon: 'ticket' },
   ];
 
-  const featuredBusinesses = [
+  const featuredBusinesses: Business[] = [
     {
       id: 1,
-      name: "Restaurant El Mirador",
+      name: 'Restaurant El Mirador',
       rating: 4.8,
-      category: "Cocina tradicional",
-      price: "$$",
+      category: 'Cocina tradicional',
+      price: '$$',
+      distance: '2.3 km',
     },
     {
       id: 2,
-      name: "Hotel Vista Hermosa",
+      name: 'Hotel Vista Hermosa',
       rating: 4.6,
-      category: "Hotel boutique",
-      price: "$$$",
+      category: 'Hotel boutique',
+      price: '$$$',
+      distance: '1.5 km',
     },
   ];
 
@@ -45,13 +62,9 @@ export default function HomeScreen() {
           <View style={styles.welcomeRow}>
             <View style={styles.welcomeSection}>
               <View style={styles.logoIcon}>
-                {/* <Ionicons name="location" size={28} color={Colors.primary} /> */}
-                <Image
-                  source={require("../../../assets/images/logo.png")}
-                  style={styles.logo}
-                />
+                <Ionicons name="location" size={28} color={Colors.primary} />
               </View>
-              <Text style={styles.welcomeText}>Bienvenido</Text>
+              <Text style={styles.welcomeText}>Bienvenid@</Text>
               <Text style={styles.userName}>Edgar</Text>
             </View>
           </View>
@@ -59,79 +72,34 @@ export default function HomeScreen() {
 
         {/* Contenido principal */}
         <View style={styles.content}>
-          {/* Barra de búsqueda */}
-          <View style={styles.searchBox}>
-            <Ionicons name="search" size={20} color={Colors.gray} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar restaurantes, hoteles, tiendas..."
-              placeholderTextColor={Colors.gray}
-            />
-          </View>
+          {/* Barra de búsqueda usando componente */}
+          <SearchBar
+            placeholder="Buscar restaurantes, hoteles, tiendas..."
+            style={styles.searchBar}
+          />
 
-          {/* Categorías */}
+          {/* Categorías usando componente */}
           <Text style={styles.sectionTitle}>Categorías</Text>
           <View style={styles.categoriesGrid}>
             {categories.map((category) => (
-              <TouchableOpacity
+              <CategoryButton
                 key={category.id}
-                style={styles.categoryItem}
-                onPress={() => router.push("/explore")}
-              >
-                <View style={styles.categoryIconBox}>
-                  <Ionicons
-                    name={category.icon}
-                    size={32}
-                    color={Colors.primary}
-                  />
-                </View>
-                <Text style={styles.categoryLabel}>{category.name}</Text>
-              </TouchableOpacity>
+                icon={category.icon}
+                label={category.name}
+                onPress={() => router.push('/explore')}
+                style={styles.categoryButton}
+              />
             ))}
           </View>
 
-          {/* Destacados */}
+          {/* Destacados usando BusinessCard */}
           <Text style={styles.sectionTitle}>Destacados</Text>
           {featuredBusinesses.map((business) => (
-            <TouchableOpacity
+            <BusinessCard
               key={business.id}
+              business={business}
               style={styles.businessCard}
-              onPress={() =>
-                router.push({
-                  pathname: "/detail",
-                  params: { businessId: business.id },
-                })
-              }
-            >
-              <View style={styles.businessImage} />
-              <View style={styles.businessInfo}>
-                <View style={styles.businessHeader}>
-                  <Text style={styles.businessName}>{business.name}</Text>
-                  <View style={styles.rating}>
-                    <Ionicons name="star" size={16} color={Colors.accent} />
-                    <Text style={styles.ratingText}>{business.rating}</Text>
-                  </View>
-                </View>
-                <Text style={styles.businessMeta}>
-                  {business.category} • {business.price}
-                </Text>
-                <View style={styles.businessFooter}>
-                  <View style={styles.distanceBadge}>
-                    <Ionicons
-                      name="location"
-                      size={14}
-                      color={Colors.textTertiary}
-                    />
-                    <Text style={styles.distanceText}>2.3 km</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={Colors.gray}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </ScrollView>
@@ -151,12 +119,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.darkBg,
   },
   welcomeRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   welcomeSection: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   logoIcon: {
     width: 56,
@@ -165,8 +133,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 2,
     borderColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 12,
   },
   welcomeText: {
@@ -177,112 +145,29 @@ const styles = StyleSheet.create({
   userName: {
     color: Colors.white,
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   content: {
     padding: 24,
   },
-  searchBox: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
+  searchBar: {
     marginBottom: 24,
-    ...Colors.shadow,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 15,
-    color: Colors.textPrimary,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: Colors.textPrimary,
     marginBottom: 16,
   },
   categoriesGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 32,
   },
-  categoryItem: {
-    alignItems: "center",
-    width: "23%",
-  },
-  categoryIconBox: {
-    width: 64,
-    height: 64,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  categoryLabel: {
-    fontSize: 12,
-    color: Colors.textPrimary,
-    textAlign: "center",
+  categoryButton: {
+    width: '23%',
   },
   businessCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    overflow: "hidden",
     marginBottom: 16,
-    ...Colors.shadow,
-  },
-  businessImage: {
-    width: "100%",
-    height: 160,
-    backgroundColor: Colors.primaryLight,
-  },
-  businessInfo: {
-    padding: 16,
-  },
-  businessHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  businessName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.textPrimary,
-    flex: 1,
-  },
-  rating: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-  },
-  businessMeta: {
-    color: Colors.textTertiary,
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  businessFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  distanceBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  distanceText: {
-    color: Colors.textTertiary,
-    fontSize: 12,
-  },
-  logo: {
-    width: 40,
-    height: 40,
   },
 });

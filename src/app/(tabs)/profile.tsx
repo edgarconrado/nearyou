@@ -3,13 +3,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,7 +17,7 @@ export default function ProfileScreen() {
   // Datos del usuario (después vendrán de tu BD/Context)
   const [user, setUser] = useState({
     name: 'Edgar',
-    email: 'maria@email.com',
+    email: 'edgar@email.com',
     phone: '+52 33 1234 5678',
     profileImage: null, // URL de la imagen cuando la tengas
   });
