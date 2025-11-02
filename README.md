@@ -4,6 +4,14 @@ ES 🇪🇸 NearYou es una aplicación creada con Expo y React Native que te per
 
 EN 🇬🇧 NearYou is an app built with Expo and React Native that lets you discover nearby places of interest. Explore your city, earn points, and enjoy new experiences. 🎯✨
 
+## 🚀 Demo
+
+Incluye un enlace a una demo (si está disponible) o captura de pantalla de la app.
+
+<p align="center">
+  <img src="url_a_captura.png" width="250" />
+</p>
+
 ## ⚙️ Instalacion / Installation
 
 📦 Clonar el repositorio / Clone the repository 
