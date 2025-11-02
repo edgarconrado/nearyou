@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -62,7 +63,10 @@ export default function HomeScreen() {
           <View style={styles.welcomeRow}>
             <View style={styles.welcomeSection}>
               <View style={styles.logoIcon}>
-                <Ionicons name="location" size={28} color={Colors.primary} />
+                <Image
+                  source={require("../../../assets/images/logo.png")}
+                  style={styles.logo}
+                />
               </View>
               <Text style={styles.welcomeText}>Bienvenid@</Text>
               <Text style={styles.userName}>Edgar</Text>
@@ -125,6 +129,10 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     alignItems: 'center',
+  },
+  logo: {
+    width: 40,
+    height: 40,
   },
   logoIcon: {
     width: 56,
