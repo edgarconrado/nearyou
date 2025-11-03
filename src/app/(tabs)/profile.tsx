@@ -1,3 +1,4 @@
+import PrimaryButton from "@/components/PrimaryButton";
 import Colors from "@/constants/colors";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -13,37 +14,72 @@ import {
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
+interface User {
+  name: string;
+  email: string;
+  phone: string;
+  profileImage: string | null;
+}
+
+interface Stats {
+  favorites: number;
+  reviews: number;
+  visits: number;
+}
+
+interface FavoriteBusiness {
+  id: number;
+  name: string;
+  category: string;
+  rating: number;
+  distance: string;
+  image?: string;
+}
+
+interface SettingsItem {
+  id: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value?: string;
+  onPress: () => void;
+  isLogout?: boolean;
+}
+
 export default function ProfileScreen() {
-  // Datos del usuario (después vendrán de tu BD/Context)
-  const [user, setUser] = useState({
-    name: 'Edgar',
-    email: 'edgar@email.com',
+  const [user, setUser] = useState<User>({
+    name: 'María González',
+    email: 'maria@email.com',
     phone: '+52 33 1234 5678',
-    profileImage: null, // URL de la imagen cuando la tengas
+    profileImage: null,
   });
 
-  const [stats, setStats] = useState({
-    reservations: 12,
-    reviews: 8,
+  const [stats, setStats] = useState<Stats>({
     favorites: 15,
+    reviews: 8,
+    visits: 34,
   });
 
-  const recentReservations = [
+  const favoriteBusinesses: FavoriteBusiness[] = [
     {
       id: 1,
-      businessName: 'Restaurant El Mirador',
-      date: '15 Nov 2025',
-      time: '7:00 PM',
-      people: 4,
-      status: 'confirmed', // confirmed, pending, cancelled, completed
+      name: 'Restaurant El Mirador',
+      category: 'Restaurante',
+      rating: 4.8,
+      distance: '2.3 km',
     },
     {
       id: 2,
-      businessName: 'Hotel Vista Hermosa',
-      date: '20 Nov 2025',
-      time: 'Check-in 3:00 PM',
-      people: 2,
-      status: 'pending',
+      name: 'Café Aroma',
+      category: 'Café',
+      rating: 4.9,
+      distance: '0.8 km',
+    },
+    {
+      id: 3,
+      name: 'Hotel Vista Hermosa',
+      category: 'Hotel',
+      rating: 4.6,
+      distance: '1.5 km',
     },
   ];
 
@@ -60,7 +96,6 @@ export default function ProfileScreen() {
           text: 'Cerrar Sesión',
           style: 'destructive',
           onPress: () => {
-            // Aquí irá la lógica de logout
             router.replace('/login');
           },
         },
@@ -68,35 +103,73 @@ export default function ProfileScreen() {
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return Colors.success;
-      case 'pending':
-        return Colors.warning;
-      case 'cancelled':
-        return Colors.error;
-      case 'completed':
-        return Colors.gray;
-      default:
-        return Colors.gray;
-    }
+  const handleRemoveFavorite = (businessId: number) => {
+    Alert.alert(
+      'Eliminar de favoritos',
+      '¿Deseas eliminar este negocio de tus favoritos?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            console.log('Eliminar favorito:', businessId);
+            // Aquí irá la lógica para eliminar
+          },
+        },
+      ]
+    );
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return 'Confirmada';
-      case 'pending':
-        return 'Pendiente';
-      case 'cancelled':
-        return 'Cancelada';
-      case 'completed':
-        return 'Completada';
-      default:
-        return status;
-    }
-  };
+  const settingsItems: SettingsItem[] = [
+    {
+      id: 'edit-profile',
+      icon: 'person-outline',
+      label: 'Editar perfil',
+      onPress: () => console.log('Editar perfil'),
+    },
+    {
+      id: 'notifications',
+      icon: 'notifications-outline',
+      label: 'Notificaciones',
+      onPress: () => console.log('Notificaciones'),
+    },
+    {
+      id: 'privacy',
+      icon: 'lock-closed-outline',
+      label: 'Privacidad',
+      onPress: () => console.log('Privacidad'),
+    },
+    {
+      id: 'language',
+      icon: 'language-outline',
+      label: 'Idioma',
+      value: 'Español',
+      onPress: () => console.log('Idioma'),
+    },
+    {
+      id: 'help',
+      icon: 'help-circle-outline',
+      label: 'Ayuda y Soporte',
+      onPress: () => console.log('Ayuda'),
+    },
+    {
+      id: 'about',
+      icon: 'information-circle-outline',
+      label: 'Acerca de',
+      onPress: () => console.log('Acerca de'),
+    },
+    {
+      id: 'logout',
+      icon: 'log-out-outline',
+      label: 'Cerrar sesión',
+      onPress: handleLogout,
+      isLogout: true,
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -123,124 +196,87 @@ export default function ProfileScreen() {
           {/* Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
-              <Text style={styles.statValue}>{stats.reservations}</Text>
-              <Text style={styles.statLabel}>Reservaciones</Text>
+              <Text style={styles.statValue}>{stats.favorites}</Text>
+              <Text style={styles.statLabel}>Favoritos</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>{stats.reviews}</Text>
               <Text style={styles.statLabel}>Reseñas</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statValue}>{stats.favorites}</Text>
-              <Text style={styles.statLabel}>Favoritos</Text>
+              <Text style={styles.statValue}>{stats.visits}</Text>
+              <Text style={styles.statLabel}>Visitas</Text>
             </View>
           </View>
         </View>
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Recent Reservations */}
-          <Text style={styles.sectionTitle}>Mis Reservaciones</Text>
-          {recentReservations.map((reservation) => (
-            <View key={reservation.id} style={styles.reservationCard}>
-              <View style={styles.reservationIcon}>
-                <Ionicons name="calendar" size={24} color={Colors.primary} />
+          {/* Favorite Businesses */}
+          <Text style={styles.sectionTitle}>Mis Favoritos</Text>
+          {favoriteBusinesses.map((business) => (
+            <View key={business.id} style={styles.favoriteCard}>
+              <View style={styles.favoriteIcon}>
+                <Ionicons name="heart" size={24} color={Colors.primary} />
               </View>
-              <View style={styles.reservationInfo}>
-                <Text style={styles.reservationName}>{reservation.businessName}</Text>
-                <Text style={styles.reservationDetails}>
-                  {reservation.date} • {reservation.time} • {reservation.people} personas
-                </Text>
-                <Text style={[
-                  styles.reservationStatus,
-                  { color: getStatusColor(reservation.status) }
-                ]}>
-                  {getStatusText(reservation.status)}
-                </Text>
+              <View style={styles.favoriteInfo}>
+                <Text style={styles.favoriteName}>{business.name}</Text>
+                <View style={styles.favoriteDetails}>
+                  <Ionicons name="star" size={14} color={Colors.accent} />
+                  <Text style={styles.favoriteRating}>{business.rating}</Text>
+                  <Text style={styles.favoriteMeta}> • {business.category} • {business.distance}</Text>
+                </View>
               </View>
-              <TouchableOpacity>
-                <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
+              <TouchableOpacity onPress={() => handleRemoveFavorite(business.id)}>
+                <Ionicons name="heart-dislike" size={20} color={Colors.error} />
               </TouchableOpacity>
             </View>
           ))}
 
-          <TouchableOpacity style={styles.viewAllButton}>
-            <Text style={styles.viewAllText}>Ver todas las reservaciones</Text>
-          </TouchableOpacity>
+          <PrimaryButton
+            title="Ver todos los favoritos"
+            variant="outline"
+            onPress={() => console.log('Ver todos los favoritos')}
+            style={styles.viewAllButton}
+          />
 
           {/* Settings Section */}
           <Text style={styles.sectionTitle}>Configuración</Text>
 
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="person-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Editar perfil</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="heart-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Mis favoritos</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Notificaciones</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="lock-closed-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Privacidad</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="language-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Idioma</Text>
-            </View>
-            <View style={styles.settingsItemRight}>
-              <Text style={styles.settingsValue}>Español</Text>
-              <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="help-circle-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Ayuda y Soporte</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingsItem}>
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="information-circle-outline" size={24} color={Colors.textPrimary} />
-              <Text style={styles.settingsText}>Acerca de</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-          </TouchableOpacity>
-
-          {/* Logout Button */}
-          <TouchableOpacity 
-            style={[styles.settingsItem, styles.logoutItem]}
-            onPress={handleLogout}
-          >
-            <View style={styles.settingsItemLeft}>
-              <Ionicons name="log-out-outline" size={24} color={Colors.error} />
-              <Text style={[styles.settingsText, styles.logoutText]}>Cerrar sesión</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.error} />
-          </TouchableOpacity>
+          {settingsItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                styles.settingsItem,
+                item.isLogout && styles.logoutItem
+              ]}
+              onPress={item.onPress}
+            >
+              <View style={styles.settingsItemLeft}>
+                <Ionicons
+                  name={item.icon}
+                  size={24}
+                  color={item.isLogout ? Colors.error : Colors.textPrimary}
+                />
+                <Text style={[
+                  styles.settingsText,
+                  item.isLogout && styles.logoutText
+                ]}>
+                  {item.label}
+                </Text>
+              </View>
+              <View style={styles.settingsItemRight}>
+                {item.value && (
+                  <Text style={styles.settingsValue}>{item.value}</Text>
+                )}
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={item.isLogout ? Colors.error : Colors.gray}
+                />
+              </View>
+            </TouchableOpacity>
+          ))}
 
           {/* App Version */}
           <Text style={styles.versionText}>Versión 1.0.0</Text>
@@ -340,7 +376,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginTop: 8,
   },
-  reservationCard: {
+  favoriteCard: {
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 16,
@@ -349,7 +385,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     ...Colors.shadow,
   },
-  reservationIcon: {
+  favoriteIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -358,37 +394,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  reservationInfo: {
+  favoriteInfo: {
     flex: 1,
   },
-  reservationName: {
+  favoriteName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: Colors.textPrimary,
     marginBottom: 4,
   },
-  reservationDetails: {
+  favoriteDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  favoriteRating: {
+    fontSize: 12,
+    color: Colors.textPrimary,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  favoriteMeta: {
     fontSize: 12,
     color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  reservationStatus: {
-    fontSize: 12,
-    fontWeight: '600',
   },
   viewAllButton: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 14,
-    alignItems: 'center',
     marginBottom: 24,
-    borderWidth: 2,
-    borderColor: Colors.primaryLight,
-  },
-  viewAllText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
   },
   settingsItem: {
     backgroundColor: Colors.white,
