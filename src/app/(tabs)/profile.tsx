@@ -47,8 +47,8 @@ interface SettingsItem {
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<User>({
-    name: 'María González',
-    email: 'maria@email.com',
+    name: 'Edgar',
+    email: 'edgar@email.com',
     phone: '+52 33 1234 5678',
     profileImage: null,
   });

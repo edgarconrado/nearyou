@@ -87,6 +87,15 @@ export default function ExploreScreen() {
     return matchesSearch && matchesFilter;
   });
 
+    // Mapeo de iconos
+  const iconMap: Record<string, string> = {
+    Todos: "apps-outline",
+    Restaurante: "restaurant-outline",
+    Hotel: "bed-outline",
+    Tienda: "bag-handle-outline",
+    Atracción: "location-outline",
+  };
+
   const renderBusinessItem = ({ item }: { item: Business }) => (
     <BusinessListItem
       business={item}
@@ -99,7 +108,7 @@ export default function ExploreScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Explorar</Text>
-        
+
         {/* Barra de búsqueda */}
         <SearchBar
           value={searchQuery}
@@ -119,9 +128,11 @@ export default function ExploreScreen() {
           contentContainerStyle={styles.filtersContent}
         >
           {filters.map((filter) => (
+            
             <FilterPill
               key={filter}
               label={filter}
+              icon={iconMap[filter]}
               isActive={selectedFilter === filter}
               onPress={() => setSelectedFilter(filter)}
               style={styles.filterPill}
@@ -179,8 +190,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filtersContainer: {
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 12,
+    paddingBottom: 10,
     maxHeight: 60,
   },
   filtersContent: {

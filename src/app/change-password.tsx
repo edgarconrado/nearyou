@@ -18,10 +18,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 
 interface PasswordStrength {
-  score: number; // 0-4
+  score: number;
   label: string;
   color: string;
-  feedback: string[];
+  percentage: number;
 }
 
 export default function ChangePasswordScreen() {
@@ -36,74 +36,34 @@ export default function ChangePasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const calculatePasswordStrength = (password: string): PasswordStrength => {
-    if (!password) {
-      return { score: 0, label: '', color: Colors.gray, feedback: [] };
-    }
-
     let score = 0;
-    const feedback: string[] = [];
+
+    if (password.length === 0) {
+      return { score: 0, label: '', color: Colors.gray, percentage: 0 };
+    }
 
     // Longitud
-    if (password.length >= 8) {
-      score++;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+
+    // Caracteres
+    if (/[a-z]/.test(password)) score += 1; // Minúsculas
+    if (/[A-Z]/.test(password)) score += 1; // Mayúsculas
+    if (/[0-9]/.test(password)) score += 1; // Números
+    if (/[^A-Za-z0-9]/.test(password)) score += 1; // Símbolos
+
+    if (score <= 2) {
+      return { score, label: 'Débil', color: Colors.error, percentage: 33 };
+    } else if (score <= 4) {
+      return { score, label: 'Media', color: Colors.warning, percentage: 66 };
     } else {
-      feedback.push('Mínimo 8 caracteres');
+      return { score, label: 'Fuerte', color: Colors.success, percentage: 100 };
     }
-
-    // Mayúsculas
-    if (/[A-Z]/.test(password)) {
-      score++;
-    } else {
-      feedback.push('Una mayúscula');
-    }
-
-    // Minúsculas
-    if (/[a-z]/.test(password)) {
-      score++;
-    } else {
-      feedback.push('Una minúscula');
-    }
-
-    // Números
-    if (/[0-9]/.test(password)) {
-      score++;
-    } else {
-      feedback.push('Un número');
-    }
-
-    // Caracteres especiales
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      score++;
-    } else {
-      feedback.push('Un carácter especial (!@#$...)');
-    }
-
-    // Determinar etiqueta y color
-    let label = '';
-    let color = Colors.gray;
-
-    if (score === 0) {
-      label = '';
-    } else if (score <= 2) {
-      label = 'Débil';
-      color = Colors.error;
-    } else if (score === 3) {
-      label = 'Media';
-      color = Colors.warning;
-    } else if (score === 4) {
-      label = 'Buena';
-      color = Colors.success;
-    } else if (score === 5) {
-      label = 'Excelente';
-      color = '#059669'; // Verde más oscuro
-    }
-
-    return { score, label, color, feedback };
   };
 
   const passwordStrength = calculatePasswordStrength(newPassword);
 
-  const validateForm = (): boolean => {
+  const validatePasswords = (): boolean => {
     // Validar contraseña actual
     if (!currentPassword.trim()) {
       Alert.alert('Error', 'Debes ingresar tu contraseña actual');
@@ -122,47 +82,43 @@ export default function ChangePasswordScreen() {
       return false;
     }
 
-    // Validar fortaleza
-    if (passwordStrength.score < 3) {
-      Alert.alert(
-        'Contraseña débil',
-        'Tu contraseña es muy débil. Te recomendamos usar una contraseña más segura.',
-        [
-          { text: 'Mejorar contraseña', style: 'cancel' },
-          { text: 'Continuar de todos modos', onPress: () => handleSave() },
-        ]
-      );
-      return false;
-    }
-
-    // Validar que las contraseñas coincidan
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
-      return false;
-    }
-
-    // Validar que sea diferente a la actual
+    // Validar que no sea igual a la actual
     if (currentPassword === newPassword) {
       Alert.alert('Error', 'La nueva contraseña debe ser diferente a la actual');
+      return false;
+    }
+
+    // Validar confirmación
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
       return false;
     }
 
     return true;
   };
 
-  const handleSave = async () => {
+  const handleChangePassword = async () => {
+    if (!validatePasswords()) {
+      return;
+    }
+
     setIsLoading(true);
 
-    // Simular llamada a API
+    // Simular llamada al API
     setTimeout(() => {
       setIsLoading(false);
 
       Alert.alert(
-        'Contraseña actualizada',
-        'Tu contraseña ha sido cambiada exitosamente. Por seguridad, te recomendamos cerrar sesión en otros dispositivos.',
+        '✅ Contraseña actualizada',
+        'Tu contraseña ha sido cambiada exitosamente. Te recomendamos cerrar sesión y volver a iniciar con tu nueva contraseña.',
         [
           {
-            text: 'Entendido',
+            text: 'Cerrar sesión',
+            style: 'destructive',
+            onPress: () => router.replace('/login'),
+          },
+          {
+            text: 'Continuar',
             onPress: () => router.back(),
           },
         ]
@@ -170,17 +126,29 @@ export default function ChangePasswordScreen() {
     }, 1500);
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      Alert.alert(
-        'Confirmar cambio',
-        '¿Estás seguro que deseas cambiar tu contraseña?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Cambiar', onPress: handleSave },
-        ]
-      );
-    }
+  const getPasswordRequirements = () => {
+    return [
+      {
+        met: newPassword.length >= 8,
+        text: 'Al menos 8 caracteres',
+        icon: newPassword.length >= 8 ? 'checkmark-circle' : 'close-circle'
+      },
+      {
+        met: /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword),
+        text: 'Mayúsculas y minúsculas',
+        icon: /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? 'checkmark-circle' : 'close-circle'
+      },
+      {
+        met: /[0-9]/.test(newPassword),
+        text: 'Al menos un número',
+        icon: /[0-9]/.test(newPassword) ? 'checkmark-circle' : 'close-circle'
+      },
+      {
+        met: /[^A-Za-z0-9]/.test(newPassword),
+        text: 'Al menos un símbolo (!@#$%)',
+        icon: /[^A-Za-z0-9]/.test(newPassword) ? 'checkmark-circle' : 'close-circle'
+      },
+    ];
   };
 
   return (
@@ -207,9 +175,9 @@ export default function ChangePasswordScreen() {
             {/* Info Card */}
             <View style={styles.infoCard}>
               <Ionicons name="shield-checkmark" size={40} color={Colors.primary} />
-              <Text style={styles.infoTitle}>Actualiza tu contraseña</Text>
+              <Text style={styles.infoTitle}>Seguridad de tu cuenta</Text>
               <Text style={styles.infoText}>
-                Usa una contraseña fuerte que incluya letras, números y símbolos
+                Crea una contraseña fuerte y única para proteger tu cuenta
               </Text>
             </View>
 
@@ -219,7 +187,7 @@ export default function ChangePasswordScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Contraseña actual</Text>
                 <View style={styles.inputContainer}>
-                  <Ionicons name="lock-closed-outline" size={20} color={Colors.gray} />
+                  <Ionicons name="lock-closed" size={20} color={Colors.gray} />
                   <TextInput
                     style={styles.input}
                     value={currentPassword}
@@ -229,10 +197,13 @@ export default function ChangePasswordScreen() {
                     secureTextEntry={!showCurrentPassword}
                     autoCapitalize="none"
                   />
-                  <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                  <TouchableOpacity
+                    onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                    style={styles.eyeButton}
+                  >
                     <Ionicons
                       name={showCurrentPassword ? 'eye-off' : 'eye'}
-                      size={22}
+                      size={20}
                       color={Colors.gray}
                     />
                   </TouchableOpacity>
@@ -243,7 +214,7 @@ export default function ChangePasswordScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Nueva contraseña</Text>
                 <View style={styles.inputContainer}>
-                  <Ionicons name="key-outline" size={20} color={Colors.gray} />
+                  <Ionicons name="lock-closed" size={20} color={Colors.gray} />
                   <TextInput
                     style={styles.input}
                     value={newPassword}
@@ -253,49 +224,38 @@ export default function ChangePasswordScreen() {
                     secureTextEntry={!showNewPassword}
                     autoCapitalize="none"
                   />
-                  <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                  <TouchableOpacity
+                    onPress={() => setShowNewPassword(!showNewPassword)}
+                    style={styles.eyeButton}
+                  >
                     <Ionicons
                       name={showNewPassword ? 'eye-off' : 'eye'}
-                      size={22}
+                      size={20}
                       color={Colors.gray}
                     />
                   </TouchableOpacity>
                 </View>
 
-                {/* Password Strength Indicator */}
+                {/* Password Strength */}
                 {newPassword.length > 0 && (
                   <View style={styles.strengthContainer}>
-                    <View style={styles.strengthBars}>
-                      {[1, 2, 3, 4, 5].map((bar) => (
-                        <View
-                          key={bar}
-                          style={[
-                            styles.strengthBar,
-                            bar <= passwordStrength.score && {
-                              backgroundColor: passwordStrength.color,
-                            },
-                          ]}
-                        />
-                      ))}
-                    </View>
-                    {passwordStrength.label && (
-                      <Text style={[styles.strengthLabel, { color: passwordStrength.color }]}>
+                    <View style={styles.strengthHeader}>
+                      <Text style={styles.strengthLabel}>Seguridad:</Text>
+                      <Text style={[styles.strengthValue, { color: passwordStrength.color }]}>
                         {passwordStrength.label}
                       </Text>
-                    )}
-                  </View>
-                )}
-
-                {/* Password Requirements */}
-                {passwordStrength.feedback.length > 0 && (
-                  <View style={styles.requirementsCard}>
-                    <Text style={styles.requirementsTitle}>Tu contraseña necesita:</Text>
-                    {passwordStrength.feedback.map((req, index) => (
-                      <View key={index} style={styles.requirementRow}>
-                        <Ionicons name="close-circle" size={16} color={Colors.error} />
-                        <Text style={styles.requirementText}>{req}</Text>
-                      </View>
-                    ))}
+                    </View>
+                    <View style={styles.strengthBar}>
+                      <View
+                        style={[
+                          styles.strengthFill,
+                          {
+                            width: `${passwordStrength.percentage}%`,
+                            backgroundColor: passwordStrength.color
+                          }
+                        ]}
+                      />
+                    </View>
                   </View>
                 )}
               </View>
@@ -304,7 +264,7 @@ export default function ChangePasswordScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Confirmar nueva contraseña</Text>
                 <View style={styles.inputContainer}>
-                  <Ionicons name="checkmark-circle-outline" size={20} color={Colors.gray} />
+                  <Ionicons name="lock-closed" size={20} color={Colors.gray} />
                   <TextInput
                     style={styles.input}
                     value={confirmPassword}
@@ -314,10 +274,13 @@ export default function ChangePasswordScreen() {
                     secureTextEntry={!showConfirmPassword}
                     autoCapitalize="none"
                   />
-                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeButton}
+                  >
                     <Ionicons
                       name={showConfirmPassword ? 'eye-off' : 'eye'}
-                      size={22}
+                      size={20}
                       color={Colors.gray}
                     />
                   </TouchableOpacity>
@@ -331,12 +294,10 @@ export default function ChangePasswordScreen() {
                       size={16}
                       color={newPassword === confirmPassword ? Colors.success : Colors.error}
                     />
-                    <Text
-                      style={[
-                        styles.matchText,
-                        { color: newPassword === confirmPassword ? Colors.success : Colors.error },
-                      ]}
-                    >
+                    <Text style={[
+                      styles.matchText,
+                      { color: newPassword === confirmPassword ? Colors.success : Colors.error }
+                    ]}>
                       {newPassword === confirmPassword ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden'}
                     </Text>
                   </View>
@@ -344,39 +305,66 @@ export default function ChangePasswordScreen() {
               </View>
             </View>
 
+            {/* Requirements */}
+            <View style={styles.requirementsCard}>
+              <Text style={styles.requirementsTitle}>Requisitos de contraseña</Text>
+              {getPasswordRequirements().map((req, index) => (
+                <View key={index} style={styles.requirementItem}>
+                  <Ionicons
+                    name={req.icon}
+                    size={20}
+                    color={req.met ? Colors.success : Colors.gray}
+                  />
+                  <Text style={[
+                    styles.requirementText,
+                    req.met && styles.requirementMet
+                  ]}>
+                    {req.text}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Save Button */}
+            <PrimaryButton
+              title="Cambiar contraseña"
+              onPress={handleChangePassword}
+              loading={isLoading}
+              icon="checkmark"
+              style={styles.saveButton}
+            />
+
             {/* Security Tips */}
             <View style={styles.tipsCard}>
-              <Text style={styles.tipsTitle}>💡 Consejos de seguridad</Text>
-              <View style={styles.tipRow}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Usa una contraseña única que no uses en otros sitios</Text>
+              <View style={styles.tipHeader}>
+                <Ionicons name="bulb" size={20} color={Colors.accent} />
+                <Text style={styles.tipsTitle}>Consejos de seguridad</Text>
               </View>
-              <View style={styles.tipRow}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Combina letras mayúsculas y minúsculas</Text>
-              </View>
-              <View style={styles.tipRow}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Incluye números y símbolos especiales</Text>
-              </View>
-              <View style={styles.tipRow}>
-                <Text style={styles.tipBullet}>•</Text>
-                <Text style={styles.tipText}>Evita información personal (nombre, fecha de nacimiento)</Text>
+              <View style={styles.tipsList}>
+                <Text style={styles.tipItem}>• Usa una contraseña única que no uses en otros sitios</Text>
+                <Text style={styles.tipItem}>• Evita información personal (nombres, fechas)</Text>
+                <Text style={styles.tipItem}>• Cambia tu contraseña periódicamente</Text>
+                <Text style={styles.tipItem}>• No compartas tu contraseña con nadie</Text>
               </View>
             </View>
 
-            {/* Submit Button */}
-            <PrimaryButton
-              title="Cambiar contraseña"
-              onPress={handleSubmit}
-              loading={isLoading}
-              disabled={!currentPassword || !newPassword || !confirmPassword || isLoading}
-              icon="checkmark"
-              style={styles.submitButton}
-            />
-
             {/* Forgot Password Link */}
-            <TouchableOpacity style={styles.forgotLink}>
+            <TouchableOpacity
+              style={styles.forgotLink}
+              onPress={() => {
+                Alert.alert(
+                  '¿Olvidaste tu contraseña?',
+                  'Te enviaremos un enlace para restablecer tu contraseña a tu correo electrónico',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Enviar enlace',
+                      onPress: () => console.log('Enviar enlace de recuperación')
+                    },
+                  ]
+                );
+              }}
+            >
               <Text style={styles.forgotText}>¿Olvidaste tu contraseña actual?</Text>
             </TouchableOpacity>
           </View>
@@ -439,7 +427,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
@@ -464,92 +452,104 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginLeft: 12,
   },
+  eyeButton: {
+    padding: 4,
+  },
   strengthContainer: {
     marginTop: 12,
   },
-  strengthBars: {
+  strengthHeader: {
     flexDirection: 'row',
-    gap: 6,
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
-  },
-  strengthBar: {
-    flex: 1,
-    height: 4,
-    backgroundColor: Colors.grayLight,
-    borderRadius: 2,
   },
   strengthLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
-  requirementsCard: {
-    marginTop: 12,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 12,
-    padding: 12,
-  },
-  requirementsTitle: {
+  strengthValue: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 8,
   },
-  requirementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
+  strengthBar: {
+    height: 6,
+    backgroundColor: Colors.grayLight,
+    borderRadius: 3,
+    overflow: 'hidden',
   },
-  requirementText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
+  strengthFill: {
+    height: '100%',
+    borderRadius: 3,
   },
   matchIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     marginTop: 8,
+    gap: 6,
   },
   matchText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
-  tipsCard: {
+  requirementsCard: {
     backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
     ...Colors.shadow,
   },
-  tipsTitle: {
-    fontSize: 15,
+  requirementsTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: Colors.textPrimary,
+    marginBottom: 16,
+  },
+  requirementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  requirementText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  requirementMet: {
+    color: Colors.success,
+    fontWeight: '600',
+  },
+  saveButton: {
+    marginBottom: 24,
+  },
+  tipsCard: {
+    backgroundColor: Colors.primaryVeryLight,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  tipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 12,
   },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  tipBullet: {
+  tipsTitle: {
     fontSize: 16,
-    color: Colors.primary,
-    marginRight: 8,
-    marginTop: -2,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
   },
-  tipText: {
-    flex: 1,
+  tipsList: {
+    gap: 8,
+  },
+  tipItem: {
     fontSize: 13,
     color: Colors.textSecondary,
     lineHeight: 20,
   },
-  submitButton: {
-    marginBottom: 16,
-  },
   forgotLink: {
     alignItems: 'center',
-    paddingVertical: 12,
+    padding: 12,
   },
   forgotText: {
     fontSize: 14,
