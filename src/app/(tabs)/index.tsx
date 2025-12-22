@@ -1,181 +1,226 @@
-import BusinessCard from '@/components/BusinessCard';
-import CategoryButton from '@/components/CategoryButton';
-import SearchBar from '@/components/SearchBar';
-import Colors from "@/constants/colors";
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-interface Category {
-  id: number;
-  name: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}
+import { Dimensions, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-interface Business {
-  id: number;
-  name: string;
-  rating: number;
-  category: string;
-  price: string;
-  distance: string;
-}
+const { width } = Dimensions.get('window');
+const cardWidth = (width - 48) / 2;
+
+
+const zones = [
+  {
+    id: 1,
+    title: 'Pátzcuaro Pueblo Mágico',
+    location: 'Michoacán',
+    slug: 'patzcuaro',
+    image: 'https://images.unsplash.com/photo-1518639192441-8fce0a366e2e?w=400&h=300&fit=crop'
+  },
+  {
+    id: 2,
+    title: 'Morelia Centro Histórico',
+    location: 'Michoacán',
+    slug: 'morelia',
+    image: 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=400&h=300&fit=crop'
+  },
+  {
+    id: 3,
+    title: 'Madrid Centro',
+    location: 'Madrid',
+    slug: 'madrid',
+    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=300&fit=crop'
+  },
+  {
+    id: 4,
+    title: 'Barcelona Gótico',
+    location: 'Barcelona',
+    slug: 'barcelona',
+    image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&h=300&fit=crop'
+  },
+  {
+    id: 5,
+    title: 'Uruapan',
+    location: 'Michoacán',
+    slug: 'uruapan',
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'
+  }
+];
+
 
 export default function HomeScreen() {
-  const categories: Category[] = [
-    { id: 1, name: 'Restaurantes', icon: 'restaurant' },
-    { id: 2, name: 'Hoteles', icon: 'bed' },
-    { id: 3, name: 'Tiendas', icon: 'storefront' },
-    { id: 4, name: 'Atracciones', icon: 'ticket' },
-  ];
+ 
+ const router = useRouter();
 
-  const featuredBusinesses: Business[] = [
-    {
-      id: 1,
-      name: 'Restaurant El Mirador',
-      rating: 4.8,
-      category: 'Cocina tradicional',
-      price: '$$',
-      distance: '2.3 km',
-    },
-    {
-      id: 2,
-      name: 'Hotel Vista Hermosa',
-      rating: 4.6,
-      category: 'Hotel boutique',
-      price: '$$$',
-      distance: '1.5 km',
-    },
-  ];
+  const handleZonePress = (zone) => {
+    router.push({
+      pathname: '/explore',
+      params: {
+        zoneId: zone.id,
+        zoneName: zone.title,
+        zoneLocation: zone.location,
+        zoneImage: zone.image
+      }
+    });
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header oscuro */}
-        <View style={styles.header}>
-          <View style={styles.welcomeRow}>
-            <View style={styles.welcomeSection}>
-              <View style={styles.logoIcon}>
-                <Image
-                  source={require("../../../assets/images/logo.png")}
-                  style={styles.logo}
-                />
-              </View>
-              <Text style={styles.welcomeText}>Bienvenid@</Text>
-              <Text style={styles.userName}>Edgar</Text>
-            </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton}>
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuButton}>
+          <View style={styles.menuIcon}>
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
           </View>
-        </View>
+        </TouchableOpacity>
+      </View>
 
-        {/* Contenido principal */}
-        <View style={styles.content}>
-          {/* Barra de búsqueda usando componente */}
-          <SearchBar
-            placeholder="Buscar restaurantes, hoteles, tiendas..."
-            style={styles.searchBar}
-          />
-
-          {/* Categorías usando componente */}
-          <Text style={styles.sectionTitle}>Categorías</Text>
-          <View style={styles.categoriesGrid}>
-            {categories.map((category) => (
-              <CategoryButton
-                key={category.id}
-                icon={category.icon}
-                label={category.name}
-                onPress={() => router.push('/explore')}
-                style={styles.categoryButton}
+      {/* Content */}
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Explora por Zona</Text>
+        
+        <View style={styles.grid}>
+          {zones.map((zone, index) => (
+            <TouchableOpacity 
+              key={zone.id} 
+              style={[
+                styles.card,
+                index % 2 === 0 ? styles.cardLeft : styles.cardRight
+              ]}
+              activeOpacity={0.8}
+              onPress={() => handleZonePress(zone)}
+            >
+              <Image 
+                source={{ uri: zone.image }}
+                style={styles.cardImage}
+                resizeMode="cover"
               />
-            ))}
-          </View>
-
-          {/* Destacados usando BusinessCard */}
-          <Text style={styles.sectionTitle}>Destacados</Text>
-          {featuredBusinesses.map((business) => (
-            <BusinessCard
-              key={business.id}
-              business={business}
-              style={styles.businessCard}
-            />
+              <View style={styles.cardOverlay}>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{zone.title}</Text>
+                  <Text style={styles.cardLocation}>{zone.location}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F5F5F5',
   },
   header: {
-    paddingTop: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    backgroundColor: Colors.darkBg,
-  },
-  welcomeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcomeSection: {
-    alignItems: 'center',
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  logoIcon: {
-    width: 56,
-    height: 56,
-    backgroundColor: Colors.darkBg,
-    borderRadius: 28,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  welcomeText: {
-    color: Colors.textLight,
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  userName: {
-    color: Colors.white,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  content: {
-    padding: 24,
-  },
-  searchBar: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    marginBottom: 16,
-  },
-  categoriesGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    paddingBottom: 16,
+    backgroundColor: '#003D7A',
   },
-  categoryButton: {
-    width: '23%',
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  businessCard: {
+  backIcon: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuIcon: {
+    width: 24,
+    height: 18,
+    justifyContent: 'space-between',
+  },
+  menuLine: {
+    width: '100%',
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  card: {
+    width: cardWidth,
+    height: 140,
     marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#333',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  cardLeft: {
+    marginRight: 16,
+  },
+  cardRight: {
+    marginLeft: 0,
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'flex-end',
+    padding: 12,
+  },
+  cardContent: {
+    gap: 2,
+  },
+  cardTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  cardLocation: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    opacity: 0.95,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
