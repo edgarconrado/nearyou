@@ -25,11 +25,11 @@ export default function ProfileScreen() {
 
   // Datos del usuario (en producción vendrían de una API o contexto)
   const user = {
-    name: 'Juan Pérez',
-    email: 'juan.perez@email.com',
+    name: 'Edgar Conrado',
+    email: 'edgar.conrado@email.com',
     avatar: 'https://i.pravatar.cc/200?img=12',
-    memberSince: 'Miembro desde 2023',
-    location: 'Pátzcuaro, Michoacán',
+    memberSince: 'Miembro desde 2025',
+    location: 'Jiquilpan, Michoacán',
   };
 
   const stats: UserStats = {

@@ -30,7 +30,7 @@ export default function AboutScreen() {
                     <View style={styles.logoContainer}>
                         <Ionicons name="location" size={60} color="#003D7A" />
                     </View>
-                    <Text style={styles.appName}>TurismoApp</Text>
+                    <Text style={styles.appName}>NearYou</Text>
                     <Text style={styles.appVersion}>Versión 1.0.0</Text>
                     <Text style={styles.appTagline}>
                         Descubre, explora y comparte experiencias
@@ -157,18 +157,18 @@ export default function AboutScreen() {
 
                     <TouchableOpacity
                         style={styles.contactItem}
-                        onPress={() => Linking.openURL('mailto:contacto@turismoapp.com')}
+                        onPress={() => Linking.openURL('mailto:contacto@nearyou.com')}
                     >
                         <Ionicons name="mail-outline" size={22} color="#666" />
-                        <Text style={styles.contactText}>contacto@turismoapp.com</Text>
+                        <Text style={styles.contactText}>contacto@nearyou.com</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.contactItem}
-                        onPress={() => Linking.openURL('https://www.turismoapp.com')}
+                        onPress={() => Linking.openURL('https://www.nearyou.com')}
                     >
                         <Ionicons name="globe-outline" size={22} color="#666" />
-                        <Text style={styles.contactText}>www.turismoapp.com</Text>
+                        <Text style={styles.contactText}>www.nearyou.com</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
