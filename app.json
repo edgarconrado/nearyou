@@ -2,7 +2,7 @@
   "expo": {
     "name": "nearyou",
     "slug": "nearyou",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nearyou",
@@ -24,7 +24,16 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.jacarandalab.nearyou"
+      "package": "com.jacarandalab.nearyou",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBbjBQ1GKJutUeWH_kbjEcdOXz4t9PelsQ"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -44,7 +53,8 @@
           }
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
