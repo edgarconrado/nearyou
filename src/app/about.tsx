@@ -1,220 +1,216 @@
-import Colors from "@/constants/colors";
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    Image,
     Linking,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
-import { SafeAreaView } from "react-native-safe-area-context";
-
-
-interface InfoItem {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-    value: string;
-}
-
-interface LinkItem {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-    url: string;
-}
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutScreen() {
-    const appInfo: InfoItem[] = [
-        {
-            icon: 'information-circle',
-            label: 'Versión',
-            value: '1.0.0',
-        },
-        {
-            icon: 'code-slash',
-            label: 'Build',
-            value: '2025.01.001',
-        },
-        {
-            icon: 'calendar',
-            label: 'Última actualización',
-            value: 'Noviembre 2025',
-        },
-    ];
-
-    const socialLinks: LinkItem[] = [
-        {
-            icon: 'globe',
-            label: 'Sitio web',
-            url: 'https://neeryou.com',
-        },
-        {
-            icon: 'logo-facebook',
-            label: 'Facebook',
-            url: 'https://facebook.com/neeryou',
-        },
-        {
-            icon: 'logo-instagram',
-            label: 'Instagram',
-            url: 'https://instagram.com/neeryou',
-        },
-        {
-            icon: 'logo-x',
-            label: 'X',
-            url: 'https://twitter.com/neeryou',
-        },
-        {
-            icon: 'mail',
-            label: 'Contacto',
-            url: 'mailto:contacto@neeryou.com',
-        },
-    ];
-
-    const legalLinks: LinkItem[] = [
-        {
-            icon: 'document-text',
-            label: 'Términos y Condiciones',
-            url: 'https://neeryou.com/terms',
-        },
-        {
-            icon: 'shield-checkmark',
-            label: 'Política de Privacidad',
-            url: 'https://neeryou.com/privacy',
-        },
-        {
-            icon: 'receipt',
-            label: 'Licencias',
-            url: 'https://neeryou.com/licenses',
-        },
-    ];
-
-    const handleOpenLink = (url: string) => {
-        Linking.openURL(url).catch(err => console.error('Error opening URL:', err));
-    };
+    const router = useRouter();
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
-                <View style={styles.header}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Acerca de</Text>
+                <View style={{ width: 24 }} />
+            </View>
+
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Logo y nombre de la app */}
+                <View style={styles.logoSection}>
+                    <View style={styles.logoContainer}>
+                        <Ionicons name="location" size={60} color="#003D7A" />
+                    </View>
+                    <Text style={styles.appName}>TurismoApp</Text>
+                    <Text style={styles.appVersion}>Versión 1.0.0</Text>
+                    <Text style={styles.appTagline}>
+                        Descubre, explora y comparte experiencias
+                    </Text>
+                </View>
+
+                {/* Acerca de nosotros */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Nuestra misión</Text>
+                    <Text style={styles.paragraph}>
+                        Conectamos a viajeros y locales con los mejores lugares de México.
+                        Nuestra misión es facilitar el descubrimiento de experiencias únicas
+                        y ayudar a pequeños negocios a crecer mediante reseñas auténticas y
+                        recomendaciones personalizadas.
+                    </Text>
+                    <Text style={styles.paragraph}>
+                        Creemos en el poder de la comunidad para transformar el turismo local,
+                        promoviendo lugares auténticos y experiencias memorables que reflejan
+                        la riqueza cultural de cada región.
+                    </Text>
+                </View>
+
+                {/* Características principales */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Características principales</Text>
+
+                    <View style={styles.featureItem}>
+                        <View style={[styles.featureIcon, { backgroundColor: '#E3F2FD' }]}>
+                            <Ionicons name="search" size={24} color="#2196F3" />
+                        </View>
+                        <View style={styles.featureText}>
+                            <Text style={styles.featureTitle}>Búsqueda avanzada</Text>
+                            <Text style={styles.featureDescription}>
+                                Encuentra lugares por categoría, ubicación o calificación
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.featureItem}>
+                        <View style={[styles.featureIcon, { backgroundColor: '#FFF3E0' }]}>
+                            <Ionicons name="star" size={24} color="#FF9800" />
+                        </View>
+                        <View style={styles.featureText}>
+                            <Text style={styles.featureTitle}>Reseñas verificadas</Text>
+                            <Text style={styles.featureDescription}>
+                                Lee opiniones reales de otros usuarios
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.featureItem}>
+                        <View style={[styles.featureIcon, { backgroundColor: '#E8F5E9' }]}>
+                            <Ionicons name="map" size={24} color="#4CAF50" />
+                        </View>
+                        <View style={styles.featureText}>
+                            <Text style={styles.featureTitle}>Mapas interactivos</Text>
+                            <Text style={styles.featureDescription}>
+                                Visualiza lugares cercanos y obtén direcciones
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.featureItem}>
+                        <View style={[styles.featureIcon, { backgroundColor: '#FCE4EC' }]}>
+                            <Ionicons name="heart" size={24} color="#E91E63" />
+                        </View>
+                        <View style={styles.featureText}>
+                            <Text style={styles.featureTitle}>Listas personalizadas</Text>
+                            <Text style={styles.featureDescription}>
+                                Guarda tus lugares favoritos y crea colecciones
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Equipo */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Nuestro equipo</Text>
+                    <Text style={styles.paragraph}>
+                        Somos un equipo apasionado de desarrolladores, diseñadores y entusiastas
+                        del turismo trabajando para crear la mejor experiencia de descubrimiento
+                        de lugares en México.
+                    </Text>
+                </View>
+
+                {/* Redes sociales */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Síguenos</Text>
+
+                    <View style={styles.socialLinks}>
+                        <TouchableOpacity
+                            style={styles.socialButton}
+                            onPress={() => Linking.openURL('https://www.facebook.com/tuapp')}
+                        >
+                            <Ionicons name="logo-facebook" size={28} color="#1877F2" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.socialButton}
+                            onPress={() => Linking.openURL('https://www.instagram.com/tuapp')}
+                        >
+                            <Ionicons name="logo-instagram" size={28} color="#E4405F" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.socialButton}
+                            onPress={() => Linking.openURL('https://twitter.com/tuapp')}
+                        >
+                            <Ionicons name="logo-twitter" size={28} color="#1DA1F2" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.socialButton}
+                            onPress={() => Linking.openURL('https://www.youtube.com/tuapp')}
+                        >
+                            <Ionicons name="logo-youtube" size={28} color="#FF0000" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Contacto */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Contacto</Text>
+
                     <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => router.back()}
+                        style={styles.contactItem}
+                        onPress={() => Linking.openURL('mailto:contacto@turismoapp.com')}
                     >
-                        <Ionicons name="arrow-back" size={24} color={Colors.white} />
+                        <Ionicons name="mail-outline" size={22} color="#666" />
+                        <Text style={styles.contactText}>contacto@turismoapp.com</Text>
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Acerca de</Text>
-                    <View style={styles.backButton} />
+
+                    <TouchableOpacity
+                        style={styles.contactItem}
+                        onPress={() => Linking.openURL('https://www.turismoapp.com')}
+                    >
+                        <Ionicons name="globe-outline" size={22} color="#666" />
+                        <Text style={styles.contactText}>www.turismoapp.com</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.contactItem}
+                        onPress={() => Linking.openURL('tel:+524341234567')}
+                    >
+                        <Ionicons name="call-outline" size={22} color="#666" />
+                        <Text style={styles.contactText}>+52 (434) 123-4567</Text>
+                    </TouchableOpacity>
                 </View>
 
-                {/* Content */}
-                <View style={styles.content}>
-                    {/* Logo Section */}
-                    <View style={styles.logoSection}>
-                        <View style={styles.logoCircle}>
-                <Image
-                  source={require("@assets/images/logo.png")}
-                  style={styles.logo}
-                />
-                        </View>
-                        <Text style={styles.appName}>NeerYou</Text>
-                        <Text style={styles.tagline}>Todo a tu alcance</Text>
-                    </View>
+                {/* Legal */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Legal</Text>
 
-                    {/* Description */}
-                    <View style={styles.card}>
-                        <Text style={styles.descriptionTitle}>Sobre NeerYou</Text>
-                        <Text style={styles.description}>
-                            NeerYou es tu compañero perfecto para descubrir y explorar los mejores
-                            lugares de tu comunidad. Desde restaurantes y hoteles hasta tiendas y
-                            atracciones locales, te ayudamos a encontrar todo lo que necesitas cerca de ti.
-                        </Text>
-                        <Text style={styles.description}>
-                            Nuestra misión es conectar a las personas con los negocios locales,
-                            promoviendo el turismo y el comercio en tu comunidad.
-                        </Text>
-                    </View>
+                    <TouchableOpacity style={styles.legalLink}>
+                        <Text style={styles.legalText}>Términos y condiciones</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                    </TouchableOpacity>
 
-                    {/* App Info */}
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Información de la App</Text>
-                        {appInfo.map((item, index) => (
-                            <View key={index} style={styles.infoRow}>
-                                <View style={styles.infoLeft}>
-                                    <Ionicons name={item.icon} size={20} color={Colors.primary} />
-                                    <Text style={styles.infoLabel}>{item.label}</Text>
-                                </View>
-                                <Text style={styles.infoValue}>{item.value}</Text>
-                            </View>
-                        ))}
-                    </View>
+                    <TouchableOpacity style={styles.legalLink}>
+                        <Text style={styles.legalText}>Política de privacidad</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                    </TouchableOpacity>
 
-                    {/* Social Links */}
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Síguenos</Text>
-                        {socialLinks.map((link, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.linkRow}
-                                onPress={() => handleOpenLink(link.url)}
-                            >
-                                <View style={styles.linkLeft}>
-                                    <Ionicons name={link.icon} size={20} color={Colors.primary} />
-                                    <Text style={styles.linkLabel}>{link.label}</Text>
-                                </View>
-                                <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* Legal Links */}
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Legal</Text>
-                        {legalLinks.map((link, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.linkRow}
-                                onPress={() => handleOpenLink(link.url)}
-                            >
-                                <View style={styles.linkLeft}>
-                                    <Ionicons name={link.icon} size={20} color={Colors.primary} />
-                                    <Text style={styles.linkLabel}>{link.label}</Text>
-                                </View>
-                                <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* Team Section */}
-                    <View style={styles.card}>
-                        <Text style={styles.sectionTitle}>Desarrollado con ❤️</Text>
-                        <Text style={styles.teamText}>
-                            Hecho con pasión en Jiquilpan, Michoacán, México
-                        </Text>
-                        <Text style={styles.copyrightText}>
-                            © 2025 NeerYou. Todos los derechos reservados.
-                        </Text>
-                    </View>
-
-                    {/* Credits */}
-                    <View style={styles.creditsSection}>
-                        <Text style={styles.creditsTitle}>Tecnologías Utilizadas</Text>
-                        <View style={styles.creditsRow}>
-                            <View style={styles.creditBadge}>
-                                <Text style={styles.creditText}>React Native</Text>
-                            </View>
-                            <View style={styles.creditBadge}>
-                                <Text style={styles.creditText}>Expo</Text>
-                            </View>
-                            <View style={styles.creditBadge}>
-                                <Text style={styles.creditText}>TypeScript</Text>
-                            </View>
-                        </View>
-                    </View>
+                    <TouchableOpacity style={styles.legalLink}>
+                        <Text style={styles.legalText}>Licencias de código abierto</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                    </TouchableOpacity>
                 </View>
+
+                {/* Footer */}
+                <View style={styles.footer}>
+                    <Text style={styles.footerText}>
+                        © 2026 TurismoApp. Todos los derechos reservados.
+                    </Text>
+                    <Text style={styles.footerText}>
+                        Hecho con ❤️ en Jiquilpan Michoacán México
+                    </Text>
+                </View>
+
+                <View style={{ height: 40 }} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -223,167 +219,152 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: '#F5F5F5',
     },
     header: {
-        backgroundColor: Colors.darkBg,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingVertical: 16,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
+        paddingVertical: 12,
+        backgroundColor: '#003D7A',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.white,
+        color: '#FFFFFF',
     },
     content: {
-        padding: 24,
+        flex: 1,
     },
     logoSection: {
+        backgroundColor: '#FFFFFF',
         alignItems: 'center',
-        marginBottom: 32,
-        marginTop: 16,
+        paddingVertical: 40,
+        marginBottom: 8,
     },
-    logoCircle: {
+    logoContainer: {
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: Colors.darkBg,
+        backgroundColor: '#E3F2FD',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
-        ...Colors.shadowLarge,
-        position: 'relative',
-    },
-    chevronIcon: {
-        position: 'absolute',
-        bottom: 24,
     },
     appName: {
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: 'bold',
-        color: Colors.textPrimary,
-        marginBottom: 8,
+        color: '#003D7A',
+        marginBottom: 4,
     },
-    tagline: {
-        fontSize: 16,
-        color: Colors.textSecondary,
-    },
-    card: {
-        backgroundColor: Colors.white,
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 16,
-        ...Colors.shadow,
-    },
-    descriptionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: Colors.textPrimary,
+    appVersion: {
+        fontSize: 14,
+        color: '#999',
         marginBottom: 12,
     },
-    description: {
-        fontSize: 14,
-        color: Colors.textSecondary,
+    appTagline: {
+        fontSize: 15,
+        color: '#666',
+        textAlign: 'center',
+        paddingHorizontal: 40,
+    },
+    section: {
+        backgroundColor: '#FFFFFF',
+        padding: 20,
+        marginTop: 8,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 12,
+    },
+    paragraph: {
+        fontSize: 15,
+        color: '#666',
         lineHeight: 22,
         marginBottom: 12,
     },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: Colors.textPrimary,
-        marginBottom: 16,
-    },
-    infoRow: {
+    featureItem: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.grayLight,
-    },
-    infoLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
+        marginBottom: 20,
         gap: 12,
     },
-    infoLabel: {
-        fontSize: 14,
-        color: Colors.textPrimary,
-    },
-    infoValue: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-        fontWeight: '600',
-    },
-    linkRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    featureIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.grayLight,
     },
-    linkLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
+    featureText: {
         flex: 1,
     },
-    linkLabel: {
-        fontSize: 14,
-        color: Colors.textPrimary,
-    },
-    teamText: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    copyrightText: {
-        fontSize: 12,
-        color: Colors.gray,
-        textAlign: 'center',
-    },
-    creditsSection: {
-        alignItems: 'center',
-        marginTop: 16,
-        marginBottom: 32,
-    },
-    creditsTitle: {
-        fontSize: 14,
+    featureTitle: {
+        fontSize: 16,
         fontWeight: '600',
-        color: Colors.textSecondary,
-        marginBottom: 12,
+        color: '#333',
+        marginBottom: 4,
     },
-    creditsRow: {
+    featureDescription: {
+        fontSize: 14,
+        color: '#666',
+        lineHeight: 20,
+    },
+    socialLinks: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
         justifyContent: 'center',
-        gap: 8,
+        gap: 20,
+        marginTop: 8,
     },
-    creditBadge: {
-        backgroundColor: Colors.primaryLight,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
+    socialButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#F5F5F5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
-    creditText: {
-        fontSize: 12,
-        color: Colors.primary,
-        fontWeight: '600',
+    contactItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
     },
-    logo: {
-        width: 80,
-        height: 80,
+    contactText: {
+        fontSize: 15,
+        color: '#003D7A',
+    },
+    legalLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    legalText: {
+        fontSize: 15,
+        color: '#333',
+    },
+    footer: {
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+        paddingVertical: 24,
+        marginTop: 8,
+    },
+    footerText: {
+        fontSize: 13,
+        color: '#999',
+        marginBottom: 4,
     },
 });
