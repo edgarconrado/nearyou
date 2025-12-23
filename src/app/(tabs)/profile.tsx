@@ -1,286 +1,341 @@
-import PrimaryButton from "@/components/PrimaryButton";
-import Colors from "@/constants/colors";
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
 import {
   Alert,
   Image,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-interface User {
-  name: string;
-  email: string;
-  phone: string;
-  profileImage: string | null;
-}
-
-interface Stats {
+interface UserStats {
   favorites: number;
   reviews: number;
   visits: number;
 }
 
-interface FavoriteBusiness {
-  id: number;
-  name: string;
-  category: string;
-  rating: number;
-  distance: string;
-  image?: string;
-}
-
-interface SettingsItem {
-  id: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value?: string;
-  onPress: () => void;
-  isLogout?: boolean;
-}
-
 export default function ProfileScreen() {
-  const [user, setUser] = useState<User>({
-    name: 'Edgar',
-    email: 'edgar@email.com',
-    phone: '+52 33 1234 5678',
-    profileImage: null,
-  });
+  const router = useRouter();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const [stats, setStats] = useState<Stats>({
-    favorites: 15,
+  // Datos del usuario (en producción vendrían de una API o contexto)
+  const user = {
+    name: 'Juan Pérez',
+    email: 'juan.perez@email.com',
+    avatar: 'https://i.pravatar.cc/200?img=12',
+    memberSince: 'Miembro desde 2023',
+    location: 'Pátzcuaro, Michoacán',
+  };
+
+  const stats: UserStats = {
+    favorites: 12,
     reviews: 8,
-    visits: 34,
-  });
-
-  const favoriteBusinesses: FavoriteBusiness[] = [
-    {
-      id: 1,
-      name: 'Restaurant El Mirador',
-      category: 'Restaurante',
-      rating: 4.8,
-      distance: '2.3 km',
-    },
-    {
-      id: 2,
-      name: 'Café Aroma',
-      category: 'Café',
-      rating: 4.9,
-      distance: '0.8 km',
-    },
-    {
-      id: 3,
-      name: 'Hotel Vista Hermosa',
-      category: 'Hotel',
-      rating: 4.6,
-      distance: '1.5 km',
-    },
-  ];
+    visits: 24,
+  };
 
   const handleLogout = () => {
     Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro que deseas cerrar sesión?',
+      'Cerrar sesión',
+      '¿Estás seguro de que deseas cerrar sesión?',
       [
+        { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Cerrar Sesión',
+          text: 'Cerrar sesión',
           style: 'destructive',
           onPress: () => {
-            router.replace('/login');
+            // Aquí irías a la pantalla de login
+            Alert.alert('Sesión cerrada', 'Has cerrado sesión exitosamente');
           },
         },
       ]
     );
   };
 
-  const handleRemoveFavorite = (businessId: number) => {
+  const handleEditProfile = () => {
+    router.push('/edit-profile');
+  };
+
+  const handleFavorites = () => {
+    router.push('/my-favorites');
+  };
+
+  const handleMyReviews = () => {
+    router.push('/my-reviews');
+  };
+
+  const handleMyVisits = () => {
+    router.push('/my-visits');
+  };
+
+  const handleNotifications = () => {
+    router.push('/notifications-settings');
+  };
+
+  const handlePrivacy = () => {
+    router.push('/privacy-settings');
+  };
+
+  const handleLanguage = () => {
     Alert.alert(
-      'Eliminar de favoritos',
-      '¿Deseas eliminar este negocio de tus favoritos?',
+      'Idioma',
+      'Selecciona tu idioma',
       [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => {
-            console.log('Eliminar favorito:', businessId);
-            // Aquí irá la lógica para eliminar
-          },
-        },
+        { text: 'Español', onPress: () => console.log('Español seleccionado') },
+        { text: 'English', onPress: () => console.log('English selected') },
+        { text: 'Cancelar', style: 'cancel' },
       ]
     );
   };
 
-  const settingsItems: SettingsItem[] = [
-    {
-      id: 'edit-profile',
-      icon: 'person-outline',
-      label: 'Editar perfil',
-      onPress: () => router.push('/edit-profile'),
-    },
-    {
-      id: 'notifications',
-      icon: 'notifications-outline',
-      label: 'Notificaciones',
-      onPress: () => router.push('/notifications'),
-    },
-    {
-      id: 'privacy',
-      icon: 'lock-closed-outline',
-      label: 'Privacidad',
-      onPress: () => router.push('/privacy'),
-    },
-    {
-      id: 'language',
-      icon: 'language-outline',
-      label: 'Idioma',
-      value: 'Español',
-      onPress: () => router.push('/language'),
-    },
-    {
-      id: 'help',
-      icon: 'help-circle-outline',
-      label: 'Ayuda y Soporte',
-      onPress: () => router.push('/help'),
-    },
-    {
-      id: 'about',
-      icon: 'information-circle-outline',
-      label: 'Acerca de',
-      onPress: () => router.push('/about'),
-    },
-    {
-      id: 'logout',
-      icon: 'log-out-outline',
-      label: 'Cerrar sesión',
-      onPress: handleLogout,
-      isLogout: true,
-    },
-  ];
+  const handleHelp = () => {
+    router.push('/help-support');
+  };
+
+  const handleAbout = () => {
+    router.push('/about');
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
-              {user.profileImage ? (
-                <Image source={{ uri: user.profileImage }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Ionicons name="person" size={40} color={Colors.primary} />
-                </View>
-              )}
-              <TouchableOpacity style={styles.editAvatarButton}>
-                <Ionicons name="camera" size={16} color={Colors.white} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{stats.favorites}</Text>
-              <Text style={styles.statLabel}>Favoritos</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{stats.reviews}</Text>
-              <Text style={styles.statLabel}>Reseñas</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statValue}>{stats.visits}</Text>
-              <Text style={styles.statLabel}>Visitas</Text>
-            </View>
-          </View>
+          <Text style={styles.headerTitle}>Mi Perfil</Text>
+          <TouchableOpacity style={styles.settingsButton} onPress={handleEditProfile}>
+            <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {/* Favorite Businesses */}
-          <Text style={styles.sectionTitle}>Mis Favoritos</Text>
-          {favoriteBusinesses.map((business) => (
-            <View key={business.id} style={styles.favoriteCard}>
-              <View style={styles.favoriteIcon}>
-                <Ionicons name="heart" size={24} color={Colors.primary} />
-              </View>
-              <View style={styles.favoriteInfo}>
-                <Text style={styles.favoriteName}>{business.name}</Text>
-                <View style={styles.favoriteDetails}>
-                  <Ionicons name="star" size={14} color={Colors.accent} />
-                  <Text style={styles.favoriteRating}>{business.rating}</Text>
-                  <Text style={styles.favoriteMeta}> • {business.category} • {business.distance}</Text>
-                </View>
-              </View>
-              <TouchableOpacity onPress={() => handleRemoveFavorite(business.id)}>
-                <Ionicons name="heart-dislike" size={20} color={Colors.error} />
-              </TouchableOpacity>
+        {/* Información del usuario */}
+        <View style={styles.profileSection}>
+          <TouchableOpacity 
+            style={styles.avatarContainer}
+            onPress={handleEditProfile}
+          >
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <View style={styles.editAvatarBadge}>
+              <Ionicons name="camera" size={16} color="#FFFFFF" />
             </View>
-          ))}
+          </TouchableOpacity>
 
-          <PrimaryButton
-            title="Ver todos los favoritos"
-            variant="outline"
-            onPress={() => console.log('Ver todos los favoritos')}
-            style={styles.viewAllButton}
-          />
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
+          <View style={styles.memberInfo}>
+            <Ionicons name="time-outline" size={14} color="#666" />
+            <Text style={styles.memberText}>{user.memberSince}</Text>
+          </View>
+          <View style={styles.locationInfo}>
+            <Ionicons name="location-outline" size={14} color="#666" />
+            <Text style={styles.locationText}>{user.location}</Text>
+          </View>
 
-          {/* Settings Section */}
+          <TouchableOpacity 
+            style={styles.editProfileButton}
+            onPress={handleEditProfile}
+          >
+            <Ionicons name="create-outline" size={18} color="#003D7A" />
+            <Text style={styles.editProfileText}>Editar perfil</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Estadísticas */}
+        <View style={styles.statsSection}>
+          <TouchableOpacity 
+            style={styles.statCard}
+            onPress={handleFavorites}
+          >
+            <Ionicons name="heart" size={28} color="#FF3B30" />
+            <Text style={styles.statNumber}>{stats.favorites}</Text>
+            <Text style={styles.statLabel}>Favoritos</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.statCard}
+            onPress={handleMyReviews}
+          >
+            <Ionicons name="star" size={28} color="#FFB800" />
+            <Text style={styles.statNumber}>{stats.reviews}</Text>
+            <Text style={styles.statLabel}>Reseñas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.statCard}
+            onPress={handleMyVisits}
+          >
+            <Ionicons name="location" size={28} color="#003D7A" />
+            <Text style={styles.statNumber}>{stats.visits}</Text>
+            <Text style={styles.statLabel}>Visitas</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Mi actividad */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Mi actividad</Text>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleFavorites}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
+                <Ionicons name="heart" size={22} color="#FF3B30" />
+              </View>
+              <Text style={styles.menuItemText}>Lugares favoritos</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              <Text style={styles.menuItemCount}>{stats.favorites}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleMyReviews}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#FFF8E1' }]}>
+                <Ionicons name="chatbox-ellipses" size={22} color="#FFB800" />
+              </View>
+              <Text style={styles.menuItemText}>Mis reseñas</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              <Text style={styles.menuItemCount}>{stats.reviews}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleMyVisits}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="map" size={22} color="#003D7A" />
+              </View>
+              <Text style={styles.menuItemText}>Lugares visitados</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              <Text style={styles.menuItemCount}>{stats.visits}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Configuración */}
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Configuración</Text>
 
-          {settingsItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.settingsItem,
-                item.isLogout && styles.logoutItem
-              ]}
-              onPress={item.onPress}
-            >
-              <View style={styles.settingsItemLeft}>
-                <Ionicons
-                  name={item.icon}
-                  size={24}
-                  color={item.isLogout ? Colors.error : Colors.textPrimary}
-                />
-                <Text style={[
-                  styles.settingsText,
-                  item.isLogout && styles.logoutText
-                ]}>
-                  {item.label}
-                </Text>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleEditProfile}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#F3E5F5' }]}>
+                <Ionicons name="person" size={22} color="#9C27B0" />
               </View>
-              <View style={styles.settingsItemRight}>
-                {item.value && (
-                  <Text style={styles.settingsValue}>{item.value}</Text>
-                )}
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={item.isLogout ? Colors.error : Colors.gray}
-                />
-              </View>
-            </TouchableOpacity>
-          ))}
+              <Text style={styles.menuItemText}>Editar perfil</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
 
-          {/* App Version */}
+          <View style={styles.menuItem}>
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#E8F5E9' }]}>
+                <Ionicons name="notifications" size={22} color="#4CAF50" />
+              </View>
+              <Text style={styles.menuItemText}>Notificaciones</Text>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: '#D0D0D0', true: '#4CAF50' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handlePrivacy}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
+                <Ionicons name="shield-checkmark" size={22} color="#FF9800" />
+              </View>
+              <Text style={styles.menuItemText}>Privacidad y seguridad</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleLanguage}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#E1F5FE' }]}>
+                <Ionicons name="language" size={22} color="#03A9F4" />
+              </View>
+              <Text style={styles.menuItemText}>Idioma</Text>
+            </View>
+            <View style={styles.menuItemRight}>
+              <Text style={styles.languageText}>Español</Text>
+              <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Soporte */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Soporte</Text>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleHelp}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#FCE4EC' }]}>
+                <Ionicons name="help-circle" size={22} color="#E91E63" />
+              </View>
+              <Text style={styles.menuItemText}>Ayuda y soporte</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleAbout}
+          >
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#F1F8E9' }]}>
+                <Ionicons name="information-circle" size={22} color="#8BC34A" />
+              </View>
+              <Text style={styles.menuItemText}>Acerca de</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Cerrar sesión */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Versión de la app */}
+        <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Versión 1.0.0</Text>
         </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -289,180 +344,203 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: Colors.darkBg,
-    paddingTop: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#003D7A',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  settingsButton: {
+    padding: 4,
   },
   profileSection: {
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    marginBottom: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
   avatarContainer: {
     position: 'relative',
     marginBottom: 16,
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
+    borderColor: '#003D7A',
   },
-  avatarPlaceholder: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editAvatarButton: {
+  editAvatarBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
+    backgroundColor: '#003D7A',
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: Colors.darkBg,
+    borderColor: '#FFFFFF',
   },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.white,
+    color: '#333',
     marginBottom: 4,
   },
   userEmail: {
-    fontSize: 14,
-    color: Colors.textLight,
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 12,
   },
-  statsContainer: {
+  memberInfo: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  memberText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  locationInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 20,
+  },
+  locationText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  editProfileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#003D7A',
+  },
+  editProfileText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#003D7A',
+  },
+  statsSection: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    gap: 12,
   },
   statCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 16,
     flex: 1,
-    marginHorizontal: 4,
     alignItems: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#E0E0E0',
   },
-  statValue: {
+  statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.white,
+    color: '#333',
+    marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 12,
-    color: Colors.textLight,
-    textAlign: 'center',
+    fontSize: 13,
+    color: '#666',
   },
-  content: {
-    padding: 24,
+  section: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: '#333',
     marginBottom: 16,
-    marginTop: 8,
   },
-  favoriteCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    ...Colors.shadow,
-  },
-  favoriteIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  favoriteInfo: {
-    flex: 1,
-  },
-  favoriteName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  favoriteDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  favoriteRating: {
-    fontSize: 12,
-    color: Colors.textPrimary,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  favoriteMeta: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  viewAllButton: {
-    marginBottom: 24,
-  },
-  settingsItem: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 16,
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
-    ...Colors.shadow,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  settingsItemLeft: {
+  menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
     flex: 1,
   },
-  settingsItemRight: {
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
+  menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  settingsText: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-    marginLeft: 12,
-  },
-  settingsValue: {
+  menuItemCount: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: '#666',
+    fontWeight: '600',
   },
-  logoutItem: {
-    marginTop: 16,
+  languageText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#FFEBEE',
     borderWidth: 1,
-    borderColor: Colors.error,
-    backgroundColor: Colors.white,
+    borderColor: '#FF3B30',
   },
   logoutText: {
-    color: Colors.error,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
+  },
+  versionContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
   },
   versionText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 24,
-    marginBottom: 16,
+    fontSize: 13,
+    color: '#999',
   },
 });
