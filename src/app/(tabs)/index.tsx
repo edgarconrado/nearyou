@@ -1,10 +1,14 @@
+import { Header } from '@/components/home/Header';
+import { ZoneGrid } from '@/components/home/ZoneGrid';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2;
-
+import {
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 const zones = [
   {
@@ -49,68 +53,26 @@ export default function HomeScreen() {
  
  const router = useRouter();
 
-  const handleZonePress = (zone) => {
+  const handleZonePress = (zone: any) => {
     router.push({
       pathname: '/explore',
       params: {
         zoneId: zone.id,
         zoneName: zone.title,
         zoneLocation: zone.location,
-        zoneImage: zone.image
-      }
+        zoneImage: zone.image,
+      },
     });
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuButton}>
-          <View style={styles.menuIcon}>
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
-          </View>
-        </TouchableOpacity>
-      </View>
+      <Header />
 
-      {/* Content */}
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Explora por Zona</Text>
-        
-        <View style={styles.grid}>
-          {zones.map((zone, index) => (
-            <TouchableOpacity 
-              key={zone.id} 
-              style={[
-                styles.card,
-                index % 2 === 0 ? styles.cardLeft : styles.cardRight
-              ]}
-              activeOpacity={0.8}
-              onPress={() => handleZonePress(zone)}
-            >
-              <Image 
-                source={{ uri: zone.image }}
-                style={styles.cardImage}
-                resizeMode="cover"
-              />
-              <View style={styles.cardOverlay}>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>{zone.title}</Text>
-                  <Text style={styles.cardLocation}>{zone.location}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <ZoneGrid zones={zones} onZonePress={handleZonePress} />
       </ScrollView>
     </View>
   );
@@ -121,46 +83,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 16,
-    backgroundColor: '#003D7A',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backIcon: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuIcon: {
-    width: 24,
-    height: 18,
-    justifyContent: 'space-between',
-  },
-  menuLine: {
-    width: '100%',
-    height: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
-  },
-  content: {
-    flex: 1,
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -168,59 +90,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 16,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  card: {
-    width: cardWidth,
-    height: 140,
-    marginBottom: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#333',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  cardLeft: {
-    marginRight: 16,
-  },
-  cardRight: {
-    marginLeft: 0,
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    justifyContent: 'flex-end',
-    padding: 12,
-  },
-  cardContent: {
-    gap: 2,
-  },
-  cardTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  cardLocation: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    opacity: 0.95,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
 });
