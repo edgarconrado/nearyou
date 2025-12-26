@@ -1,5 +1,6 @@
 import { Header } from '@/components/home/Header';
 import { ZoneGrid } from '@/components/home/ZoneGrid';
+import { Logo } from '@/components/shared/logo';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -50,8 +51,8 @@ const zones = [
 
 
 export default function HomeScreen() {
- 
- const router = useRouter();
+
+  const router = useRouter();
 
   const handleZonePress = (zone: any) => {
     router.push({
@@ -66,9 +67,17 @@ export default function HomeScreen() {
   };
 
   return (
+
     <View style={styles.container}>
+
       <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
       <Header />
+
+      {/* Logo y nombre de la app */}
+      <Logo
+        version='Versión 1.0.0'
+        slogan='Descubre, explora y comparte experiencias'
+      />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Explora por Zona</Text>

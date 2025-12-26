@@ -195,7 +195,7 @@ export default function DetailScreen() {
         console.log('Compartir cancelado');
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo compartir el contenido');
+      Alert.alert('Error', 'No se pudo compartir el contenido  ' + error);
     }
   };
 

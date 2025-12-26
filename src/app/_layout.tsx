@@ -16,14 +16,13 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="about" options={{ headerShown: false }} />
-        <Stack.Screen name="change-password" options={{ headerShown: false }} />
+        <Stack.Screen name="detail" options={{ headerShown: false }} />
+        <Stack.Screen name="my-reviews" options={{ headerShown: false }} />
+        <Stack.Screen name="my-visits" options={{ headerShown: false }} />
         <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
-        <Stack.Screen name="help" options={{ headerShown: false }} />
-        <Stack.Screen name="language" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="notifications" options={{ headerShown: false }} />
-        <Stack.Screen name="privacy" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy-settings" options={{ headerShown: false }} />
+        <Stack.Screen name="help-support" options={{ headerShown: false }} />
+        <Stack.Screen name="about" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

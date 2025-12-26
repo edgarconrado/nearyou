@@ -8,19 +8,19 @@ export interface Business {
   isOpen: boolean;
   image: string;
   description: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  phone: string;
-  email: string;
-  website: string;
-  coordinates: {
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  coordinates?: {
     latitude: number;
     longitude: number;
   };
-  priceRange: string;
-  features: string[];
-  gallery: string[];
+  priceRange?: string;
+  features?: string[];
+  gallery?: string[];
 }
 
 export interface Offer {

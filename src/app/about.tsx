@@ -1,3 +1,4 @@
+import { Logo } from '@/components/shared/logo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -26,16 +27,11 @@ export default function AboutScreen() {
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Logo y nombre de la app */}
-                <View style={styles.logoSection}>
-                    <View style={styles.logoContainer}>
-                        <Ionicons name="location" size={60} color="#003D7A" />
-                    </View>
-                    <Text style={styles.appName}>NearYou</Text>
-                    <Text style={styles.appVersion}>Versión 1.0.0</Text>
-                    <Text style={styles.appTagline}>
-                        Descubre, explora y comparte experiencias
-                    </Text>
-                </View>
+                <Logo
+                    version='Versión 1.0.0'
+                    slogan='Descubre, explora y comparte experiencias'
+                />
+
 
                 {/* Acerca de nosotros */}
                 <View style={styles.section}>
@@ -203,7 +199,7 @@ export default function AboutScreen() {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        © 2026 TurismoApp. Todos los derechos reservados.
+                        © 2026 NearYou. Todos los derechos reservados.
                     </Text>
                     <Text style={styles.footerText}>
                         Hecho con ❤️ en Jiquilpan Michoacán México
