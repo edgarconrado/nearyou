@@ -75,7 +75,7 @@ export default function HomeScreen() {
 
       {/* Logo y nombre de la app */}
       <Logo
-        version='Versión 1.0.0'
+        version='Versión 1.0.3'
         slogan='Descubre, explora y comparte experiencias'
       />
 

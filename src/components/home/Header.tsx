@@ -7,7 +7,7 @@ export function Header() {
       <TouchableOpacity style={styles.backButton}>
         <Text style={styles.backIcon}></Text>
       </TouchableOpacity>
-
+{/* 
       <TouchableOpacity style={styles.menuButton}>
         <View style={styles.menuIcon}>
           <View style={styles.menuLine} />
@@ -15,6 +15,7 @@ export function Header() {
           <View style={styles.menuLine} />
         </View>
       </TouchableOpacity>
+*/}
     </View>
   );
 }
