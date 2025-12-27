@@ -1,22 +1,16 @@
+import { Zone } from '@/lib/supabase';
 import React from 'react';
 import {
-    Dimensions,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2;
-
-type Zone = {
-  id: number;
-  title: string;
-  location: string;
-  image: string;
-};
+const cardWidth = (width - 48) / 2; // 16px padding on each side + 16px gap
 
 type Props = {
   zone: Zone;
@@ -27,19 +21,25 @@ type Props = {
 export function ZoneCard({ zone, index, onPress }: Props) {
   return (
     <TouchableOpacity
-      style={[
-        styles.card,
-        index % 2 === 0 ? styles.cardLeft : styles.cardRight,
-      ]}
-      activeOpacity={0.8}
+      style={[styles.card, index % 2 === 0 ? styles.cardLeft : styles.cardRight]}
       onPress={() => onPress(zone)}
+      activeOpacity={0.8}
     >
-      <Image source={{ uri: zone.image }} style={styles.cardImage} />
-      <View style={styles.cardOverlay}>
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{zone.title}</Text>
-          <Text style={styles.cardLocation}>{zone.location}</Text>
-        </View>
+      <Image
+        source={{ 
+          uri: zone.image_url || 'https://via.placeholder.com/400x300?text=Sin+imagen' 
+        }}
+        style={styles.image}
+        resizeMode="cover"
+      />
+      <View style={styles.overlay} />
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={2}>
+          {zone.name}
+        </Text>
+        <Text style={styles.location} numberOfLines={1}>
+          {zone.state}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -48,40 +48,46 @@ export function ZoneCard({ zone, index, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     width: cardWidth,
-    height: 140,
-    marginBottom: 16,
+    height: 200,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#333',
+    marginBottom: 16,
+    backgroundColor: '#FFF',
     elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   cardLeft: {
-    marginRight: 16,
+    marginRight: 8,
   },
   cardRight: {
-    marginLeft: 0,
+    marginLeft: 8,
   },
-  cardImage: {
+  image: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
   },
-  cardOverlay: {
+  overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'flex-end',
     padding: 12,
   },
-  cardContent: {
-    gap: 2,
-  },
-  cardTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
+  title: {
+    fontSize: 16,
     fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 4,
   },
-  cardLocation: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    opacity: 0.95,
+  location: {
+    fontSize: 13,
+    color: '#FFF',
+    opacity: 0.9,
   },
 });

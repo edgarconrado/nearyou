@@ -1,14 +1,7 @@
+import { Zone } from '@/lib/supabase';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ZoneCard } from './ZoneCard';
-
-
-type Zone = {
-  id: number;
-  title: string;
-  location: string;
-  image: string;
-};
 
 type Props = {
   zones: Zone[];
