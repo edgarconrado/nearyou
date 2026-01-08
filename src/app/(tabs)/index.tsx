@@ -2,7 +2,7 @@ import { Header } from '@/components/home/Header';
 import { ZoneGrid } from '@/components/home/ZoneGrid';
 import { Logo } from '@/components/shared/logo';
 import { useZones } from '@/hooks/use-zones';
-import type { Zone } from '@/lib/supabase';
+import type { Zone } from '@/services/zones.service';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -41,7 +41,7 @@ export default function HomeScreen() {
       />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Explora por Zonas</Text>
+        <Text style={styles.title}>Explora por Zona</Text>
 
         {loading ? (
           <View style={styles.loadingContainer}>

@@ -1,4 +1,4 @@
-import { Zone } from '@/lib/supabase';
+import type { Zone } from '@/services/zones.service';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ZoneCard } from './ZoneCard';
