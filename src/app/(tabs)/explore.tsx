@@ -9,7 +9,7 @@ import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { FiltersSection } from '@/components/explore/FiltersSection';
 import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
-import { Business, Offer } from '../../types/types';
+import { Business } from '../../types/types';
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
@@ -17,56 +17,9 @@ export default function ExploreScreen() {
   const [selectedFilter, setSelectedFilter] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { zoneName, zoneLocation, zoneImage } = params;
+  const { zoneName, zoneLocation, zoneImage, zoneId } = params;
 
-  const offers: Offer[] = [
-    {
-      id: 1,
-      businessName: 'Restaurant El Mirador',
-      title: '2x1 en platillos principales',
-      discount: '50%',
-      image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop',
-      validUntil: '31 Dic',
-      category: 'Restaurante',
-    },
-    {
-      id: 2,
-      businessName: 'Spa Zen Wellness',
-      title: 'Masaje de 60 min + facial',
-      discount: '30%',
-      image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=300&fit=crop',
-      validUntil: '15 Ene',
-      category: 'Servicios',
-    },
-    {
-      id: 3,
-      businessName: 'Hotel Vista Hermosa',
-      title: 'Noche de hotel + desayuno',
-      discount: '25%',
-      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&h=300&fit=crop',
-      validUntil: '28 Dic',
-      category: 'Hotel',
-    },
-    {
-      id: 4,
-      businessName: 'Boutique La Moda',
-      title: 'Descuento en toda la tienda',
-      discount: '40%',
-      image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=300&fit=crop',
-      validUntil: '10 Ene',
-      category: 'Tienda',
-    },
-    {
-      id: 5,
-      businessName: 'Café Aroma',
-      title: 'Café + postre del día',
-      discount: '20%',
-      image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop',
-      validUntil: '05 Ene',
-      category: 'Restaurante',
-    },
-  ];
-
+  // Datos de ejemplo de businesses (más adelante los obtendrás de Supabase)
   const businesses: Business[] = [
     {
       id: 1,
@@ -181,6 +134,15 @@ export default function ExploreScreen() {
     setSelectedFilter('Todos');
   };
 
+  const handleSeeAllOffers = () => {
+    // Navegar a pantalla de todas las ofertas
+    router.push({
+      //pathname: '/offers',
+      pathname: '/detail',
+      params: { zoneId, zoneName }
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
@@ -199,7 +161,10 @@ export default function ExploreScreen() {
       />
 
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        <OffersSection offers={offers} />
+        <OffersSection 
+          zoneId={zoneId as string}
+          onSeeAll={handleSeeAllOffers}
+        />
 
         <FiltersSection
           selectedFilter={selectedFilter}
