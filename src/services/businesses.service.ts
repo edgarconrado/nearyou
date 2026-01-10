@@ -327,25 +327,47 @@ export class BusinessesService {
    */
   static async incrementVisitCount(id: string): Promise<{ success: boolean; error: Error | null }> {
     try {
-      const { error } = await supabase.rpc('increment_visit_count', { business_id: id });
+      // Intentar usar la función RPC si existe
+      const { error: rpcError } = await supabase.rpc('increment_visit_count', { business_id: id });
 
-      if (error) throw error;
+      if (!rpcError) {
+        return { success: true, error: null };
+      }
+
+      // Si la función RPC no existe o falla, hacerlo manualmente
+      console.log('RPC no disponible, incrementando manualmente');
+
+      // Primero obtener el negocio actual
+      const { data: business, error: fetchError } = await supabase
+        .from('businesses')
+        .select('total_visits')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.warn('No se pudo obtener el negocio para incrementar visitas:', fetchError);
+        // No lanzar error, solo loguear - no es crítico
+        return { success: false, error: fetchError as Error };
+      }
+
+      // Actualizar el contador
+      const { error: updateError } = await supabase
+        .from('businesses')
+        .update({
+          total_visits: (business?.total_visits || 0) + 1
+        })
+        .eq('id', id);
+
+      if (updateError) {
+        console.warn('No se pudo incrementar el contador de visitas:', updateError);
+        return { success: false, error: updateError as Error };
+      }
 
       return { success: true, error: null };
     } catch (error) {
-      // Si la función RPC no existe, hacerlo manualmente
-      try {
-        const { data: business } = await this.getBusinessById(id);
-        if (business) {
-          await this.updateBusiness(id, {
-            total_visits: (business.total_visits || 0) + 1,
-          });
-        }
-        return { success: true, error: null };
-      } catch (err) {
-        console.error('Error incrementing visit count:', err);
-        return { success: false, error: err as Error };
-      }
+      console.warn('Error incrementando visitas:', error);
+      // No lanzar error, solo retornar - no queremos que esto bloquee la carga
+      return { success: false, error: error as Error };
     }
   }
 
@@ -402,9 +424,9 @@ export class BusinessesService {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(this.toRad(lat1)) *
-        Math.cos(this.toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos(this.toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }

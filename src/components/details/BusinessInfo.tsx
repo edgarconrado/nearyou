@@ -1,10 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Business } from '../../types/types';
+
+interface BusinessData {
+    id: string;
+    name: string;
+    category: string;
+    rating: number;
+    reviews: number;
+    isOpen: boolean;
+    description: string;
+    priceRange: string;
+    features: string[];
+}
 
 interface BusinessInfoProps {
-    business: Business;
+    business: BusinessData;
     isFavorite: boolean;
     onToggleFavorite: () => void;
 }
@@ -50,9 +61,17 @@ export const BusinessInfo: React.FC<BusinessInfoProps> = ({
             </Text>
 
             <View style={styles.ratingRow}>
-                <View style={styles.starsRow}>{renderStars(business.rating, 20)}</View>
-                <Text style={styles.ratingText}>{business.rating}</Text>
-                <Text style={styles.reviewsCount}>({business.reviews} opiniones)</Text>
+                {business.rating > 0 ? (
+                    <>
+                        <View style={styles.starsRow}>{renderStars(business.rating, 20)}</View>
+                        <Text style={styles.ratingText}>{business.rating.toFixed(1)}</Text>
+                        <Text style={styles.reviewsCount}>
+                            ({business.reviews} {business.reviews === 1 ? 'opinión' : 'opiniones'})
+                        </Text>
+                    </>
+                ) : (
+                    <Text style={styles.noRatingText}>Sin calificaciones aún</Text>
+                )}
             </View>
 
             <View style={styles.statusRow}>
@@ -60,19 +79,23 @@ export const BusinessInfo: React.FC<BusinessInfoProps> = ({
                 <Text style={[styles.statusText, business.isOpen && styles.statusTextOpen]}>
                     {business.isOpen ? 'Abierto ahora' : 'Cerrado'}
                 </Text>
-                <Text style={styles.statusHours}> • Cierra a las 10:00 PM</Text>
+                {business.isOpen && <Text style={styles.statusHours}> • Cierra a las 10:00 PM</Text>}
             </View>
 
-            <Text style={styles.description}>{business.description}</Text>
+            {business.description && (
+                <Text style={styles.description}>{business.description}</Text>
+            )}
 
-            <View style={styles.featuresContainer}>
-                {business.features.map((feature, index) => (
-                    <View key={index} style={styles.featureChip}>
-                        <Ionicons name="checkmark-circle" size={16} color="#2E7D32" />
-                        <Text style={styles.featureText}>{feature}</Text>
-                    </View>
-                ))}
-            </View>
+            {business.features.length > 0 && (
+                <View style={styles.featuresContainer}>
+                    {business.features.map((feature, index) => (
+                        <View key={index} style={styles.featureChip}>
+                            <Ionicons name="checkmark-circle" size={16} color="#2E7D32" />
+                            <Text style={styles.featureText}>{feature}</Text>
+                        </View>
+                    ))}
+                </View>
+            )}
         </View>
     );
 };
@@ -109,6 +132,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
+        minHeight: 24,
     },
     starsRow: {
         flexDirection: 'row',
@@ -124,6 +148,11 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#666',
         marginLeft: 4,
+    },
+    noRatingText: {
+        fontSize: 15,
+        color: '#999',
+        fontStyle: 'italic',
     },
     statusRow: {
         flexDirection: 'row',

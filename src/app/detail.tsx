@@ -9,19 +9,24 @@ import { QuickActions } from '@/components/details/QuickActions';
 import { ReviewModal } from '@/components/details/ReviewModal';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
+import type { BusinessFull } from '@/services/businesses.service';
+import { BusinessesService } from '@/services/businesses.service';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    ActionSheetIOS,
-    Alert,
-    Linking,
-    Platform,
-    ScrollView,
-    Share,
-    StatusBar,
-    StyleSheet,
-    View,
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+  ScrollView,
+  Share,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BusinessHours, NewReview, Review } from '../types/types';
@@ -40,49 +45,123 @@ export default function DetailScreen() {
     images: [],
   });
 
+  // Estado para el negocio desde Supabase
+  const [business, setBusiness] = useState<BusinessFull | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const { businessId, businessName } = params;
 
-  const business = {
-    id: Array.isArray(businessId) ? businessId[0] : businessId || '1',
-    name: (Array.isArray(businessName) ? businessName[0] : businessName) || 'Restaurant El Mirador',
-    category: 'Restaurante',
-    rating: 4.8,
-    reviews: 234,
-    distance: '2.3 km',
-    isOpen: true,
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop',
-    description:
-      'Comida tradicional mexicana con vista panorámica. Especialidad en platillos regionales preparados con recetas ancestrales. Ambiente familiar y acogedor.',
-    address: 'Av. Lázaro Cárdenas #145, Centro Histórico',
-    city: 'Pátzcuaro, Michoacán',
-    postalCode: '61600',
-    phone: '+52 434 342 1234',
-    email: 'contacto@elmirador.com',
-    website: 'www.restaurantelmirador.com',
-    coordinates: {
-      latitude: 19.511697,
-      longitude: -101.609015,
-    },
-    priceRange: '$$',
-    features: ['WiFi', 'Estacionamiento', 'Terraza', 'Acepta tarjetas', 'Pet friendly'],
-    gallery: [
-      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&h=600&fit=crop',
-    ],
+  // Cargar datos del negocio
+  useEffect(() => {
+    loadBusiness();
+  }, [businessId]);
+
+  const loadBusiness = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const id = Array.isArray(businessId) ? businessId[0] : businessId;
+      
+      if (!id) {
+        setError('ID de negocio no válido');
+        setLoading(false);
+        return;
+      }
+
+      const { data, error: fetchError } = await BusinessesService.getBusinessFullById(id);
+
+      if (fetchError) throw fetchError;
+
+      if (!data) {
+        setError('Negocio no encontrado');
+        setLoading(false);
+        return;
+      }
+
+      setBusiness(data);
+
+      // Incrementar contador de visitas (no esperar ni bloquear si falla)
+      BusinessesService.incrementVisitCount(id).catch(err => {
+        console.log('No se pudo incrementar contador de visitas:', err);
+      });
+    } catch (err) {
+      console.error('Error loading business:', err);
+      setError('Error al cargar el negocio');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const businessHours: BusinessHours[] = [
-    { day: 'Lunes', hours: '9:00 AM - 10:00 PM', isToday: false },
-    { day: 'Martes', hours: '9:00 AM - 10:00 PM', isToday: false },
-    { day: 'Miércoles', hours: '9:00 AM - 10:00 PM', isToday: false },
-    { day: 'Jueves', hours: '9:00 AM - 10:00 PM', isToday: true },
-    { day: 'Viernes', hours: '9:00 AM - 11:00 PM', isToday: false },
-    { day: 'Sábado', hours: '9:00 AM - 11:00 PM', isToday: false },
-    { day: 'Domingo', hours: '9:00 AM - 9:00 PM', isToday: false },
-  ];
+  // Procesar horarios de apertura
+  const getBusinessHours = (): BusinessHours[] => {
+    if (!business?.opening_hours) {
+      return [];
+    }
 
+    try {
+      const hours = JSON.parse(business.opening_hours);
+      const today = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
+      const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+      return dayNames.map((day, index) => {
+        const dayKey = day.toLowerCase();
+        const dayHours = hours[dayKey];
+        
+        return {
+          day,
+          hours: dayHours || 'Cerrado',
+          isToday: index === today,
+        };
+      });
+    } catch {
+      return [];
+    }
+  };
+
+  // Obtener galería de imágenes
+  const getGallery = (): string[] => {
+    const images: string[] = [];
+    
+    if (business?.main_image_url) {
+      images.push(business.main_image_url);
+    }
+    
+    if (business?.gallery_images) {
+      try {
+        const galleryImages = JSON.parse(business.gallery_images);
+        images.push(...galleryImages);
+      } catch {
+        // Si no se puede parsear, ignorar
+      }
+    }
+
+    return images.length > 0 ? images : ['https://via.placeholder.com/800x600?text=Sin+Imagen'];
+  };
+
+  // Obtener características/amenidades
+  const getFeatures = (): string[] => {
+    // Intentar con diferentes nombres de campo que puedan existir
+    const featuresField = (business as any)?.features || 
+                         (business as any)?.amenities || 
+                         business?.amenities;
+    
+    if (!featuresField) return [];
+    
+    try {
+      // Si ya es un array, retornarlo directamente
+      if (Array.isArray(featuresField)) {
+        return featuresField;
+      }
+      // Si es string, intentar parsearlo como JSON
+      return JSON.parse(featuresField);
+    } catch {
+      return [];
+    }
+  };
+
+  // Datos de ejemplo para reviews (después integrarás con la tabla de reviews)
   const [reviews, setReviews] = useState<Review[]>([
     {
       id: 1,
@@ -91,42 +170,10 @@ export default function DetailScreen() {
       rating: 5,
       date: '15 Dic 2024',
       comment:
-        'Excelente comida y atención. El ambiente es muy agradable y la vista espectacular. Los platillos son auténticos y deliciosos.',
+        'Excelente comida y atención. El ambiente es muy agradable y la vista espectacular.',
       images: [
         'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop',
       ],
-      isOwn: false,
-    },
-    {
-      id: 2,
-      userName: 'Carlos Ramírez',
-      userAvatar: 'https://i.pravatar.cc/150?img=12',
-      rating: 5,
-      date: '10 Dic 2024',
-      comment:
-        'Uno de los mejores restaurantes de la zona. Precio justo por la calidad que ofrecen. Totalmente recomendado.',
-      isOwn: false,
-    },
-    {
-      id: 3,
-      userName: 'Tu nombre',
-      userAvatar: 'https://i.pravatar.cc/150?img=33',
-      rating: 4,
-      date: '5 Dic 2024',
-      comment:
-        'Muy buena experiencia. La comida es deliciosa aunque el servicio puede ser un poco lento cuando está lleno.',
-      images: ['https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop'],
-      isOwn: true,
-    },
-    {
-      id: 4,
-      userName: 'Pedro López',
-      userAvatar: 'https://i.pravatar.cc/150?img=8',
-      rating: 5,
-      date: '1 Dic 2024',
-      comment:
-        'Simplemente perfecto. Volveré sin duda. Los mole y las enchiladas son espectaculares.',
       isOwn: false,
     },
   ]);
@@ -145,20 +192,31 @@ export default function DetailScreen() {
       : reviews.filter((review) => review.rating === reviewFilter);
 
   const handleCall = () => {
-    Linking.openURL(`tel:${business.phone}`);
+    if (business?.phone) {
+      Linking.openURL(`tel:${business.phone}`);
+    }
   };
 
   const handleEmail = () => {
-    Linking.openURL(`mailto:${business.email}`);
+    if (business?.email) {
+      Linking.openURL(`mailto:${business.email}`);
+    }
   };
 
   const handleWebsite = () => {
-    Linking.openURL(`https://${business.website}`);
+    if (business?.website) {
+      const url = business.website.startsWith('http') 
+        ? business.website 
+        : `https://${business.website}`;
+      Linking.openURL(url);
+    }
   };
 
   const handleDirections = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${business.coordinates.latitude},${business.coordinates.longitude}`;
-    Linking.openURL(url);
+    if (business?.latitude && business?.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`;
+      Linking.openURL(url);
+    }
   };
 
   const toggleFavorite = () => {
@@ -166,36 +224,32 @@ export default function DetailScreen() {
     if (!isFavorite) {
       Alert.alert(
         'Agregado a favoritos',
-        `${business.name} ha sido agregado a tus favoritos`,
+        `${business?.name} ha sido agregado a tus favoritos`,
         [{ text: 'OK' }]
       );
     } else {
       Alert.alert(
         'Eliminado de favoritos',
-        `${business.name} ha sido eliminado de tus favoritos`,
+        `${business?.name} ha sido eliminado de tus favoritos`,
         [{ text: 'OK' }]
       );
     }
   };
 
   const handleShare = async () => {
+    if (!business) return;
+
     try {
       const result = await Share.share({
-        message: `¡Mira este lugar increíble! ${business.name} - ${business.description}\n\nCalificación: ${business.rating} ⭐\nUbicación: ${business.address}, ${business.city}\n\nMás información: ${business.website}`,
+        message: `¡Mira este lugar increíble! ${business.name} - ${business.description || ''}\n\nCalificación: ${business.average_rating || 0} ⭐\nUbicación: ${business.address}, ${business.city}\n\n${business.website ? `Más información: ${business.website}` : ''}`,
         title: business.name,
       });
 
       if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log('Compartido con:', result.activityType);
-        } else {
-          console.log('Compartido exitosamente');
-        }
-      } else if (result.action === Share.dismissedAction) {
-        console.log('Compartir cancelado');
+        console.log('Compartido exitosamente');
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo compartir el contenido  ' + error);
+      Alert.alert('Error', 'No se pudo compartir el contenido');
     }
   };
 
@@ -392,21 +446,79 @@ export default function DetailScreen() {
     setEditingReviewId(null);
   };
 
+  // Estados de carga y error
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#003D7A" />
+          <Text style={styles.loadingText}>Cargando información...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !business) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error || 'Negocio no encontrado'}</Text>
+          <TouchableOpacity onPress={loadBusiness} style={styles.retryButton}>
+            <Text style={styles.retryText}>Reintentar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Text style={styles.backText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Preparar datos para componentes
+  const businessData = {
+    id: business.id,
+    name: business.name,
+    category: business.category_name || 'Sin categoría',
+    rating: business.average_rating || 0,
+    reviews: business.total_reviews || 0,
+    distance: '2.5 km', // TODO: Calcular distancia real
+    isOpen: business.is_active,
+    image: business.main_image_url || '',
+    description: business.description || '',
+    address: business.address || '',
+    city: `${business.city || ''}, ${business.state || ''}`,
+    postalCode: business.postal_code || '',
+    phone: business.phone || '',
+    email: business.email || '',
+    website: business.website || '',
+    coordinates: {
+      latitude: business.latitude || 0,
+      longitude: business.longitude || 0,
+    },
+    priceRange: business.price_range || '$$',
+    features: getFeatures(),
+    gallery: getGallery(),
+  };
+
+  const businessHours = getBusinessHours();
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
 
       <DetailHeader
-        businessName={business.name}
+        businessName={businessData.name}
         onBack={() => router.back()}
         onShare={handleShare}
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <ImageGallery images={business.gallery} />
+        <ImageGallery images={businessData.gallery} />
 
         <BusinessInfo
-          business={business}
+          business={businessData}
           isFavorite={isFavorite}
           onToggleFavorite={toggleFavorite}
         />
@@ -418,16 +530,18 @@ export default function DetailScreen() {
           onShare={handleShare}
         />
 
-        <LocationSection
-          coordinates={business.coordinates}
-          businessName={business.name}
-          address={business.address}
-          city={business.city}
-          postalCode={business.postalCode}
-          onDirections={handleDirections}
-        />
+        {businessData.coordinates.latitude !== 0 && (
+          <LocationSection
+            coordinates={businessData.coordinates}
+            businessName={businessData.name}
+            address={businessData.address}
+            city={businessData.city}
+            postalCode={businessData.postalCode}
+            onDirections={handleDirections}
+          />
+        )}
 
-        <HoursSection businessHours={businessHours} />
+        {businessHours.length > 0 && <HoursSection businessHours={businessHours} />}
 
         <TabsNavigation
           selectedTab={selectedTab}
@@ -437,16 +551,16 @@ export default function DetailScreen() {
 
         {selectedTab === 'about' ? (
           <AboutTab
-            phone={business.phone}
-            email={business.email}
-            website={business.website}
+            phone={businessData.phone}
+            email={businessData.email}
+            website={businessData.website}
             onCall={handleCall}
             onEmail={handleEmail}
             onWebsite={handleWebsite}
           />
         ) : (
           <ReviewsTab
-            rating={business.rating}
+            rating={businessData.rating}
             reviews={reviews}
             filteredReviews={filteredReviews}
             reviewFilter={reviewFilter}
@@ -464,7 +578,7 @@ export default function DetailScreen() {
 
       <ReviewModal
         visible={showReviewModal}
-        businessName={business.name}
+        businessName={businessData.name}
         review={newReview}
         isEditing={!!editingReviewId}
         onClose={handleCloseModal}
@@ -485,5 +599,45 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#003D7A',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  retryText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 8,
+  },
+  backText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
