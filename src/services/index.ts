@@ -13,6 +13,9 @@ export type {
     BusinessUpdate
 } from './businesses.service';
 
+export { BusinessHoursService } from './business-hours.service';
+export type { BusinessHour, BusinessHourInsert, BusinessHourUpdate } from './business-hours.service';
+
 export { ReviewsService } from './reviews.service';
 export type {
     Review,
@@ -36,3 +39,4 @@ export type {
 } from './offers.service';
 
 export { StorageService } from './storage.service';
+
