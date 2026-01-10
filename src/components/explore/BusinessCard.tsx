@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { BusinessFull } from '@services/businesses.service';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Business } from '../../types/types';
 
 interface BusinessCardProps {
-    business: Business;
+    business: BusinessFull;
     onPress: () => void;
 }
 
@@ -27,6 +27,23 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
         return stars;
     };
 
+    // Determinar si está abierto basado en horarios (simplificado)
+    // TODO: Implementar lógica real basada en opening_hours
+    const isOpen = business.is_active;
+
+    // Calcular distancia (si hay coordenadas)
+    const getDistance = (): string => {
+        // TODO: Implementar cálculo de distancia real usando ubicación del usuario
+        if (business.latitude && business.longitude) {
+            return '2.5 km'; // Placeholder
+        }
+        return 'N/A';
+    };
+
+    // Obtener rating y reviews
+    const rating = business.average_rating || 0;
+    const reviews = business.total_reviews || 0;
+
     return (
         <TouchableOpacity
             style={styles.businessCard}
@@ -34,10 +51,13 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
             onPress={onPress}
         >
             <Image
-                source={{ uri: business.image }}
+                source={{ 
+                    uri: business.main_image_url || 'https://via.placeholder.com/400x180?text=Sin+Imagen' 
+                }}
                 style={styles.businessImage}
                 resizeMode="cover"
             />
+            
             <View style={styles.businessInfo}>
                 <View style={styles.businessHeader}>
                     <Text style={styles.businessName} numberOfLines={1}>
@@ -45,34 +65,44 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
                     </Text>
                     <View style={[
                         styles.statusBadge,
-                        business.isOpen ? styles.statusOpen : styles.statusClosed
+                        isOpen ? styles.statusOpen : styles.statusClosed
                     ]}>
                         <Text style={[
                             styles.statusText,
-                            !business.isOpen && styles.statusTextClosed
+                            !isOpen && styles.statusTextClosed
                         ]}>
-                            {business.isOpen ? 'Abierto' : 'Cerrado'}
+                            {isOpen ? 'Abierto' : 'Cerrado'}
                         </Text>
                     </View>
                 </View>
 
-                <Text style={styles.businessCategory}>{business.category}</Text>
+                <Text style={styles.businessCategory}>
+                    {business.category_name || 'Sin categoría'}
+                </Text>
+                
                 <Text style={styles.businessDescription} numberOfLines={2}>
-                    {business.description}
+                    {business.description || 'Sin descripción disponible'}
                 </Text>
 
                 <View style={styles.businessMeta}>
                     <View style={styles.ratingContainer}>
-                        <View style={styles.starsRow}>
-                            {renderStars(business.rating)}
-                        </View>
-                        <Text style={styles.ratingText}>
-                            {business.rating} ({business.reviews})
-                        </Text>
+                        {rating > 0 ? (
+                            <>
+                                <View style={styles.starsRow}>
+                                    {renderStars(rating)}
+                                </View>
+                                <Text style={styles.ratingText}>
+                                    {rating.toFixed(1)} ({reviews})
+                                </Text>
+                            </>
+                        ) : (
+                            <Text style={styles.noRatingText}>Sin calificaciones</Text>
+                        )}
                     </View>
+                    
                     <View style={styles.distanceContainer}>
                         <Ionicons name="navigate-outline" size={14} color="#666" />
-                        <Text style={styles.distanceText}>{business.distance}</Text>
+                        <Text style={styles.distanceText}>{getDistance()}</Text>
                     </View>
                 </View>
             </View>
@@ -95,6 +125,7 @@ const styles = StyleSheet.create({
     businessImage: {
         width: '100%',
         height: 180,
+        backgroundColor: '#F0F0F0',
     },
     businessInfo: {
         padding: 16,
@@ -161,6 +192,11 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#666',
         fontWeight: '600',
+    },
+    noRatingText: {
+        fontSize: 13,
+        color: '#999',
+        fontStyle: 'italic',
     },
     distanceContainer: {
         flexDirection: 'row',

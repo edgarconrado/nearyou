@@ -17,6 +17,8 @@ export const OffersSection: React.FC<OffersSectionProps> = ({ zoneId, onSeeAll }
     });
 
 
+    console.log(zoneId);
+    
     if (loading) {
         return (
             <View style={styles.offersSection}>

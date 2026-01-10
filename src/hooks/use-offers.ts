@@ -1,6 +1,6 @@
 // hooks/useOffers.ts
-import type { Offer, OfferWithBusiness } from '@/services/offers.service';
-import { OffersService } from '@/services/offers.service';
+import type { Offer, OfferWithBusiness } from '@services/offers.service';
+import { OffersService } from '@services/offers.service';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
