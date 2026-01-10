@@ -1,16 +1,17 @@
-import { AboutTab } from '@/components/details/AboutTab';
-import { BusinessInfo } from '@/components/details/BusinessInfo';
-import { DetailHeader } from '@/components/details/DetailHeader';
-import { FloatingReserveButton } from '@/components/details/FloatingReserveButton';
-import { HoursSection } from '@/components/details/HoursSection';
-import { ImageGallery } from '@/components/details/ImageGallery';
-import { LocationSection } from '@/components/details/LocationSection';
-import { QuickActions } from '@/components/details/QuickActions';
-import { ReviewModal } from '@/components/details/ReviewModal';
-import { ReviewsTab } from '@/components/details/ReviewsTab';
-import { TabsNavigation } from '@/components/details/TabsNavigation';
-import type { BusinessFull } from '@/services/businesses.service';
-import { BusinessesService } from '@/services/businesses.service';
+import { AboutTab } from '@components/details/AboutTab';
+import { BusinessInfo } from '@components/details/BusinessInfo';
+import { DetailHeader } from '@components/details/DetailHeader';
+import { FloatingReserveButton } from '@components/details/FloatingReserveButton';
+import { HoursSection } from '@components/details/HoursSection';
+import { ImageGallery } from '@components/details/ImageGallery';
+import { LocationSection } from '@components/details/LocationSection';
+import { QuickActions } from '@components/details/QuickActions';
+import { ReviewModal } from '@components/details/ReviewModal';
+import { ReviewsTab } from '@components/details/ReviewsTab';
+import { TabsNavigation } from '@components/details/TabsNavigation';
+import { useBusinessHours } from '@hooks/use-business-hours';
+import type { BusinessFull } from '@services/businesses.service';
+import { BusinessesService } from '@services/businesses.service';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -51,6 +52,14 @@ export default function DetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const { businessId, businessName } = params;
+
+  // Obtener horarios del negocio
+  const { 
+    hours: businessHoursFormatted, 
+    isOpen: isBusinessCurrentlyOpen,
+    closingTimeFormatted,
+    loading: loadingHours 
+  } = useBusinessHours(business?.id);
 
   // Cargar datos del negocio
   useEffect(() => {
@@ -96,28 +105,19 @@ export default function DetailScreen() {
 
   // Procesar horarios de apertura
   const getBusinessHours = (): BusinessHours[] => {
-    if (!business?.opening_hours) {
+    // Si no hay horarios desde la BD, retornar array vacío
+    if (!businessHoursFormatted || businessHoursFormatted.length === 0) {
       return [];
     }
 
-    try {
-      const hours = JSON.parse(business.opening_hours);
-      const today = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
-      const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
-      return dayNames.map((day, index) => {
-        const dayKey = day.toLowerCase();
-        const dayHours = hours[dayKey];
-        
-        return {
-          day,
-          hours: dayHours || 'Cerrado',
-          isToday: index === today,
-        };
-      });
-    } catch {
-      return [];
-    }
+    // Usar los horarios de la tabla business_hours
+    return businessHoursFormatted.map(hour => ({
+      day: hour.day,
+      hours: hour.isClosed 
+        ? 'Cerrado' 
+        : `${hour.opensAt || ''} - ${hour.closesAt || ''}`,
+      isToday: hour.isToday,
+    }));
   };
 
   // Obtener galería de imágenes
@@ -484,7 +484,7 @@ export default function DetailScreen() {
     rating: business.average_rating || 0,
     reviews: business.total_reviews || 0,
     distance: '2.5 km', // TODO: Calcular distancia real
-    isOpen: business.is_active,
+    isOpen: isBusinessCurrentlyOpen,
     image: business.main_image_url || '',
     description: business.description || '',
     address: business.address || '',
@@ -497,7 +497,7 @@ export default function DetailScreen() {
       latitude: business.latitude || 0,
       longitude: business.longitude || 0,
     },
-    priceRange: business.price_range || '$$',
+    priceRange: business.price_range || '$',
     features: getFeatures(),
     gallery: getGallery(),
   };

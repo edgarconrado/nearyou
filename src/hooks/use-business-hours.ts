@@ -30,28 +30,34 @@ export function useBusinessHours(businessId: string | undefined) {
       const { data: hoursData, error: hoursError } = 
         await BusinessHoursService.getFormattedBusinessHours(businessId);
 
-      if (hoursError) throw hoursError;
+      if (hoursError) {
+        console.warn('Error cargando horarios:', hoursError);
+        // No bloquear si no hay horarios
+      }
 
       setHours(hoursData || []);
 
-      // Verificar si está abierto
-      const { isOpen: openStatus, error: openError } = 
-        await BusinessHoursService.isBusinessOpen(businessId);
+      // Verificar si está abierto (solo si hay horarios)
+      if (hoursData && hoursData.length > 0) {
+        const { isOpen: openStatus, error: openError } = 
+          await BusinessHoursService.isBusinessOpen(businessId);
 
-      if (!openError) {
-        setIsOpen(openStatus);
-      }
+        if (!openError) {
+          setIsOpen(openStatus);
+        }
 
-      // Obtener hora de cierre de hoy
-      const { closingTime: closeTime, error: closeError } = 
-        await BusinessHoursService.getTodayClosingTime(businessId);
+        // Obtener hora de cierre de hoy
+        const { closingTime: closeTime, error: closeError } = 
+          await BusinessHoursService.getTodayClosingTime(businessId);
 
-      if (!closeError) {
-        setClosingTime(closeTime);
+        if (!closeError && closeTime) {
+          setClosingTime(closeTime);
+        }
       }
     } catch (err) {
-      console.error('Error loading business hours:', err);
-      setError('Error al cargar horarios');
+      console.warn('Error loading business hours:', err);
+      // No establecer error - solo loguearlo
+      // setError('Error al cargar horarios');
     } finally {
       setLoading(false);
     }

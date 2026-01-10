@@ -100,10 +100,16 @@ export class BusinessHoursService {
         .select('*')
         .eq('business_id', businessId)
         .eq('day_of_week', dayOfWeek)
-        .single();
+        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
 
-      if (error || !hours) {
+      if (error) {
+        console.warn('Error checking if business is open:', error);
         return { isOpen: false, error: error as Error };
+      }
+
+      // Si no hay horarios definidos
+      if (!hours) {
+        return { isOpen: false, error: null };
       }
 
       // Si está marcado como cerrado
@@ -121,7 +127,7 @@ export class BusinessHoursService {
 
       return { isOpen, error: null };
     } catch (error) {
-      console.error('Error checking if business is open:', error);
+      console.warn('Error checking if business is open:', error);
       return { isOpen: false, error: error as Error };
     }
   }
@@ -141,13 +147,16 @@ export class BusinessHoursService {
         .select('*')
         .eq('business_id', businessId)
         .eq('day_of_week', dayOfWeek)
-        .single();
+        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Error fetching today hours:', error);
+        return { data: null, error: error as Error };
+      }
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching today hours:', error);
+      console.warn('Error fetching today hours:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -244,7 +253,7 @@ export class BusinessHoursService {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
 
       if (error) throw error;
 

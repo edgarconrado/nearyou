@@ -12,6 +12,7 @@ interface BusinessData {
     description: string;
     priceRange: string;
     features: string[];
+    closingTime?: string | null;
 }
 
 interface BusinessInfoProps {

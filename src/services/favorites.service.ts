@@ -1,6 +1,6 @@
 // services/favorites.service.ts
-import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
+import { supabase } from '@lib/supabase';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export type Favorite = Database['public']['Tables']['favorites']['Row'];
