@@ -1,17 +1,18 @@
-import { AboutTab } from '@components/details/AboutTab';
-import { BusinessInfo } from '@components/details/BusinessInfo';
-import { DetailHeader } from '@components/details/DetailHeader';
-import { FloatingReserveButton } from '@components/details/FloatingReserveButton';
-import { HoursSection } from '@components/details/HoursSection';
-import { ImageGallery } from '@components/details/ImageGallery';
-import { LocationSection } from '@components/details/LocationSection';
-import { QuickActions } from '@components/details/QuickActions';
-import { ReviewModal } from '@components/details/ReviewModal';
-import { ReviewsTab } from '@components/details/ReviewsTab';
-import { TabsNavigation } from '@components/details/TabsNavigation';
-import { useBusinessHours } from '@hooks/use-business-hours';
-import type { BusinessFull } from '@services/businesses.service';
-import { BusinessesService } from '@services/businesses.service';
+import { AboutTab } from '@/components/details/AboutTab';
+import { BusinessInfo } from '@/components/details/BusinessInfo';
+import { DetailHeader } from '@/components/details/DetailHeader';
+import { FloatingReserveButton } from '@/components/details/FloatingReserveButton';
+import { HoursSection } from '@/components/details/HoursSection';
+import { ImageGallery } from '@/components/details/ImageGallery';
+import { LocationSection } from '@/components/details/LocationSection';
+import { QuickActions } from '@/components/details/QuickActions';
+import { ReviewModal } from '@/components/details/ReviewModal';
+import { ReviewsTab } from '@/components/details/ReviewsTab';
+import { TabsNavigation } from '@/components/details/TabsNavigation';
+import { useUserLocation } from '@/contexts/LocationContext';
+import { useBusinessHours } from '@/hooks/use-business-hours';
+import type { BusinessFull } from '@/services/businesses.service';
+import { BusinessesService } from '@/services/businesses.service';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -53,12 +54,15 @@ export default function DetailScreen() {
 
   const { businessId, businessName } = params;
 
+  // Obtener ubicación del usuario
+  const { location: userLocation } = useUserLocation();
+
   // Obtener horarios del negocio
-  const { 
-    hours: businessHoursFormatted, 
+  const {
+    hours: businessHoursFormatted,
     isOpen: isBusinessCurrentlyOpen,
     closingTimeFormatted,
-    loading: loadingHours 
+    loading: loadingHours
   } = useBusinessHours(business?.id);
 
   // Cargar datos del negocio
@@ -72,7 +76,7 @@ export default function DetailScreen() {
       setError(null);
 
       const id = Array.isArray(businessId) ? businessId[0] : businessId;
-      
+
       if (!id) {
         setError('ID de negocio no válido');
         setLoading(false);
@@ -113,8 +117,8 @@ export default function DetailScreen() {
     // Usar los horarios de la tabla business_hours
     return businessHoursFormatted.map(hour => ({
       day: hour.day,
-      hours: hour.isClosed 
-        ? 'Cerrado' 
+      hours: hour.isClosed
+        ? 'Cerrado'
         : `${hour.opensAt || ''} - ${hour.closesAt || ''}`,
       isToday: hour.isToday,
     }));
@@ -123,11 +127,11 @@ export default function DetailScreen() {
   // Obtener galería de imágenes
   const getGallery = (): string[] => {
     const images: string[] = [];
-    
+
     if (business?.main_image_url) {
       images.push(business.main_image_url);
     }
-    
+
     if (business?.gallery_images) {
       try {
         const galleryImages = JSON.parse(business.gallery_images);
@@ -143,12 +147,12 @@ export default function DetailScreen() {
   // Obtener características/amenidades
   const getFeatures = (): string[] => {
     // Intentar con diferentes nombres de campo que puedan existir
-    const featuresField = (business as any)?.features || 
-                         (business as any)?.amenities || 
-                         business?.amenities;
-    
+    const featuresField = (business as any)?.features ||
+      (business as any)?.amenities ||
+      business?.amenities;
+
     if (!featuresField) return [];
-    
+
     try {
       // Si ya es un array, retornarlo directamente
       if (Array.isArray(featuresField)) {
@@ -205,8 +209,8 @@ export default function DetailScreen() {
 
   const handleWebsite = () => {
     if (business?.website) {
-      const url = business.website.startsWith('http') 
-        ? business.website 
+      const url = business.website.startsWith('http')
+        ? business.website
         : `https://${business.website}`;
       Linking.openURL(url);
     }

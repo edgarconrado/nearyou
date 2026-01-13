@@ -1,5 +1,7 @@
+import { useUserLocation } from '@/contexts/LocationContext';
+import type { BusinessFull } from '@/services/businesses.service';
+import { calculateAndFormatDistance } from '@/utils/distance.utils';
 import { Ionicons } from '@expo/vector-icons';
-import type { BusinessFull } from '@services/businesses.service';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -9,6 +11,8 @@ interface BusinessCardProps {
 }
 
 export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress }) => {
+    const { location: userLocation } = useUserLocation();
+
     const renderStars = (rating: number) => {
         const stars = [];
         const fullStars = Math.floor(rating);
@@ -31,13 +35,16 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
     // TODO: Implementar lógica real basada en opening_hours
     const isOpen = business.is_active;
 
-    // Calcular distancia (si hay coordenadas)
+    // Calcular distancia real
     const getDistance = (): string => {
-        // TODO: Implementar cálculo de distancia real usando ubicación del usuario
-        if (business.latitude && business.longitude) {
-            return '2.5 km'; // Placeholder
+        if (!business.latitude || !business.longitude) {
+            return 'N/A';
         }
-        return 'N/A';
+
+        return calculateAndFormatDistance(
+            userLocation,
+            { latitude: business.latitude, longitude: business.longitude }
+        );
     };
 
     // Obtener rating y reviews
@@ -51,13 +58,13 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
             onPress={onPress}
         >
             <Image
-                source={{ 
-                    uri: business.main_image_url || 'https://via.placeholder.com/400x180?text=Sin+Imagen' 
+                source={{
+                    uri: business.main_image_url || 'https://via.placeholder.com/400x180?text=Sin+Imagen'
                 }}
                 style={styles.businessImage}
                 resizeMode="cover"
             />
-            
+
             <View style={styles.businessInfo}>
                 <View style={styles.businessHeader}>
                     <Text style={styles.businessName} numberOfLines={1}>
@@ -79,7 +86,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
                 <Text style={styles.businessCategory}>
                     {business.category_name || 'Sin categoría'}
                 </Text>
-                
+
                 <Text style={styles.businessDescription} numberOfLines={2}>
                     {business.description || 'Sin descripción disponible'}
                 </Text>
@@ -99,7 +106,7 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress })
                             <Text style={styles.noRatingText}>Sin calificaciones</Text>
                         )}
                     </View>
-                    
+
                     <View style={styles.distanceContainer}>
                         <Ionicons name="navigate-outline" size={14} color="#666" />
                         <Text style={styles.distanceText}>{getDistance()}</Text>

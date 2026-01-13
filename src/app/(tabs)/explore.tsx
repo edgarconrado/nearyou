@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,8 +9,10 @@ import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { FiltersSection } from '@/components/explore/FiltersSection';
 import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
+import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinesses } from '@/hooks/use-businesses';
 import type { BusinessFull } from '@/services/businesses.service';
+import { sortByDistance } from '@/utils/distance.utils';
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
@@ -20,12 +22,15 @@ export default function ExploreScreen() {
 
   const { zoneName, zoneLocation, zoneImage, zoneId } = params;
 
+  // Obtener ubicación del usuario
+  const { location: userLocation } = useUserLocation();
+
   // Obtener negocios desde Supabase con filtros
-  const { 
-    businesses, 
-    loading: loadingBusinesses, 
-    error: errorBusinesses, 
-    refetch: refetchBusinesses 
+  const {
+    businesses,
+    loading: loadingBusinesses,
+    error: errorBusinesses,
+    refetch: refetchBusinesses
   } = useBusinesses({
     zoneId: zoneId as string,
     searchQuery: searchQuery.trim().length > 0 ? searchQuery : undefined,
@@ -33,11 +38,21 @@ export default function ExploreScreen() {
     autoRefresh: true,
   });
 
-  // Filtrar negocios por categoría seleccionada
-  const filteredBusinesses = businesses.filter(business => {
-    const matchesFilter = selectedFilter === 'Todos' || business.category_name === selectedFilter;
-    return matchesFilter;
-  });
+  // Filtrar y ordenar negocios por categoría y distancia
+  const filteredAndSortedBusinesses = useMemo(() => {
+    // Primero filtrar por categoría
+    const filtered = businesses.filter(business => {
+      const matchesFilter = selectedFilter === 'Todos' || business.category_name === selectedFilter;
+      return matchesFilter;
+    });
+
+    // Luego ordenar por distancia si tenemos la ubicación del usuario
+    if (userLocation) {
+      return sortByDistance(filtered, userLocation);
+    }
+
+    return filtered;
+  }, [businesses, selectedFilter, userLocation]);
 
   const handleClearSearch = () => {
     setSearchQuery('');
@@ -71,7 +86,7 @@ export default function ExploreScreen() {
       />
 
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        <OffersSection 
+        <OffersSection
           zoneId={zoneId as string}
           onSeeAll={handleSeeAllOffers}
         />
@@ -82,14 +97,15 @@ export default function ExploreScreen() {
         />
 
         <Text style={styles.resultsCount}>
-          {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'lugar' : 'lugares'}
+          {filteredAndSortedBusinesses.length} {filteredAndSortedBusinesses.length === 1 ? 'lugar' : 'lugares'}
           {searchQuery.length > 0 && ` encontrados para "${searchQuery}"`}
+          {userLocation && filteredAndSortedBusinesses.length > 0 && ' • Ordenados por distancia'}
         </Text>
 
         <View style={styles.businessesContainer}>
-          {filteredBusinesses.length > 0 ? (
+          {filteredAndSortedBusinesses.length > 0 ? (
             <BusinessList
-              businesses={filteredBusinesses}
+              businesses={filteredAndSortedBusinesses}
               loading={loadingBusinesses}
               error={errorBusinesses}
               onBusinessPress={(business: BusinessFull) => router.push({
