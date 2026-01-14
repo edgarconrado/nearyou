@@ -12,7 +12,9 @@
       "@hooks/*": ["src/hooks/*"],
       "@lib/*": ["src/lib/*"],
       "@types/*": ["src/types/*"],
-      "@services/*": ["src/services/*"]
+      "@services/*": ["src/services/*"],
+      "@common/*": ["src/common/*"],
+      "@utils/*": ["src/utils/*"],
     }
   },
   "include": [

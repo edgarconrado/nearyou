@@ -1,12 +1,16 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Modal, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 import { BusinessList } from '@/components/explore/BusinessList';
 import { EmptyState } from '@/components/explore/EmptyState';
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { FiltersSection } from '@/components/explore/FiltersSection';
+import { FloatingLocationBadge } from '@/components/explore/FloatingLocationBadge';
+import LocationPermissionScreen from '@/components/explore/LocationPermissionScreen';
 import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { useUserLocation } from '@/contexts/LocationContext';
@@ -20,17 +24,37 @@ export default function ExploreScreen() {
   const [selectedFilter, setSelectedFilter] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
 
+   const { hasPermission } = useUserLocation();
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+
+  useEffect(() => {
+    checkLocationOnFirstVisit();
+  }, []);
+
+  const checkLocationOnFirstVisit = async () => {
+    const hasVisitedExplore = await AsyncStorage.getItem('visited_explore');
+    
+    if (!hasVisitedExplore && !hasPermission) {
+      setShowLocationPrompt(true);
+      await AsyncStorage.setItem('visited_explore', 'true');
+    }
+  };
+
+  const handleDismiss = () => {
+    setShowLocationPrompt(false);
+  };
+
   const { zoneName, zoneLocation, zoneImage, zoneId } = params;
 
   // Obtener ubicación del usuario
   const { location: userLocation } = useUserLocation();
 
   // Obtener negocios desde Supabase con filtros
-  const {
-    businesses,
-    loading: loadingBusinesses,
-    error: errorBusinesses,
-    refetch: refetchBusinesses
+  const { 
+    businesses, 
+    loading: loadingBusinesses, 
+    error: errorBusinesses, 
+    refetch: refetchBusinesses 
   } = useBusinesses({
     zoneId: zoneId as string,
     searchQuery: searchQuery.trim().length > 0 ? searchQuery : undefined,
@@ -86,7 +110,9 @@ export default function ExploreScreen() {
       />
 
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
-        <OffersSection
+        <FloatingLocationBadge businessCount={filteredAndSortedBusinesses.length} />
+        
+        <OffersSection 
           zoneId={zoneId as string}
           onSeeAll={handleSeeAllOffers}
         />
@@ -122,7 +148,18 @@ export default function ExploreScreen() {
           )}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showLocationPrompt}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={handleDismiss}
+      >
+        <LocationPermissionScreen onClose={handleDismiss} />
+      </Modal>
+
     </SafeAreaView>
+    
   );
 }
 
@@ -133,6 +170,7 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+    paddingTop: 60, // Espacio para el badge flotante
   },
   resultsCount: {
     paddingHorizontal: 16,
