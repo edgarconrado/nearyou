@@ -28,7 +28,7 @@ export default function ProfileScreen() {
 
   // Datos del usuario (en producción vendrían de una API o contexto)
   const user = {
-    name: 'Edgar Conrado',
+    name: 'Edgar Conrado ',
     email: 'edgar.conrado@email.com',
     avatar: 'https://i.pravatar.cc/200?img=12',
     memberSince: 'Miembro desde 2025',
