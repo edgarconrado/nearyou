@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -21,6 +22,8 @@ interface UserStats {
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   // Datos del usuario (en producción vendrían de una API o contexto)
@@ -48,8 +51,7 @@ export default function ProfileScreen() {
           text: 'Cerrar sesión',
           style: 'destructive',
           onPress: () => {
-            // Aquí irías a la pantalla de login
-            Alert.alert('Sesión cerrada', 'Has cerrado sesión exitosamente');
+            signOut();
           },
         },
       ]
@@ -113,7 +115,7 @@ export default function ProfileScreen() {
 
         {/* Información del usuario */}
         <View style={styles.profileSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.avatarContainer}
             onPress={handleEditProfile}
           >
@@ -134,7 +136,7 @@ export default function ProfileScreen() {
             <Text style={styles.locationText}>{user.location}</Text>
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editProfileButton}
             onPress={handleEditProfile}
           >
@@ -145,7 +147,7 @@ export default function ProfileScreen() {
 
         {/* Estadísticas */}
         <View style={styles.statsSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.statCard}
             onPress={handleFavorites}
           >
@@ -154,7 +156,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Favoritos</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.statCard}
             onPress={handleMyReviews}
           >
@@ -163,7 +165,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Reseñas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.statCard}
             onPress={handleMyVisits}
           >
@@ -177,7 +179,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Mi actividad</Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleFavorites}
           >
@@ -193,7 +195,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleMyReviews}
           >
@@ -209,7 +211,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleMyVisits}
           >
@@ -230,7 +232,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Configuración</Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleEditProfile}
           >
@@ -258,7 +260,7 @@ export default function ProfileScreen() {
             />
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handlePrivacy}
           >
@@ -271,7 +273,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleLanguage}
           >
@@ -292,7 +294,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Soporte</Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleHelp}
           >
@@ -305,7 +307,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleAbout}
           >
@@ -321,7 +323,7 @@ export default function ProfileScreen() {
 
         {/* Cerrar sesión */}
         <View style={styles.section}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
           >

@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 
 const tokenCache = {
   async getToken(key: string) {
+    
     return SecureStore.getItemAsync(key);
   },
   async saveToken(key: string, value: string) {
