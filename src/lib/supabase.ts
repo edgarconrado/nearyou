@@ -1,55 +1,50 @@
-import { Database } from '@/types/database.types';
+// lib/supabase.ts - VERSIÓN MEJORADA con Clerk
+
+import { useAuth } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Variable global para almacenar la sesión
-let globalSession: any = null;
-
-// Función para crear el cliente con la sesión actual
-export const getSupabaseClient = (session: any) => {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    global: {
-      fetch: async (url, options = {}) => {
-        const clerkToken = await session?.getToken({
-          template: 'supabase',
-        });
-
-        const headers = new Headers(options?.headers);
-        if (clerkToken) {
-          headers.set('Authorization', `Bearer ${clerkToken}`);
-        }
-
-        return fetch(url, { ...options, headers });
-      },
-    },
-  });
-};
-
-// Función para establecer la sesión global
-export const setSupabaseSession = (session: any) => {
-  globalSession = session;
-};
-
-// Cliente supabase que usa la sesión global
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  global: {
-    fetch: async (url, options = {}) => {
-      const clerkToken = await globalSession?.getToken({
-        template: 'supabase',
-      });
-
-      const headers = new Headers(options?.headers);
-      if (clerkToken) {
-        headers.set('Authorization', `Bearer ${clerkToken}`);
-      }
-
-      return fetch(url, { ...options, headers });
-    },
+// Cliente base (sin auth)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
   },
 });
 
-// Exportar tipos útiles
-export type { Database };
-export type Zone = Database['public']['Tables']['zones']['Row'];
+// Hook para obtener cliente Supabase autenticado con Clerk
+export function useSupabaseClient() {
+  const { getToken, userId } = useAuth();
+
+  const getAuthenticatedClient = async () => {
+    const token = await getToken({ template: 'supabase' });
+    
+    if (token) {
+      // Crear cliente con el token de Clerk
+      const authenticatedClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+        auth: {
+          storage: AsyncStorage,
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: false,
+        },
+      });
+      
+      return authenticatedClient;
+    }
+    
+    return supabase; // Fallback al cliente sin auth
+  };
+
+  return { getAuthenticatedClient, userId };
+}

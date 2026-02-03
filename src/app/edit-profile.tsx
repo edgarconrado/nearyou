@@ -1,8 +1,12 @@
+import { useProfile } from '@/hooks/use-profile'; // Ajusta la ruta
+import { supabase } from '@/lib/supabase'; // Ajusta la ruta
+import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -16,88 +20,233 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const [name, setName] = useState('Edgar Conrado');
-  const [email, setEmail] = useState('edgar.conrado@email.com');
-  const [phone, setPhone] = useState('+52 3531730317');
-  const [location, setLocation] = useState('Jiquilpan, Michoacán');
-  const [avatar, setAvatar] = useState('https://i.pravatar.cc/200?img=12');
+  const { userId } = useAuth();
+  const { profile, loading, updateProfile } = useProfile(userId);
+
+  const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Estados del formulario
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [country, setCountry] = useState('México');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [localImageUri, setLocalImageUri] = useState<string | null>(null);
+
+  // Cargar datos del perfil cuando esté disponible
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setEmail(profile.email || '');
+      setPhone(profile.phone || '');
+      setCity(profile.city || '');
+      setState(profile.state || '');
+      setCountry(profile.country || 'México');
+      setBio(profile.bio || '');
+      setAvatarUrl(profile.avatar_url || '');
+    }
+  }, [profile]);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (status !== 'granted') {
       Alert.alert('Permiso denegado', 'Se necesita acceso a la galería');
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
     });
 
     if (!result.canceled) {
-      setAvatar(result.assets[0].uri);
+      setLocalImageUri(result.assets[0].uri);
     }
   };
 
-  const handleSave = () => {
-    // Aquí guardarías los cambios en la API
-    Alert.alert(
-      'Perfil actualizado',
-      'Tu información ha sido actualizada exitosamente',
-      [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ]
-    );
+  const uploadImage = async (uri: string): Promise<string | null> => {
+    try {
+      setUploadingImage(true);
+
+      const fileExt = uri.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const response = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, arrayBuffer, {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+
+      console.log('Image uploaded successfully:', data.publicUrl);
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error subiendo imagen:', error);
+      Alert.alert('Error', 'No se pudo subir la imagen. Verifica que el bucket "profiles" existe y es público.');
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      if (!fullName.trim()) {
+        Alert.alert('Error', 'El nombre es requerido');
+        return;
+      }
+
+      if (!email.trim()) {
+        Alert.alert('Error', 'El correo es requerido');
+        return;
+      }
+
+      let newAvatarUrl = avatarUrl;
+
+      if (localImageUri) {
+        const uploadedUrl = await uploadImage(localImageUri);
+        if (uploadedUrl) {
+          newAvatarUrl = uploadedUrl;
+        }
+      }
+
+      // Usar el hook para actualizar
+      const result = await updateProfile({
+        full_name: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim() || null,
+        city: city.trim() || null,
+        state: state.trim() || null,
+        country: country.trim() || 'México',
+        bio: bio.trim() || null,
+        avatar_url: newAvatarUrl || null,
+      });
+
+      if (result.success) {
+        Alert.alert(
+          'Perfil actualizado',
+          'Tu información ha sido actualizada exitosamente',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      } else {
+        throw result.error;
+      }
+    } catch (error) {
+      console.error('Error guardando perfil:', error);
+      Alert.alert('Error', 'No se pudo actualizar el perfil');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Editar perfil</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#003D7A" />
+          <Text style={styles.loadingText}>Cargando perfil...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const displayAvatar = localImageUri || avatarUrl || 'https://i.pravatar.cc/200?img=12';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} disabled={saving}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Editar perfil</Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveText}>Guardar</Text>
+        <TouchableOpacity onPress={handleSave} disabled={saving || uploadingImage}>
+          {saving ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.saveText}>Guardar</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarSection}>
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-          <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>
+          <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+          {uploadingImage && (
+            <View style={styles.uploadingOverlay}>
+              <ActivityIndicator size="large" color="#003D7A" />
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.changePhotoButton}
+            onPress={pickImage}
+            disabled={uploadingImage || saving}
+          >
             <Ionicons name="camera" size={20} color="#003D7A" />
-            <Text style={styles.changePhotoText}>Cambiar foto</Text>
+            <Text style={styles.changePhotoText}>
+              {uploadingImage ? 'Subiendo...' : 'Cambiar foto'}
+            </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre completo</Text>
+            <Text style={styles.label}>Nombre completo *</Text>
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
+              value={fullName}
+              onChangeText={setFullName}
               placeholder="Tu nombre"
+              editable={!saving}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo electrónico</Text>
+            <Text style={styles.label}>Correo electrónico *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, styles.disabledInput]}
               value={email}
-              onChangeText={setEmail}
+              editable={false}
               placeholder="tu@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
             />
+            <Text style={styles.helperText}>
+              El correo no se puede modificar
+            </Text>
           </View>
 
           <View style={styles.inputGroup}>
@@ -108,23 +257,60 @@ export default function EditProfileScreen() {
               onChangeText={setPhone}
               placeholder="+52 123 456 7890"
               keyboardType="phone-pad"
+              editable={!saving}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Ubicación</Text>
+            <Text style={styles.label}>Ciudad</Text>
             <TextInput
               style={styles.input}
-              value={location}
-              onChangeText={setLocation}
-              placeholder="Ciudad, Estado"
+              value={city}
+              onChangeText={setCity}
+              placeholder="Tu ciudad"
+              editable={!saving}
             />
           </View>
 
-          <TouchableOpacity style={styles.changePasswordButton}>
-            <Ionicons name="key-outline" size={20} color="#003D7A" />
-            <Text style={styles.changePasswordText}>Cambiar contraseña</Text>
-          </TouchableOpacity>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Estado</Text>
+            <TextInput
+              style={styles.input}
+              value={state}
+              onChangeText={setState}
+              placeholder="Tu estado"
+              editable={!saving}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>País</Text>
+            <TextInput
+              style={styles.input}
+              value={country}
+              onChangeText={setCountry}
+              placeholder="Tu país"
+              editable={!saving}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Biografía</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Cuéntanos algo sobre ti..."
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              editable={!saving}
+              maxLength={500}
+            />
+            <Text style={styles.charCount}>{bio.length}/500</Text>
+          </View>
+
+          <View style={{ height: 40 }} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -135,6 +321,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
   },
   header: {
     flexDirection: 'row',
@@ -162,12 +358,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 32,
     marginBottom: 8,
+    position: 'relative',
   },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
     marginBottom: 16,
+    borderWidth: 3,
+    borderColor: '#003D7A',
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 32,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   changePhotoButton: {
     flexDirection: 'row',
@@ -207,7 +416,35 @@ const styles = StyleSheet.create({
     color: '#333',
     backgroundColor: '#F9F9F9',
   },
-  changePasswordButton: {
+  disabledInput: {
+    backgroundColor: '#F0F0F0',
+    color: '#999',
+  },
+  textArea: {
+    height: 100,
+    paddingTop: 12,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    textAlign: 'right',
+  },
+});
+
+{/*           <TouchableOpacity style={styles.changePasswordButton}>
+            <Ionicons name="key-outline" size={20} color="#003D7A" />
+            <Text style={styles.changePasswordText}>Cambiar contraseña</Text>
+          </TouchableOpacity> */}
+
+
+
+/*   changePasswordButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -222,5 +459,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#003D7A',
-  },
-});
+  }, */
