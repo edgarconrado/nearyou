@@ -1,5 +1,6 @@
 // hooks/useZones.ts
-import { Zone, ZonesService } from '@/services/zones.service';
+import type { Zone } from '@/lib/supabase';
+import { ZonesService } from '@/services/zones.service';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
@@ -26,6 +27,8 @@ export function useZones() {
       setError(null);
 
       const { data, error } = await ZonesService.getAllActiveZones();
+      console.log("Data zones:", data);
+      console.log("Error:", error);
 
       if (error) throw error;
 

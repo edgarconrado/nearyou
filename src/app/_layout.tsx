@@ -4,17 +4,29 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { LocationProvider } from '@/contexts/LocationContext';
+import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect } from 'react';
 
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
+// Token cache para Clerk
 const tokenCache = {
   async getToken(key: string) {
-    return SecureStore.getItemAsync(key);
+    try {
+      return SecureStore.getItemAsync(key);
+    } catch (err) {
+      return null;
+    }
   },
   async saveToken(key: string, value: string) {
-    return SecureStore.setItemAsync(key, value);
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
   },
 };
 
@@ -28,19 +40,23 @@ function InitialLayout() {
   const router = useRouter();
   const colorScheme = useColorScheme();
 
+  // Sincronizar usuario con Supabase cuando inicie sesión
+  useAuthSync();
+
+  // Redirección automática según el estado de autenticación
   useEffect(() => {
     if (!isLoaded) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
     if (isSignedIn && inAuthGroup) {
-      // Usuario autenticado, redirigir a tabs
+      // Usuario autenticado en pantalla de auth -> redirigir a tabs
       router.replace('/(tabs)');
     } else if (!isSignedIn && !inAuthGroup) {
-      // Usuario no autenticado, redirigir a login
+      // Usuario no autenticado fuera de auth -> redirigir a sign-in
       router.replace('/(auth)/sign-in');
     }
-  }, [isSignedIn, isLoaded]);
+  }, [isSignedIn, segments, isLoaded]);
 
   return (
     <LocationProvider>

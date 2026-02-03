@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
 import { BusinessList } from '@/components/explore/BusinessList';
 import { EmptyState } from '@/components/explore/EmptyState';
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
@@ -13,8 +12,11 @@ import { FloatingLocationBadge } from '@/components/explore/FloatingLocationBadg
 import LocationPermissionScreen from '@/components/explore/LocationPermissionScreen';
 import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
+import { ZoneInfoButton } from '@/components/explore/ZoneInfoButton';
+import { ZoneInfoModal } from '@/components/explore/ZoneInfoModal';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinesses } from '@/hooks/use-businesses';
+import { useZoneDetails } from '@/hooks/use-zone-details';
 import type { BusinessFull } from '@/services/businesses.service';
 import { sortByDistance } from '@/utils/distance.utils';
 
@@ -23,8 +25,9 @@ export default function ExploreScreen() {
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showZoneInfoModal, setShowZoneInfoModal] = useState(false);
 
-   const { hasPermission } = useUserLocation();
+  const { hasPermission } = useUserLocation();
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
 
   useEffect(() => {
@@ -45,6 +48,17 @@ export default function ExploreScreen() {
   };
 
   const { zoneName, zoneLocation, zoneImage, zoneId } = params;
+
+  // Obtener información detallada de la zona
+  const { 
+    zone, 
+    loading: loadingZone, 
+    hasDescription, 
+    hasGallery 
+  } = useZoneDetails(zoneId as string);
+
+  // Mostrar el botón solo si hay información disponible
+  const showZoneInfoButton = hasDescription || hasGallery;
 
   // Obtener ubicación del usuario
   const { location: userLocation } = useUserLocation();
@@ -86,10 +100,17 @@ export default function ExploreScreen() {
   const handleSeeAllOffers = () => {
     // Navegar a pantalla de todas las ofertas
     router.push({
-      //pathname: '/offers',
       pathname: '/detail',
       params: { zoneId, zoneName }
     });
+  };
+
+  const handleOpenZoneInfo = () => {
+    setShowZoneInfoModal(true);
+  };
+
+  const handleCloseZoneInfo = () => {
+    setShowZoneInfoModal(false);
   };
 
   return (
@@ -116,6 +137,11 @@ export default function ExploreScreen() {
           zoneId={zoneId as string}
           onSeeAll={handleSeeAllOffers}
         />
+
+        {/* Botón de información de la zona - Después de ofertas */}
+        {showZoneInfoButton && (
+          <ZoneInfoButton onPress={handleOpenZoneInfo} />
+        )}
 
         <FiltersSection
           selectedFilter={selectedFilter}
@@ -149,6 +175,18 @@ export default function ExploreScreen() {
         </View>
       </ScrollView>
 
+      {/* Modal de información de la zona */}
+      <ZoneInfoModal
+        visible={showZoneInfoModal}
+        onClose={handleCloseZoneInfo}
+        zoneName={zoneName as string}
+        zoneDescription={zone?.description}
+        galleryImages={zone?.gallery_urls || []}
+        coverImage={zone?.cover_image_url || zone?.image_url}
+        loading={loadingZone}
+      />
+
+      {/* Modal de permisos de ubicación */}
       <Modal
         visible={showLocationPrompt}
         animationType="slide"
@@ -157,9 +195,7 @@ export default function ExploreScreen() {
       >
         <LocationPermissionScreen onClose={handleDismiss} />
       </Modal>
-
     </SafeAreaView>
-    
   );
 }
 

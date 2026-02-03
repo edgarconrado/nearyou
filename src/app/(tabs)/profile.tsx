@@ -1,7 +1,11 @@
+import { useProfile } from '@/hooks/use-profile'; // Ajusta la ruta según tu configuración
+import { useUserStats } from '@/hooks/use-user-stats'; // Ajusta la ruta según tu configuración
+import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -13,29 +17,36 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-interface UserStats {
-  favorites: number;
-  reviews: number;
-  visits: number;
-}
-
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut, userId } = useAuth();
+
+  // Usar hooks personalizados
+  const { profile, loading: profileLoading, error, refetch } = useProfile(userId);
+  const { stats, loading: statsLoading } = useUserStats(userId);
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  // Datos del usuario (en producción vendrían de una API o contexto)
-  const user = {
-    name: 'Edgar Conrado',
-    email: 'edgar.conrado@email.com',
-    avatar: 'https://i.pravatar.cc/200?img=12',
-    memberSince: 'Miembro desde 2025',
-    location: 'Jiquilpan, Michoacán',
+  const loading = profileLoading || statsLoading;
+
+  // Formatear fecha de miembro
+  const formatMemberSince = (date: string | null) => {
+    if (!date) return 'Miembro desde 2025';
+    const memberDate = new Date(date);
+    const year = memberDate.getFullYear();
+    return `Miembro desde ${year}`;
   };
 
-  const stats: UserStats = {
-    favorites: 12,
-    reviews: 8,
-    visits: 24,
+  // Formatear ubicación
+  const formatLocation = () => {
+    if (!profile) return '';
+
+    const parts = [];
+    if (profile.city) parts.push(profile.city);
+    if (profile.state) parts.push(profile.state);
+    if (profile.country && parts.length === 0) parts.push(profile.country);
+
+    return parts.length > 0 ? parts.join(', ') : profile.location || '';
   };
 
   const handleLogout = () => {
@@ -48,8 +59,7 @@ export default function ProfileScreen() {
           text: 'Cerrar sesión',
           style: 'destructive',
           onPress: () => {
-            // Aquí irías a la pantalla de login
-            Alert.alert('Sesión cerrada', 'Has cerrado sesión exitosamente');
+            signOut();
           },
         },
       ]
@@ -100,6 +110,35 @@ export default function ProfileScreen() {
     router.push('/about');
   };
 
+  // Mostrar loading mientras carga
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#003D7A" />
+          <Text style={styles.loadingText}>Cargando perfil...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Mostrar mensaje si no hay perfil
+  if (!profile) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color="#999" />
+          <Text style={styles.errorText}>
+            {error ? error.message : 'No se pudo cargar el perfil'}
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -113,28 +152,51 @@ export default function ProfileScreen() {
 
         {/* Información del usuario */}
         <View style={styles.profileSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.avatarContainer}
             onPress={handleEditProfile}
           >
-            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <Image
+              source={{
+                uri: profile.avatar_url || 'https://i.pravatar.cc/200?img=12'
+              }}
+              style={styles.avatar}
+            />
             <View style={styles.editAvatarBadge}>
               <Ionicons name="camera" size={16} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
 
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
-          <View style={styles.memberInfo}>
-            <Ionicons name="time-outline" size={14} color="#666" />
-            <Text style={styles.memberText}>{user.memberSince}</Text>
-          </View>
-          <View style={styles.locationInfo}>
-            <Ionicons name="location-outline" size={14} color="#666" />
-            <Text style={styles.locationText}>{user.location}</Text>
+          <View style={styles.nameContainer}>
+            <Text style={styles.userName}>
+              {profile.full_name || 'Usuario'}
+            </Text>
+            {profile.is_verified && (
+              <Ionicons name="checkmark-circle" size={20} color="#003D7A" />
+            )}
           </View>
 
-          <TouchableOpacity 
+          <Text style={styles.userEmail}>{profile.email}</Text>
+
+          <View style={styles.memberInfo}>
+            <Ionicons name="time-outline" size={14} color="#666" />
+            <Text style={styles.memberText}>
+              {formatMemberSince(profile.member_since)}
+            </Text>
+          </View>
+
+          {formatLocation() && (
+            <View style={styles.locationInfo}>
+              <Ionicons name="location-outline" size={14} color="#666" />
+              <Text style={styles.locationText}>{formatLocation()}</Text>
+            </View>
+          )}
+
+          {profile.bio && (
+            <Text style={styles.bioText}>{profile.bio}</Text>
+          )}
+
+          <TouchableOpacity
             style={styles.editProfileButton}
             onPress={handleEditProfile}
           >
@@ -145,7 +207,7 @@ export default function ProfileScreen() {
 
         {/* Estadísticas */}
         <View style={styles.statsSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.statCard}
             onPress={handleFavorites}
           >
@@ -154,7 +216,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Favoritos</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.statCard}
             onPress={handleMyReviews}
           >
@@ -163,7 +225,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Reseñas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.statCard}
             onPress={handleMyVisits}
           >
@@ -177,7 +239,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Mi actividad</Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleFavorites}
           >
@@ -193,7 +255,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleMyReviews}
           >
@@ -209,7 +271,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleMyVisits}
           >
@@ -230,7 +292,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Configuración</Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleEditProfile}
           >
@@ -258,7 +320,7 @@ export default function ProfileScreen() {
             />
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handlePrivacy}
           >
@@ -271,7 +333,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleLanguage}
           >
@@ -292,7 +354,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Soporte</Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleHelp}
           >
@@ -305,7 +367,7 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleAbout}
           >
@@ -321,7 +383,7 @@ export default function ProfileScreen() {
 
         {/* Cerrar sesión */}
         <View style={styles.section}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
           >
@@ -345,6 +407,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#003D7A',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -393,11 +484,16 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFFFFF',
   },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 4,
   },
   userEmail: {
     fontSize: 15,
@@ -418,11 +514,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   locationText: {
     fontSize: 13,
     color: '#666',
+  },
+  bioText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    lineHeight: 20,
   },
   editProfileButton: {
     flexDirection: 'row',

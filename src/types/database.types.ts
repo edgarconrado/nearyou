@@ -272,36 +272,7 @@ export type Database = {
           receiver_id?: string | null
           sender_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "user_stats"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_stats"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -337,22 +308,7 @@ export type Database = {
           type?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_stats"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       offers: {
         Row: {
@@ -757,6 +713,7 @@ export type Database = {
           cover_image_url: string | null
           created_at: string | null
           description: string | null
+          gallery_urls: string[] | null
           id: string
           image_url: string | null
           is_active: boolean | null
@@ -772,6 +729,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string | null
           description?: string | null
+          gallery_urls?: string[] | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -787,6 +745,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string | null
           description?: string | null
+          gallery_urls?: string[] | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -808,11 +767,11 @@ export type Database = {
           category_icon: string | null
           category_id: string | null
           category_name: string | null
+          category_slug: string | null
           city: string | null
           created_at: string | null
           description: string | null
           email: string | null
-          favorites_count: number | null
           features: string[] | null
           gallery_urls: string[] | null
           id: string | null
@@ -834,6 +793,7 @@ export type Database = {
           website: string | null
           zone_id: string | null
           zone_name: string | null
+          zone_slug: string | null
           zone_state: string | null
         }
         Relationships: [
@@ -902,20 +862,6 @@ export type Database = {
           reviews_count: number | null
           user_id: string | null
           visits_count: number | null
-        }
-        Insert: {
-          favorites_count?: never
-          full_name?: string | null
-          reviews_count?: never
-          user_id?: string | null
-          visits_count?: never
-        }
-        Update: {
-          favorites_count?: never
-          full_name?: string | null
-          reviews_count?: never
-          user_id?: string | null
-          visits_count?: never
         }
         Relationships: []
       }
@@ -1048,6 +994,8 @@ export type Database = {
             }
             Returns: string
           }
+      current_user_id: { Args: never; Returns: string }
+      current_user_uuid: { Args: never; Returns: string }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -1221,6 +1169,7 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      requesting_user_id: { Args: never; Returns: string }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown
