@@ -394,7 +394,7 @@ export default function ProfileScreen() {
 
         {/* Versión de la app */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Versión 1.0.0</Text>
+          <Text style={styles.versionText}>Versión 1.0.6</Text>
         </View>
 
         <View style={{ height: 40 }} />

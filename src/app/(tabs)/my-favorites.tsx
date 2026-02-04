@@ -1,9 +1,12 @@
+import { useFavorites, type FavoriteBusiness } from '@/hooks/use-favorites';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
+    ActivityIndicator,
     FlatList,
     Image,
+    RefreshControl,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -13,64 +16,103 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyFavoritesScreen() {
     const router = useRouter();
+    const { favorites, loading, removeFavorite, refetch } = useFavorites();
+    const [refreshing, setRefreshing] = React.useState(false);
 
-    const favorites = [
-        {
-            id: 1,
-            name: 'Restaurant El Mirador',
-            category: 'Restaurante',
-            rating: 4.8,
-            image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
-            location: 'Pátzcuaro',
-        },
-        {
-            id: 2,
-            name: 'Hotel Vista Hermosa',
-            category: 'Hotel',
-            rating: 4.6,
-            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
-            location: 'Morelia',
-        },
-        {
-            id: 3,
-            name: 'Café Aroma',
-            category: 'Cafetería',
-            rating: 4.9,
-            image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400&h=300&fit=crop',
-            location: 'Pátzcuaro',
-        },
-    ];
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
+    };
 
-    const renderItem = ({ item }: any) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({
-                pathname: '/detail',
-                params: { businessId: item.id, businessName: item.name }
-            })}
-        >
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.cardContent}>
-                <View style={styles.cardHeader}>
-                    <Text style={styles.name}>{item.name}</Text>
-                    <TouchableOpacity>
-                        <Ionicons name="heart" size={24} color="#FF3B30" />
-                    </TouchableOpacity>
-                </View>
-                <Text style={styles.category}>{item.category}</Text>
-                <View style={styles.footer}>
-                    <View style={styles.ratingContainer}>
-                        <Ionicons name="star" size={16} color="#FFB800" />
-                        <Text style={styles.rating}>{item.rating}</Text>
+    const handleRemoveFavorite = async (businessId: string) => {
+        await removeFavorite(businessId);
+    };
+
+    const renderItem = ({ item }: { item: FavoriteBusiness }) => {
+        // Extraer datos con valores por defecto
+        const businessName = item.business?.name || 'Sin nombre';
+        const businessImage = item.business?.main_image_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+        const categoryName = item.business?.category?.name || 'Sin categoría';
+        const rating = item.business?.average_rating;
+        const city = item.business?.city;
+        const businessId = item.business_id;
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => router.push({
+                    pathname: '/detail',
+                    params: { 
+                        businessId: item.business.id, 
+                        businessName: businessName 
+                    }
+                })}
+            >
+                <Image 
+                    source={{ uri: businessImage }} 
+                    style={styles.image} 
+                />
+                <View style={styles.cardContent}>
+                    <View style={styles.cardHeader}>
+                        <Text style={styles.name} numberOfLines={2}>
+                            {businessName}
+                        </Text>
+                        <TouchableOpacity onPress={() => handleRemoveFavorite(businessId!)}>
+                            <Ionicons name="heart" size={24} color="#FF3B30" />
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.locationContainer}>
-                        <Ionicons name="location-outline" size={14} color="#666" />
-                        <Text style={styles.location}>{item.location}</Text>
+                    
+                    <Text style={styles.category}>{categoryName}</Text>
+                    
+                    <View style={styles.footer}>
+                        {rating !== null && (
+                            <View style={styles.ratingContainer}>
+                                <Ionicons name="star" size={16} color="#FFB800" />
+                                <Text style={styles.rating}>
+                                    {rating.toFixed(1)}
+                                </Text>
+                            </View>
+                        )}
+                        {city && (
+                            <View style={styles.locationContainer}>
+                                <Ionicons name="location-outline" size={14} color="#666" />
+                                <Text style={styles.location}>{city}</Text>
+                            </View>
+                        )}
                     </View>
                 </View>
-            </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+        );
+    };
+
+    const renderEmpty = () => (
+        <View style={styles.emptyContainer}>
+            <Ionicons name="heart-outline" size={80} color="#CCC" />
+            <Text style={styles.emptyTitle}>No tienes favoritos</Text>
+            <Text style={styles.emptyText}>
+                Comienza a explorar y guarda tus lugares favoritos
+            </Text>
+        </View>
     );
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Mis favoritos</Text>
+                    <View style={{ width: 24 }} />
+                </View>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#003D7A" />
+                    <Text style={styles.loadingText}>Cargando favoritos...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -85,9 +127,21 @@ export default function MyFavoritesScreen() {
             <FlatList
                 data={favorites}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.list}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={[
+                    styles.list,
+                    favorites.length === 0 && styles.listEmpty
+                ]}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={renderEmpty}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={['#003D7A']}
+                        tintColor="#003D7A"
+                    />
+                }
             />
         </SafeAreaView>
     );
@@ -114,6 +168,9 @@ const styles = StyleSheet.create({
     list: {
         padding: 16,
     },
+    listEmpty: {
+        flexGrow: 1,
+    },
     card: {
         backgroundColor: '#FFFFFF',
         borderRadius: 12,
@@ -128,6 +185,7 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: 180,
+        backgroundColor: '#E0E0E0',
     },
     cardContent: {
         padding: 16,
@@ -173,5 +231,33 @@ const styles = StyleSheet.create({
     location: {
         fontSize: 13,
         color: '#666',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 16,
+        color: '#666',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+    },
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
     },
 });

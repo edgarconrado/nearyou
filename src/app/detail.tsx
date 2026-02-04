@@ -11,8 +11,10 @@ import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
+import { useBusinessFavorite } from '@/hooks/use-favorites'; // Tu hook actualizado con Clerk
 import type { BusinessFull } from '@/services/businesses.service';
 import { BusinessesService } from '@/services/businesses.service';
+import { useAuth } from '@clerk/clerk-expo';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -37,7 +39,6 @@ export default function DetailScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<'about' | 'reviews'>('about');
-  const [isFavorite, setIsFavorite] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
   const [reviewFilter, setReviewFilter] = useState<number | 'all'>('all');
@@ -53,6 +54,23 @@ export default function DetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const { businessId, businessName } = params;
+  const id = Array.isArray(businessId) ? businessId[0] : businessId;
+
+  // Autenticación con Clerk
+  const { isSignedIn, userId: clerkUserId } = useAuth();
+
+
+
+  // Hook de favoritos (ahora usa Clerk)
+  const { isFavorite, toggling, toggle, userId } = useBusinessFavorite(id || '');
+
+  // Log del estado de autenticación
+  useEffect(() => {
+    console.log('[DetailScreen] Clerk auth status:', {
+      isSignedIn,
+      userId: clerkUserId,
+    });
+  }, [isSignedIn, clerkUserId]);
 
   // Obtener ubicación del usuario
   const { location: userLocation } = useUserLocation();
@@ -75,8 +93,6 @@ export default function DetailScreen() {
       setLoading(true);
       setError(null);
 
-      const id = Array.isArray(businessId) ? businessId[0] : businessId;
-
       if (!id) {
         setError('ID de negocio no válido');
         setLoading(false);
@@ -95,7 +111,7 @@ export default function DetailScreen() {
 
       setBusiness(data);
 
-      // Incrementar contador de visitas (no esperar ni bloquear si falla)
+      // Incrementar contador de visitas
       BusinessesService.incrementVisitCount(id).catch(err => {
         console.log('No se pudo incrementar contador de visitas:', err);
       });
@@ -107,14 +123,58 @@ export default function DetailScreen() {
     }
   };
 
+  // Toggle favorito con Clerk
+  const toggleFavorite = async () => {
+    console.log('[DetailScreen] Toggle favorite clicked');
+    console.log('[DetailScreen] Clerk auth:', { isSignedIn, userId: clerkUserId });
+
+    // Verificar autenticación con Clerk
+    if (!isSignedIn || !clerkUserId) {
+      Alert.alert(
+        'Inicia sesión',
+        'Debes iniciar sesión para agregar favoritos',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Iniciar sesión',
+            onPress: () => {
+              // Navega a tu pantalla de login de Clerk
+              router.push('/(auth)/sign-in'); // Ajusta la ruta según tu app
+            }
+          }
+        ]
+      );
+      return;
+    }
+
+    // Verificar que hay un negocio
+    if (!id || !business) {
+      Alert.alert('Error', 'No se pudo identificar el negocio');
+      return;
+    }
+
+    // Intentar toggle
+    const success = await toggle();
+    
+    if (!success) {
+      Alert.alert(
+        'Error',
+        'No se pudo actualizar tus favoritos. Por favor, intenta de nuevo.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // El estado se actualiza automáticamente
+    console.log('[DetailScreen] Toggle successful');
+  };
+
   // Procesar horarios de apertura
   const getBusinessHours = (): BusinessHours[] => {
-    // Si no hay horarios desde la BD, retornar array vacío
     if (!businessHoursFormatted || businessHoursFormatted.length === 0) {
       return [];
     }
 
-    // Usar los horarios de la tabla business_hours
     return businessHoursFormatted.map(hour => ({
       day: hour.day,
       hours: hour.isClosed
@@ -146,7 +206,6 @@ export default function DetailScreen() {
 
   // Obtener características/amenidades
   const getFeatures = (): string[] => {
-    // Intentar con diferentes nombres de campo que puedan existir
     const featuresField = (business as any)?.features ||
       (business as any)?.amenities ||
       business?.amenities;
@@ -154,18 +213,16 @@ export default function DetailScreen() {
     if (!featuresField) return [];
 
     try {
-      // Si ya es un array, retornarlo directamente
       if (Array.isArray(featuresField)) {
         return featuresField;
       }
-      // Si es string, intentar parsearlo como JSON
       return JSON.parse(featuresField);
     } catch {
       return [];
     }
   };
 
-  // Datos de ejemplo para reviews (después integrarás con la tabla de reviews)
+  // Datos de ejemplo para reviews
   const [reviews, setReviews] = useState<Review[]>([
     {
       id: 1,
@@ -173,11 +230,8 @@ export default function DetailScreen() {
       userAvatar: 'https://i.pravatar.cc/150?img=1',
       rating: 5,
       date: '15 Dic 2024',
-      comment:
-        'Excelente comida y atención. El ambiente es muy agradable y la vista espectacular.',
-      images: [
-        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop',
-      ],
+      comment: 'Excelente comida y atención. El ambiente es muy agradable y la vista espectacular.',
+      images: ['https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop'],
       isOwn: false,
     },
   ]);
@@ -223,23 +277,6 @@ export default function DetailScreen() {
     }
   };
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    if (!isFavorite) {
-      Alert.alert(
-        'Agregado a favoritos',
-        `${business?.name} ha sido agregado a tus favoritos`,
-        [{ text: 'OK' }]
-      );
-    } else {
-      Alert.alert(
-        'Eliminado de favoritos',
-        `${business?.name} ha sido eliminado de tus favoritos`,
-        [{ text: 'OK' }]
-      );
-    }
-  };
-
   const handleShare = async () => {
     if (!business) return;
 
@@ -257,55 +294,32 @@ export default function DetailScreen() {
     }
   };
 
-  const pickImages = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Se necesita acceso a la galería para subir fotos');
+  const openReviewModal = (review?: Review) => {
+    // Verificar autenticación con Clerk
+    if (!isSignedIn) {
+      Alert.alert(
+        'Inicia sesión',
+        'Debes iniciar sesión para escribir una reseña',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Iniciar sesión',
+            onPress: () => router.push('/(auth)/sign-in')
+          }
+        ]
+      );
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.8,
-      selectionLimit: 5,
-    });
-
-    if (!result.canceled) {
-      const newImages = result.assets.map((asset) => asset.uri);
-      setNewReview((prev) => ({
-        ...prev,
-        images: [...prev.images, ...newImages].slice(0, 5),
-      }));
+    if (review) {
+      setEditingReviewId(review.id);
+      setNewReview({
+        rating: review.rating,
+        comment: review.comment,
+        images: review.images || [],
+      });
     }
-  };
-
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Se necesita acceso a la cámara para tomar fotos');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setNewReview((prev) => ({
-        ...prev,
-        images: [...prev.images, result.assets[0].uri].slice(0, 5),
-      }));
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setNewReview((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
+    setShowReviewModal(true);
   };
 
   const showImageOptions = () => {
@@ -315,40 +329,72 @@ export default function DetailScreen() {
           options: ['Cancelar', 'Tomar foto', 'Elegir de galería'],
           cancelButtonIndex: 0,
         },
-        (buttonIndex) => {
+        async (buttonIndex) => {
           if (buttonIndex === 1) {
-            takePhoto();
+            await takePhoto();
           } else if (buttonIndex === 2) {
-            pickImages();
+            await pickImage();
           }
         }
       );
     } else {
-      Alert.alert('Agregar foto', 'Elige una opción', [
+      Alert.alert('Agregar foto', 'Selecciona una opción', [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Tomar foto', onPress: takePhoto },
-        { text: 'Elegir de galería', onPress: pickImages },
+        { text: 'Elegir de galería', onPress: pickImage },
       ]);
     }
   };
 
-  const openReviewModal = (review?: Review) => {
-    if (review) {
-      setEditingReviewId(review.id);
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a tu cámara');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
       setNewReview({
-        rating: review.rating,
-        comment: review.comment,
-        images: review.images || [],
-      });
-    } else {
-      setEditingReviewId(null);
-      setNewReview({
-        rating: 0,
-        comment: '',
-        images: [],
+        ...newReview,
+        images: [...newReview.images, result.assets[0].uri],
       });
     }
-    setShowReviewModal(true);
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a tu galería');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setNewReview({
+        ...newReview,
+        images: [...newReview.images, result.assets[0].uri],
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setNewReview({
+      ...newReview,
+      images: newReview.images.filter((_, i) => i !== index),
+    });
   };
 
   const handleSubmitReview = () => {
@@ -357,31 +403,20 @@ export default function DetailScreen() {
       return;
     }
 
-    if (newReview.comment.trim().length < 10) {
-      Alert.alert('Comentario muy corto', 'Por favor escribe al menos 10 caracteres');
-      return;
-    }
-
     if (editingReviewId) {
       setReviews((prev) =>
         prev.map((review) =>
           review.id === editingReviewId
-            ? {
-              ...review,
-              rating: newReview.rating,
-              comment: newReview.comment,
-              images: newReview.images,
-              date: 'Editado hoy',
-            }
+            ? { ...review, ...newReview }
             : review
         )
       );
       Alert.alert('Opinión actualizada', 'Tu reseña ha sido actualizada correctamente');
     } else {
       const review: Review = {
-        id: reviews.length + 1,
-        userName: 'Tu nombre',
-        userAvatar: 'https://i.pravatar.cc/150?img=33',
+        id: Date.now(),
+        userName: 'Tú',
+        userAvatar: 'https://i.pravatar.cc/150?img=' + Math.floor(Math.random() * 70),
         rating: newReview.rating,
         date: new Date().toLocaleDateString('es-MX', {
           day: 'numeric',
@@ -487,7 +522,7 @@ export default function DetailScreen() {
     category: business.category_name || 'Sin categoría',
     rating: business.average_rating || 0,
     reviews: business.total_reviews || 0,
-    distance: '2.5 km', // TODO: Calcular distancia real
+    distance: '2.5 km',
     isOpen: isBusinessCurrentlyOpen,
     image: business.main_image_url || '',
     description: business.description || '',
@@ -504,6 +539,7 @@ export default function DetailScreen() {
     priceRange: business.price_range || '$',
     features: getFeatures(),
     gallery: getGallery(),
+    closingTime: closingTimeFormatted,
   };
 
   const businessHours = getBusinessHours();
@@ -525,6 +561,7 @@ export default function DetailScreen() {
           business={businessData}
           isFavorite={isFavorite}
           onToggleFavorite={toggleFavorite}
+          favoriteLoading={toggling}
         />
 
         <QuickActions

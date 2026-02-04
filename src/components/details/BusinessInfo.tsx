@@ -1,17 +1,23 @@
+import type { Database } from '@/types/database.types'; // Ajusta la ruta según tu proyecto
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-interface BusinessData {
+// Extraer tipos de la base de datos
+type Business = Database['public']['Tables']['businesses']['Row'];
+
+// Tipo para los datos del negocio que se muestran en la UI
+// Extiende del tipo de la BD pero agrega campos calculados/formateados
+export interface BusinessData extends Partial<Business> {
     id: string;
     name: string;
-    category: string;
-    rating: number;
-    reviews: number;
-    isOpen: boolean;
-    description: string;
-    priceRange: string;
-    features: string[];
+    category?: string; // Nombre de la categoría (calculado)
+    rating?: number; // average_rating renombrado
+    reviews?: number; // total_reviews renombrado
+    isOpen?: boolean; // is_open renombrado
+    description?: string;
+    priceRange?: string; // price_range renombrado
+    features?: string[];
     closingTime?: string | null;
 }
 
@@ -19,12 +25,14 @@ interface BusinessInfoProps {
     business: BusinessData;
     isFavorite: boolean;
     onToggleFavorite: () => void;
+    favoriteLoading?: boolean;
 }
 
 export const BusinessInfo: React.FC<BusinessInfoProps> = ({
     business,
     isFavorite,
     onToggleFavorite,
+    favoriteLoading = false,
 }) => {
     const renderStars = (rating: number, size: number = 16) => {
         const stars = [];
@@ -44,30 +52,48 @@ export const BusinessInfo: React.FC<BusinessInfoProps> = ({
         return stars;
     };
 
+    // Extraer valores con fallbacks seguros
+    const displayName = business.name;
+    const displayCategory = business.category || 'Sin categoría';
+    const displayPriceRange = business.priceRange || business.price_range || '$';
+    const displayRating = business.rating ?? business.average_rating ?? 0;
+    const displayReviews = business.reviews ?? business.total_reviews ?? 0;
+    const displayIsOpen = business.isOpen ?? business.is_open ?? false;
+    const displayDescription = business.description;
+    const displayFeatures = business.features || [];
+
     return (
         <View style={styles.mainInfo}>
             <View style={styles.nameRow}>
-                <Text style={styles.businessName}>{business.name}</Text>
-                <TouchableOpacity style={styles.favoriteButton} onPress={onToggleFavorite}>
-                    <Ionicons
-                        name={isFavorite ? 'heart' : 'heart-outline'}
-                        size={28}
-                        color="#FF3B30"
-                    />
+                <Text style={styles.businessName}>{displayName}</Text>
+                <TouchableOpacity 
+                    style={styles.favoriteButton} 
+                    onPress={onToggleFavorite}
+                    disabled={favoriteLoading}
+                >
+                    {favoriteLoading ? (
+                        <ActivityIndicator size="small" color="#FF3B30" />
+                    ) : (
+                        <Ionicons
+                            name={isFavorite ? 'heart' : 'heart-outline'}
+                            size={28}
+                            color="#FF3B30"
+                        />
+                    )}
                 </TouchableOpacity>
             </View>
 
             <Text style={styles.category}>
-                {business.category} • {business.priceRange}
+                {displayCategory} • {displayPriceRange}
             </Text>
 
             <View style={styles.ratingRow}>
-                {business.rating > 0 ? (
+                {displayRating > 0 ? (
                     <>
-                        <View style={styles.starsRow}>{renderStars(business.rating, 20)}</View>
-                        <Text style={styles.ratingText}>{business.rating.toFixed(1)}</Text>
+                        <View style={styles.starsRow}>{renderStars(displayRating, 20)}</View>
+                        <Text style={styles.ratingText}>{displayRating.toFixed(1)}</Text>
                         <Text style={styles.reviewsCount}>
-                            ({business.reviews} {business.reviews === 1 ? 'opinión' : 'opiniones'})
+                            ({displayReviews} {displayReviews === 1 ? 'opinión' : 'opiniones'})
                         </Text>
                     </>
                 ) : (
@@ -76,20 +102,22 @@ export const BusinessInfo: React.FC<BusinessInfoProps> = ({
             </View>
 
             <View style={styles.statusRow}>
-                <View style={[styles.statusDot, business.isOpen && styles.statusDotOpen]} />
-                <Text style={[styles.statusText, business.isOpen && styles.statusTextOpen]}>
-                    {business.isOpen ? 'Abierto ahora' : 'Cerrado'}
+                <View style={[styles.statusDot, displayIsOpen && styles.statusDotOpen]} />
+                <Text style={[styles.statusText, displayIsOpen && styles.statusTextOpen]}>
+                    {displayIsOpen ? 'Abierto ahora' : 'Cerrado'}
                 </Text>
-                {business.isOpen && <Text style={styles.statusHours}> • Cierra a las 10:00 PM</Text>}
+                {displayIsOpen && business.closingTime && (
+                    <Text style={styles.statusHours}> • Cierra a las {business.closingTime}</Text>
+                )}
             </View>
 
-            {business.description && (
-                <Text style={styles.description}>{business.description}</Text>
+            {displayDescription && (
+                <Text style={styles.description}>{displayDescription}</Text>
             )}
 
-            {business.features.length > 0 && (
+            {displayFeatures.length > 0 && (
                 <View style={styles.featuresContainer}>
-                    {business.features.map((feature, index) => (
+                    {displayFeatures.map((feature, index) => (
                         <View key={index} style={styles.featureChip}>
                             <Ionicons name="checkmark-circle" size={16} color="#2E7D32" />
                             <Text style={styles.featureText}>{feature}</Text>
@@ -123,6 +151,10 @@ const styles = StyleSheet.create({
     },
     favoriteButton: {
         padding: 4,
+        minWidth: 36,
+        minHeight: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     category: {
         fontSize: 16,

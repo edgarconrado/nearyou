@@ -143,6 +143,7 @@ export default function ExploreScreen() {
           <ZoneInfoButton onPress={handleOpenZoneInfo} />
         )}
 
+        {/* Sección de Filtros de Categorías */}
         <FiltersSection
           selectedFilter={selectedFilter}
           onFilterChange={setSelectedFilter}
@@ -151,6 +152,7 @@ export default function ExploreScreen() {
         <Text style={styles.resultsCount}>
           {filteredAndSortedBusinesses.length} {filteredAndSortedBusinesses.length === 1 ? 'lugar' : 'lugares'}
           {searchQuery.length > 0 && ` encontrados para "${searchQuery}"`}
+          {selectedFilter !== 'Todos' && ` en ${selectedFilter}`}
           {userLocation && filteredAndSortedBusinesses.length > 0 && ' • Ordenados por distancia'}
         </Text>
 

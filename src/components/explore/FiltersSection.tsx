@@ -1,195 +1,148 @@
-import { CategoriesService, type Category } from '@/services/categories.service';
+// components/explore/FiltersSection.tsx
+import { useCategories } from '@/hooks/use-categories';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import {
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 interface FiltersSectionProps {
-    selectedFilter: string;
-    onFilterChange: (filter: string) => void;
+  selectedFilter: string;
+  onFilterChange: (filter: string) => void;
 }
 
-// Icono por defecto para "Todos"
-const DEFAULT_TODOS_ICON: keyof typeof Ionicons.glyphMap = 'apps-outline';
-// Icono por defecto para categorías sin icono
-const DEFAULT_CATEGORY_ICON: keyof typeof Ionicons.glyphMap = 'location-outline';
+export function FiltersSection({ selectedFilter, onFilterChange }: FiltersSectionProps) {
+  const { categories, loading, error } = useCategories();
 
-export const FiltersSection: React.FC<FiltersSectionProps> = ({
-    selectedFilter,
-    onFilterChange,
-}) => {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        loadCategories();
-
-        // Suscribirse a cambios en tiempo real
-        const channel = CategoriesService.subscribeToChanges((payload) => {
-            console.log('Category change:', payload);
-            loadCategories(); // Recargar categorías cuando hay cambios
-        });
-
-        return () => {
-            CategoriesService.unsubscribeFromChanges(channel);
-        };
-    }, []);
-
-    const loadCategories = async () => {
-        setLoading(true);
-        setError(null);
-
-        const { data, error } = await CategoriesService.getAllActiveCategories();
-
-        if (error) {
-            console.error('Error loading categories:', error);
-            setError('Error al cargar categorías');
-        } else if (data) {
-            setCategories(data);
-        }
-
-        setLoading(false);
-    };
-
-    // Función para obtener el icono
-    const getIconName = (category: Category): keyof typeof Ionicons.glyphMap => {
-        // Si la categoría tiene un icono definido en la BD, usarlo
-        if (category.icon && category.icon in Ionicons.glyphMap) {
-            return category.icon as keyof typeof Ionicons.glyphMap;
-        }
-        // Si no, usar el icono por defecto
-        return DEFAULT_CATEGORY_ICON;
-    };
-
-    if (loading) {
-        return (
-            <View style={styles.filtersWrapper}>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color="#003D7A" />
-                </View>
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View style={styles.filtersWrapper}>
-                <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>{error}</Text>
-                    <TouchableOpacity onPress={loadCategories} style={styles.retryButton}>
-                        <Text style={styles.retryText}>Reintentar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
-    }
-
-    // Crear array de filtros con "Todos" al inicio
-    const allFilters = [
-        { id: 'todos', name: 'Todos', icon: DEFAULT_TODOS_ICON },
-        ...categories.map(cat => ({
-            id: cat.id,
-            name: cat.name,
-            icon: getIconName(cat),
-        }))
-    ];
-
+  if (loading) {
     return (
-        <View style={styles.filtersWrapper}>
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filtersContent}
-            >
-                {allFilters.map((filter) => (
-                    <TouchableOpacity
-                        key={filter.id}
-                        style={[
-                            styles.filterChip,
-                            selectedFilter === filter.name && styles.filterChipActive
-                        ]}
-                        onPress={() => onFilterChange(filter.name)}
-                    >
-                        <Ionicons
-                            name={filter.icon}
-                            size={18}
-                            color={selectedFilter === filter.name ? '#FFFFFF' : '#003D7A'}
-                        />
-                        <Text
-                            style={[
-                                styles.filterText,
-                                selectedFilter === filter.name && styles.filterTextActive
-                            ]}
-                        >
-                            {filter.name}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-        </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#003D7A" />
+      </View>
     );
-};
+  }
+
+  if (error) {
+    return null; // Silently fail, just show "Todos"
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Filtro "Todos" */}
+        <Pressable
+          style={[
+            styles.filterChip,
+            selectedFilter === 'Todos' && styles.filterChipActive,
+          ]}
+          onPress={() => onFilterChange('Todos')}
+        >
+          <Ionicons
+            name="grid-outline"
+            size={18}
+            color={selectedFilter === 'Todos' ? '#FFF' : '#666'}
+          />
+          <Text
+            style={[
+              styles.filterText,
+              selectedFilter === 'Todos' && styles.filterTextActive,
+            ]}
+          >
+            Todos
+          </Text>
+        </Pressable>
+
+        {/* Filtros de categorías dinámicas */}
+        {categories.map((category) => (
+          <Pressable
+            key={category.id}
+            style={[
+              styles.filterChip,
+              selectedFilter === category.name && styles.filterChipActive,
+            ]}
+            onPress={() => onFilterChange(category.name)}
+          >
+            {category.icon && (
+              <Ionicons
+                name={category.icon as any}
+                size={18}
+                color={selectedFilter === category.name ? '#FFF' : '#666'}
+              />
+            )}
+            <Text
+              style={[
+                styles.filterText,
+                selectedFilter === category.name && styles.filterTextActive,
+              ]}
+            >
+              {category.name}
+            </Text>
+            {category.color && selectedFilter === category.name && (
+              <View
+                style={[
+                  styles.colorDot,
+                  { backgroundColor: category.color }
+                ]}
+              />
+            )}
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-    filtersWrapper: {
-        backgroundColor: '#FFFFFF',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-    },
-    filtersContent: {
-        paddingHorizontal: 16,
-        gap: 8,
-    },
-    filterChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#F0F0F0',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        marginRight: 8,
-    },
-    filterChipActive: {
-        backgroundColor: '#003D7A',
-        borderColor: '#003D7A',
-    },
-    filterText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#003D7A',
-    },
-    filterTextActive: {
-        color: '#FFFFFF',
-    },
-    loadingContainer: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        alignItems: 'center',
-    },
-    errorContainer: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    errorText: {
-        color: '#D32F2F',
-        fontSize: 13,
-    },
-    retryButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: '#003D7A',
-        borderRadius: 12,
-    },
-    retryText: {
-        color: '#FFFFFF',
-        fontSize: 12,
-        fontWeight: '600',
-    },
+  container: {
+    backgroundColor: '#FFF',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  loadingContainer: {
+    backgroundColor: '#FFF',
+    paddingVertical: 20,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    gap: 6,
+  },
+  filterChipActive: {
+    backgroundColor: '#003D7A',
+  },
+  filterText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  filterTextActive: {
+    color: '#FFF',
+  },
+  colorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 2,
+  },
 });
