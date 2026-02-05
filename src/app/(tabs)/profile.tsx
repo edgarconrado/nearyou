@@ -1,5 +1,6 @@
-import { useProfile } from '@/hooks/use-profile'; // Ajusta la ruta según tu configuración
-import { useUserStats } from '@/hooks/use-user-stats'; // Ajusta la ruta según tu configuración
+import { useFavorites } from '@/hooks/use-favorites';
+import { useProfile } from '@/hooks/use-profile';
+import { useUserStats } from '@/hooks/use-user-stats';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -25,9 +26,15 @@ export default function ProfileScreen() {
   const { profile, loading: profileLoading, error, refetch } = useProfile(userId);
   const { stats, loading: statsLoading } = useUserStats(userId);
 
+  // ✅ NUEVO: Obtener el conteo real de favoritos del contexto global
+  const { favorites, loading: favoritesLoading } = useFavorites();
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const loading = profileLoading || statsLoading;
+
+  // ✅ Usar el conteo real de favoritos del contexto en lugar del stats
+  const favoritesCount = favorites.length;
 
   // Formatear fecha de miembro
   const formatMemberSince = (date: string | null) => {
@@ -212,7 +219,8 @@ export default function ProfileScreen() {
             onPress={handleFavorites}
           >
             <Ionicons name="heart" size={28} color="#FF3B30" />
-            <Text style={styles.statNumber}>{stats.favorites}</Text>
+            {/* ✅ Usar el conteo real de favoritos del contexto */}
+            <Text style={styles.statNumber}>{favoritesCount}</Text>
             <Text style={styles.statLabel}>Favoritos</Text>
           </TouchableOpacity>
 
@@ -250,7 +258,8 @@ export default function ProfileScreen() {
               <Text style={styles.menuItemText}>Lugares favoritos</Text>
             </View>
             <View style={styles.menuItemRight}>
-              <Text style={styles.menuItemCount}>{stats.favorites}</Text>
+              {/* ✅ Usar el conteo real de favoritos del contexto */}
+              <Text style={styles.menuItemCount}>{favoritesCount}</Text>
               <Ionicons name="chevron-forward" size={20} color="#CCC" />
             </View>
           </TouchableOpacity>
@@ -294,41 +303,33 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={handleEditProfile}
+            onPress={handleNotifications}
           >
-            <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#F3E5F5' }]}>
-                <Ionicons name="person" size={22} color="#9C27B0" />
-              </View>
-              <Text style={styles.menuItemText}>Editar perfil</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
-          </TouchableOpacity>
-
-          <View style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
               <View style={[styles.iconContainer, { backgroundColor: '#E8F5E9' }]}>
                 <Ionicons name="notifications" size={22} color="#4CAF50" />
               </View>
               <Text style={styles.menuItemText}>Notificaciones</Text>
             </View>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#D0D0D0', true: '#4CAF50' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
+            <View style={styles.menuItemRight}>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={setNotificationsEnabled}
+                trackColor={{ false: '#CCC', true: '#003D7A' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuItem}
             onPress={handlePrivacy}
           >
             <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
-                <Ionicons name="shield-checkmark" size={22} color="#FF9800" />
+              <View style={[styles.iconContainer, { backgroundColor: '#F3E5F5' }]}>
+                <Ionicons name="shield-checkmark" size={22} color="#9C27B0" />
               </View>
-              <Text style={styles.menuItemText}>Privacidad y seguridad</Text>
+              <Text style={styles.menuItemText}>Privacidad</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
@@ -338,8 +339,8 @@ export default function ProfileScreen() {
             onPress={handleLanguage}
           >
             <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#E1F5FE' }]}>
-                <Ionicons name="language" size={22} color="#03A9F4" />
+              <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
+                <Ionicons name="language" size={22} color="#FF9800" />
               </View>
               <Text style={styles.menuItemText}>Idioma</Text>
             </View>
@@ -350,9 +351,9 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Soporte */}
+        {/* Información */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Soporte</Text>
+          <Text style={styles.sectionTitle}>Información</Text>
 
           <TouchableOpacity
             style={styles.menuItem}

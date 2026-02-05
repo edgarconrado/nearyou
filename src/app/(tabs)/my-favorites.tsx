@@ -1,9 +1,10 @@
-import { useFavorites, type FavoriteBusiness } from '@/hooks/use-favorites';
+import { useFavorites } from '@/hooks/use-favorites';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     Image,
     RefreshControl,
@@ -16,57 +17,104 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyFavoritesScreen() {
     const router = useRouter();
-    const { favorites, loading, removeFavorite, refetch } = useFavorites();
+    // Ahora usa el contexto global - los cambios se sincronizan automáticamente
+    const { favorites, loading, removeFavorite, refetch, userId, isSignedIn } = useFavorites();
     const [refreshing, setRefreshing] = React.useState(false);
 
     const onRefresh = async () => {
+        console.log('🔄 Manual refresh triggered');
         setRefreshing(true);
         await refetch();
         setRefreshing(false);
     };
 
-    const handleRemoveFavorite = async (businessId: string) => {
-        await removeFavorite(businessId);
+    const handleRemoveFavorite = async (businessId: string, businessName: string) => {
+        Alert.alert(
+            'Eliminar favorito',
+            `¿Quieres eliminar "${businessName}" de tus favoritos?`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        console.log('❌ Removing favorite:', businessId);
+                        const success = await removeFavorite(businessId);
+                        
+                        if (success) {
+                            console.log('✅ Favorite removed successfully');
+                            // No need to alert, the list updates automatically
+                        } else {
+                            console.log('❌ Failed to remove favorite');
+                            Alert.alert('Error', 'No se pudo eliminar el favorito');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
-    const renderItem = ({ item }: { item: FavoriteBusiness }) => {
-        // Extraer datos con valores por defecto
-        const businessName = item.business?.name || 'Sin nombre';
-        const businessImage = item.business?.main_image_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
-        const categoryName = item.business?.category?.name || 'Sin categoría';
-        const rating = item.business?.average_rating;
-        const city = item.business?.city;
-        const businessId = item.business_id;
+    const renderItem = ({ item, index }: any) => {
+        // Si no hay datos del negocio
+        if (!item.business) {
+            return (
+                <View style={styles.card}>
+                    <View style={styles.errorCard}>
+                        <Ionicons name="warning-outline" size={40} color="#FF9800" />
+                        <Text style={styles.errorTitle}>Negocio no disponible</Text>
+                        <Text style={styles.errorText}>
+                            ID: {item.business_id}
+                        </Text>
+                        <TouchableOpacity 
+                            style={styles.removeButton}
+                            onPress={() => handleRemoveFavorite(item.business_id, 'este negocio')}
+                        >
+                            <Text style={styles.removeButtonText}>Eliminar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
+        }
+
+        const business = item.business;
+        const businessName = business.name || 'Sin nombre';
+        const businessImage = business.main_image_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+        const rating = business.average_rating;
+        const city = business.city;
 
         return (
             <TouchableOpacity
                 style={styles.card}
-                onPress={() => router.push({
-                    pathname: '/detail',
-                    params: { 
-                        businessId: item.business.id, 
-                        businessName: businessName 
-                    }
-                })}
+                onPress={() => {
+                    console.log('👉 Navigating to business:', business.id);
+                    router.push({
+                        pathname: '/detail',
+                        params: { 
+                            businessId: business.id, 
+                            businessName: businessName 
+                        }
+                    });
+                }}
             >
                 <Image 
                     source={{ uri: businessImage }} 
-                    style={styles.image} 
+                    style={styles.image}
                 />
                 <View style={styles.cardContent}>
                     <View style={styles.cardHeader}>
                         <Text style={styles.name} numberOfLines={2}>
                             {businessName}
                         </Text>
-                        <TouchableOpacity onPress={() => handleRemoveFavorite(businessId!)}>
+                        <TouchableOpacity 
+                            onPress={() => handleRemoveFavorite(item.business_id, businessName)}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
                             <Ionicons name="heart" size={24} color="#FF3B30" />
                         </TouchableOpacity>
                     </View>
                     
-                    <Text style={styles.category}>{categoryName}</Text>
-                    
                     <View style={styles.footer}>
-                        {rating !== null && (
+                        {rating !== null && rating !== undefined && typeof rating === 'number' && (
                             <View style={styles.ratingContainer}>
                                 <Ionicons name="star" size={16} color="#FFB800" />
                                 <Text style={styles.rating}>
@@ -93,6 +141,11 @@ export default function MyFavoritesScreen() {
             <Text style={styles.emptyText}>
                 Comienza a explorar y guarda tus lugares favoritos
             </Text>
+
+            <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
+                <Ionicons name="refresh" size={20} color="#FFF" />
+                <Text style={styles.reloadText}>Recargar</Text>
+            </TouchableOpacity>
         </View>
     );
 
@@ -120,14 +173,18 @@ export default function MyFavoritesScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mis favoritos</Text>
-                <View style={{ width: 24 }} />
+                <Text style={styles.headerTitle}>
+                    Mis favoritos ({favorites?.length || 0})
+                </Text>
+                <TouchableOpacity onPress={onRefresh}>
+                    <Ionicons name="refresh" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
             </View>
 
             <FlatList
                 data={favorites}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item, index) => item?.id || `fav-${index}`}
                 contentContainerStyle={[
                     styles.list,
                     favorites.length === 0 && styles.listEmpty
@@ -182,6 +239,33 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
+    errorCard: {
+        padding: 24,
+        alignItems: 'center',
+    },
+    errorTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FF9800',
+        marginTop: 12,
+        marginBottom: 8,
+    },
+    errorText: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 16,
+    },
+    removeButton: {
+        backgroundColor: '#FF3B30',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 6,
+    },
+    removeButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '600',
+    },
     image: {
         width: '100%',
         height: 180,
@@ -202,11 +286,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginRight: 8,
-    },
-    category: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 12,
     },
     footer: {
         flexDirection: 'row',
@@ -259,5 +338,20 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         textAlign: 'center',
+        marginBottom: 24,
+    },
+    reloadButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: '#003D7A',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 8,
+    },
+    reloadText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
