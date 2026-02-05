@@ -36,7 +36,7 @@ export default function ExploreScreen() {
 
   const checkLocationOnFirstVisit = async () => {
     const hasVisitedExplore = await AsyncStorage.getItem('visited_explore');
-    
+
     if (!hasVisitedExplore && !hasPermission) {
       setShowLocationPrompt(true);
       await AsyncStorage.setItem('visited_explore', 'true');
@@ -50,11 +50,11 @@ export default function ExploreScreen() {
   const { zoneName, zoneLocation, zoneImage, zoneId } = params;
 
   // Obtener información detallada de la zona
-  const { 
-    zone, 
-    loading: loadingZone, 
-    hasDescription, 
-    hasGallery 
+  const {
+    zone,
+    loading: loadingZone,
+    hasDescription,
+    hasGallery
   } = useZoneDetails(zoneId as string);
 
   // Mostrar el botón solo si hay información disponible
@@ -64,11 +64,11 @@ export default function ExploreScreen() {
   const { location: userLocation } = useUserLocation();
 
   // Obtener negocios desde Supabase con filtros
-  const { 
-    businesses, 
-    loading: loadingBusinesses, 
-    error: errorBusinesses, 
-    refetch: refetchBusinesses 
+  const {
+    businesses,
+    loading: loadingBusinesses,
+    error: errorBusinesses,
+    refetch: refetchBusinesses
   } = useBusinesses({
     zoneId: zoneId as string,
     searchQuery: searchQuery.trim().length > 0 ? searchQuery : undefined,
@@ -132,8 +132,8 @@ export default function ExploreScreen() {
 
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
         <FloatingLocationBadge businessCount={filteredAndSortedBusinesses.length} />
-        
-        <OffersSection 
+
+        <OffersSection
           zoneId={zoneId as string}
           onSeeAll={handleSeeAllOffers}
         />
