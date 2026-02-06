@@ -1,7 +1,6 @@
 // services/categories.service.ts
+import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
-import { supabase } from '@lib/supabase';
-import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export type Category = Database['public']['Tables']['categories']['Row'];
 export type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
@@ -24,25 +23,6 @@ export class CategoriesService {
       return { data, error: null };
     } catch (error) {
       console.error('Error fetching categories:', error);
-      return { data: null, error: error as Error };
-    }
-  }
-
-  /**
-   * Obtener todas las categorías (incluidas inactivas)
-   */
-  static async getAllCategories(): Promise<{ data: Category[] | null; error: Error | null }> {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
-
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error fetching all categories:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -164,34 +144,5 @@ export class CategoriesService {
       console.error('Error deleting category:', error);
       return { success: false, error: error as Error };
     }
-  }
-
-  /**
-   * Suscribirse a cambios en tiempo real
-   */
-  static subscribeToChanges(
-    callback: (payload: RealtimePostgresChangesPayload<Category>) => void
-  ): RealtimeChannel {
-    const channel = supabase
-      .channel('categories-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'categories',
-        },
-        callback
-      )
-      .subscribe();
-
-    return channel;
-  }
-
-  /**
-   * Cancelar suscripción
-   */
-  static unsubscribeFromChanges(channel: RealtimeChannel): void {
-    supabase.removeChannel(channel);
   }
 }

@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -83,7 +84,9 @@ export default function RootLayout() {
     <ClerkProvider
       publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}>
-      <InitialLayout />
+      <FavoritesProvider>
+        <InitialLayout />
+      </FavoritesProvider>
     </ClerkProvider>
   );
 }
