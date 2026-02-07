@@ -1,9 +1,12 @@
+import { AboutTab } from '@/components/details/AboutTab';
 import { BusinessInfo } from '@/components/details/BusinessInfo';
 import { DetailHeader } from '@/components/details/DetailHeader';
 import { FloatingReserveButton } from '@/components/details/FloatingReserveButton';
 import { HoursSection } from '@/components/details/HoursSection';
 import { ImageGallery } from '@/components/details/ImageGallery';
+import { LocationSection } from '@/components/details/LocationSection';
 import { QuickActions } from '@/components/details/QuickActions';
+import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
 import { useBusinessFavorite } from '@/hooks/use-favorites';
@@ -104,6 +107,13 @@ export default function DetailScreen() {
     }
   };
 
+  const handleDirections = () => {
+    if (business?.latitude && business?.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`;
+      Linking.openURL(url);
+    }
+  };
+
   // Galería - CORREGIDO: usar gallery_urls en lugar de gallery_images
   const gallery = useMemo(() => {
     const images: string[] = [];
@@ -158,7 +168,7 @@ export default function DetailScreen() {
   // ✅ CORREGIDO: Datos normalizados con TODOS los campos que BusinessInfo necesita
   const businessData = {
     id: business.id,
-    name: business.name,
+    name: business.name ?? '',
     // ✅ Agregar category (viene de category_name en BusinessFull)
     category: business.category_name ?? 'Sin categoría',
     // ✅ Agregar priceRange
@@ -173,6 +183,7 @@ export default function DetailScreen() {
     closingTime: closingTimeFormatted,
     // Campos adicionales que BusinessData extiende de Business
     address: business.address ?? '',
+    postalCode: business.postal_code ?? '',
     city: business.city ?? '',
     state: business.state ?? '',
     phone: business.phone ?? '',
@@ -182,6 +193,10 @@ export default function DetailScreen() {
     longitude: business.longitude ?? 0,
     main_image_url: business.main_image_url ?? '',
     gallery_urls: business.gallery_urls ?? [],
+    coordinates: {
+      latitude: business.latitude || 0,
+      longitude: business.longitude || 0,
+    },
   };
 
   return (
@@ -216,7 +231,42 @@ export default function DetailScreen() {
           }
         />
 
+        {businessData.coordinates.latitude !== 0 && (
+          <LocationSection
+            coordinates={businessData.coordinates}
+            businessName={businessData.name}
+            address={businessData.address}
+            city={businessData.city}
+            postalCode={businessData.postalCode}
+            onDirections={handleDirections}
+          />
+        )}
+
         {hours && hours.length > 0 && <HoursSection businessHours={hours} />}
+
+        {selectedTab === 'about' ? (
+          <AboutTab
+            phone={businessData.phone}
+            email={businessData.email}
+            website={businessData.website}
+            onCall={handleCall}
+            onEmail={handleEmail}
+            onWebsite={handleWebsite}
+          />
+        ) : (
+          <ReviewsTab
+            rating={businessData.rating}
+            reviews={reviews}
+            filteredReviews={filteredReviews}
+            reviewFilter={reviewFilter}
+            ratingDistribution={ratingDistribution}
+            onWriteReview={() => openReviewModal()}
+            onFilterChange={setReviewFilter}
+            onReviewOptions={showReviewOptions}
+          />
+        )}
+
+
 
         <View style={{ height: 100 }} />
       </ScrollView>
