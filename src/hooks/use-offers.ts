@@ -70,8 +70,6 @@ export function useOffers(options: UseOffersOptions = {}) {
   };
 
   const handleRealtimeChange = (payload: RealtimePostgresChangesPayload<Offer>) => {
-    console.log('Cambio en ofertas:', payload);
-
     switch (payload.eventType) {
       case 'INSERT':
         if (OffersService.isOfferValid(payload.new)) {

@@ -1,17 +1,17 @@
 import { useFavorites } from '@/hooks/use-favorites';
 import { useProfile } from '@/hooks/use-profile';
+import { useUserSettings } from '@/hooks/use-user-settings';
 import { useUserStats } from '@/hooks/use-user-stats';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   Alert,
   Image,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -22,18 +22,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { signOut, userId } = useAuth();
 
-  // Usar hooks personalizados
+  // Hooks personalizados
   const { profile, loading: profileLoading, error, refetch } = useProfile(userId);
   const { stats, loading: statsLoading } = useUserStats(userId);
+  const { favorites } = useFavorites();
+  const { settings, loading: settingsLoading } = useUserSettings(userId);
 
-  // ✅ NUEVO: Obtener el conteo real de favoritos del contexto global
-  const { favorites, loading: favoritesLoading } = useFavorites();
-
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-  const loading = profileLoading || statsLoading;
-
-  // ✅ Usar el conteo real de favoritos del contexto en lugar del stats
+  const loading = profileLoading || statsLoading || settingsLoading;
   const favoritesCount = favorites.length;
 
   // Formatear fecha de miembro
@@ -54,6 +49,19 @@ export default function ProfileScreen() {
     if (profile.country && parts.length === 0) parts.push(profile.country);
 
     return parts.length > 0 ? parts.join(', ') : profile.location || '';
+  };
+
+  // Obtener nombre del idioma
+  const getLanguageName = (code: string) => {
+    const languages: { [key: string]: string } = {
+      es: 'Español',
+      en: 'English',
+      fr: 'Français',
+      de: 'Deutsch',
+      it: 'Italiano',
+      pt: 'Português',
+    };
+    return languages[code] || 'Español';
   };
 
   const handleLogout = () => {
@@ -98,15 +106,7 @@ export default function ProfileScreen() {
   };
 
   const handleLanguage = () => {
-    Alert.alert(
-      'Idioma',
-      'Selecciona tu idioma',
-      [
-        { text: 'Español', onPress: () => console.log('Español seleccionado') },
-        { text: 'English', onPress: () => console.log('English selected') },
-        { text: 'Cancelar', style: 'cancel' },
-      ]
-    );
+    router.push('/language-settings');
   };
 
   const handleHelp = () => {
@@ -146,6 +146,11 @@ export default function ProfileScreen() {
     );
   }
 
+  // Verificar configuraciones de privacidad (con valores por defecto seguros)
+  const showEmail = settings?.show_email ?? false;
+  const showPhone = settings?.show_phone ?? false;
+  const showActivity = settings?.show_activity ?? true;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -183,7 +188,21 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          <Text style={styles.userEmail}>{profile.email}</Text>
+          {/* Email - Solo mostrar si show_email está activado */}
+          {showEmail && (
+            <View style={styles.contactInfoContainer}>
+              <Ionicons name="mail-outline" size={14} color="#666" />
+              <Text style={styles.userEmail}>{profile.email}</Text>
+            </View>
+          )}
+
+          {/* Teléfono - Solo mostrar si show_phone está activado y existe */}
+          {showPhone && profile.phone && (
+            <View style={styles.contactInfoContainer}>
+              <Ionicons name="call-outline" size={14} color="#666" />
+              <Text style={styles.userPhone}>{profile.phone}</Text>
+            </View>
+          )}
 
           <View style={styles.memberInfo}>
             <Ionicons name="time-outline" size={14} color="#666" />
@@ -212,90 +231,114 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Estadísticas */}
-        <View style={styles.statsSection}>
-          <TouchableOpacity
-            style={styles.statCard}
-            onPress={handleFavorites}
-          >
-            <Ionicons name="heart" size={28} color="#FF3B30" />
-            {/* ✅ Usar el conteo real de favoritos del contexto */}
-            <Text style={styles.statNumber}>{favoritesCount}</Text>
-            <Text style={styles.statLabel}>Favoritos</Text>
-          </TouchableOpacity>
+        {/* Estadísticas - Solo mostrar si show_activity está activado */}
+        {showActivity && (
+          <View style={styles.statsSection}>
+            <TouchableOpacity
+              style={styles.statCard}
+              onPress={handleFavorites}
+            >
+              <Ionicons name="heart" size={28} color="#FF3B30" />
+              <Text style={styles.statNumber}>{favoritesCount}</Text>
+              <Text style={styles.statLabel}>Favoritos</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.statCard}
-            onPress={handleMyReviews}
-          >
-            <Ionicons name="star" size={28} color="#FFB800" />
-            <Text style={styles.statNumber}>{stats.reviews}</Text>
-            <Text style={styles.statLabel}>Reseñas</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.statCard}
+              onPress={handleMyReviews}
+            >
+              <Ionicons name="star" size={28} color="#FFB800" />
+              <Text style={styles.statNumber}>{stats.reviews}</Text>
+              <Text style={styles.statLabel}>Reseñas</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.statCard}
-            onPress={handleMyVisits}
-          >
-            <Ionicons name="location" size={28} color="#003D7A" />
-            <Text style={styles.statNumber}>{stats.visits}</Text>
-            <Text style={styles.statLabel}>Visitas</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.statCard}
+              onPress={handleMyVisits}
+            >
+              <Ionicons name="location" size={28} color="#003D7A" />
+              <Text style={styles.statNumber}>{stats.visits}</Text>
+              <Text style={styles.statLabel}>Visitas</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-        {/* Mi actividad */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mi actividad</Text>
+        {/* Mi actividad - Solo mostrar si show_activity está activado */}
+        {showActivity && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Mi actividad</Text>
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleFavorites}
-          >
-            <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
-                <Ionicons name="heart" size={22} color="#FF3B30" />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleFavorites}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
+                  <Ionicons name="heart" size={22} color="#FF3B30" />
+                </View>
+                <Text style={styles.menuItemText}>Lugares favoritos</Text>
               </View>
-              <Text style={styles.menuItemText}>Lugares favoritos</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              {/* ✅ Usar el conteo real de favoritos del contexto */}
-              <Text style={styles.menuItemCount}>{favoritesCount}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#CCC" />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleMyReviews}
-          >
-            <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FFF8E1' }]}>
-                <Ionicons name="chatbox-ellipses" size={22} color="#FFB800" />
+              <View style={styles.menuItemRight}>
+                <Text style={styles.menuItemCount}>{favoritesCount}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#CCC" />
               </View>
-              <Text style={styles.menuItemText}>Mis reseñas</Text>
-            </View>
-            <View style={styles.menuItemRight}>
-              <Text style={styles.menuItemCount}>{stats.reviews}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#CCC" />
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleMyVisits}
-          >
-            <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
-                <Ionicons name="map" size={22} color="#003D7A" />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleMyReviews}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.iconContainer, { backgroundColor: '#FFF8E1' }]}>
+                  <Ionicons name="chatbox-ellipses" size={22} color="#FFB800" />
+                </View>
+                <Text style={styles.menuItemText}>Mis reseñas</Text>
               </View>
-              <Text style={styles.menuItemText}>Lugares visitados</Text>
+              <View style={styles.menuItemRight}>
+                <Text style={styles.menuItemCount}>{stats.reviews}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#CCC" />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleMyVisits}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
+                  <Ionicons name="location" size={22} color="#003D7A" />
+                </View>
+                <Text style={styles.menuItemText}>Lugares visitados</Text>
+              </View>
+              <View style={styles.menuItemRight}>
+                <Text style={styles.menuItemCount}>{stats.visits}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#CCC" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Mensaje informativo si la actividad está oculta */}
+        {!showActivity && (
+          <View style={styles.privacyInfoBox}>
+            <Ionicons name="eye-off-outline" size={24} color="#9C27B0" />
+            <View style={styles.privacyInfoTextContainer}>
+              <Text style={styles.privacyInfoTitle}>
+                Actividad oculta
+              </Text>
+              <Text style={styles.privacyInfoText}>
+                Has ocultado tu actividad (favoritos, reseñas y visitas). 
+                Puedes cambiar esto en{' '}
+                <Text 
+                  style={styles.privacyInfoLink}
+                  onPress={handlePrivacy}
+                >
+                  Configuración de privacidad
+                </Text>
+              </Text>
             </View>
-            <View style={styles.menuItemRight}>
-              <Text style={styles.menuItemCount}>{stats.visits}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#CCC" />
-            </View>
-          </TouchableOpacity>
-        </View>
+          </View>
+        )}
 
         {/* Configuración */}
         <View style={styles.section}>
@@ -312,12 +355,22 @@ export default function ProfileScreen() {
               <Text style={styles.menuItemText}>Notificaciones</Text>
             </View>
             <View style={styles.menuItemRight}>
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#CCC', true: '#003D7A' }}
-                thumbColor="#FFFFFF"
-              />
+              {settings && (
+                <View style={styles.settingStatusBadge}>
+                  {settings.push_enabled || settings.email_enabled ? (
+                    <>
+                      <View style={[styles.statusDot, { backgroundColor: '#34C759' }]} />
+                      <Text style={styles.settingStatusText}>Activas</Text>
+                    </>
+                  ) : (
+                    <>
+                      <View style={[styles.statusDot, { backgroundColor: '#999' }]} />
+                      <Text style={styles.settingStatusText}>Desactivadas</Text>
+                    </>
+                  )}
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={20} color="#CCC" />
             </View>
           </TouchableOpacity>
 
@@ -331,7 +384,24 @@ export default function ProfileScreen() {
               </View>
               <Text style={styles.menuItemText}>Privacidad</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            <View style={styles.menuItemRight}>
+              {settings && (
+                <View style={styles.settingStatusBadge}>
+                  {settings.profile_public ? (
+                    <>
+                      <Ionicons name="eye" size={16} color="#666" />
+                      <Text style={styles.settingStatusText}>Público</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons name="eye-off" size={16} color="#666" />
+                      <Text style={styles.settingStatusText}>Privado</Text>
+                    </>
+                  )}
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={20} color="#CCC" />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -339,21 +409,23 @@ export default function ProfileScreen() {
             onPress={handleLanguage}
           >
             <View style={styles.menuItemLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
-                <Ionicons name="language" size={22} color="#FF9800" />
+              <View style={[styles.iconContainer, { backgroundColor: '#E1F5FE' }]}>
+                <Ionicons name="language" size={22} color="#03A9F4" />
               </View>
               <Text style={styles.menuItemText}>Idioma</Text>
             </View>
             <View style={styles.menuItemRight}>
-              <Text style={styles.languageText}>Español</Text>
+              <Text style={styles.languageText}>
+                {settings ? getLanguageName(settings.language) : 'Español'}
+              </Text>
               <Ionicons name="chevron-forward" size={20} color="#CCC" />
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Información */}
+        {/* Soporte */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Información</Text>
+          <Text style={styles.sectionTitle}>Soporte</Text>
 
           <TouchableOpacity
             style={styles.menuItem}
@@ -395,7 +467,10 @@ export default function ProfileScreen() {
 
         {/* Versión de la app */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Versión 1.0.7</Text>
+          <Text style={styles.versionText}>Versión 1.0.8</Text>
+          <Text style={styles.versionSubtext}>
+            Última actualización: {new Date().toLocaleDateString('es-ES')}
+          </Text>
         </View>
 
         <View style={{ height: 40 }} />
@@ -489,17 +564,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
   },
+  contactInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   userEmail: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#666',
-    marginBottom: 12,
+  },
+  userPhone: {
+    fontSize: 14,
+    color: '#666',
   },
   memberInfo: {
     flexDirection: 'row',
@@ -572,6 +656,35 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
   },
+  privacyInfoBox: {
+    flexDirection: 'row',
+    backgroundColor: '#F3E5F5',
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E1BEE7',
+  },
+  privacyInfoTextContainer: {
+    flex: 1,
+  },
+  privacyInfoTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#7B1FA2',
+    marginBottom: 4,
+  },
+  privacyInfoText: {
+    fontSize: 13,
+    color: '#7B1FA2',
+    lineHeight: 18,
+  },
+  privacyInfoLink: {
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
   section: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 16,
@@ -620,6 +733,25 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '600',
   },
+  settingStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  settingStatusText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
   languageText: {
     fontSize: 14,
     color: '#666',
@@ -647,5 +779,10 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 13,
     color: '#999',
+    marginBottom: 4,
+  },
+  versionSubtext: {
+    fontSize: 11,
+    color: '#BBB',
   },
 });
