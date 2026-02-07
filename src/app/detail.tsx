@@ -7,17 +7,21 @@ import { ImageGallery } from '@/components/details/ImageGallery';
 import { LocationSection } from '@/components/details/LocationSection';
 import { QuickActions } from '@/components/details/QuickActions';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
+import { TabsNavigation } from '@/components/details/TabsNavigation';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
 import { useBusinessFavorite } from '@/hooks/use-favorites';
 import { BusinessesService, type BusinessFull } from '@/services/businesses.service';
+import { NewReview, Review } from '@/types/types';
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
   ScrollView,
   Share,
   StatusBar,
@@ -42,6 +46,15 @@ export default function DetailScreen() {
   const [business, setBusiness] = useState<BusinessFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState<'about' | 'reviews'>('about');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<number | 'all'>('all');
+  const [newReview, setNewReview] = useState<NewReview>({
+    rating: 0,
+    comment: '',
+    images: [],
+  });
 
   // Favoritos
   const {
@@ -87,6 +100,55 @@ export default function DetailScreen() {
     load();
   }, [businessId]);
 
+  const handleCall = () => {
+    if (business?.phone) {
+      Linking.openURL(`tel:${business.phone}`);
+    }
+  };
+
+  const handleEmail = () => {
+    if (business?.email) {
+      Linking.openURL(`mailto:${business.email}`);
+    }
+  };
+
+  const handleWebsite = () => {
+    if (business?.website) {
+      const url = business.website.startsWith('http')
+        ? business.website
+        : `https://${business.website}`;
+      Linking.openURL(url);
+    }
+  };
+
+  const ratingDistribution = [
+    { stars: 5, count: 180, percentage: 77 },
+    { stars: 4, count: 35, percentage: 15 },
+    { stars: 3, count: 12, percentage: 5 },
+    { stars: 2, count: 5, percentage: 2 },
+    { stars: 1, count: 2, percentage: 1 },
+  ];
+
+
+  const handleDeleteReview = (reviewId: number) => {
+    Alert.alert(
+      'Eliminar opinión',
+      '¿Estás seguro de que deseas eliminar esta opinión?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+            Alert.alert('Opinión eliminada', 'Tu reseña ha sido eliminada');
+          },
+        },
+      ]
+    );
+  };
+
+
   // Toggle favorito
   const handleToggleFavorite = async () => {
     if (!isSignedIn) {
@@ -114,6 +176,74 @@ export default function DetailScreen() {
     }
   };
 
+  // Datos de ejemplo para reviews (después integrarás con la tabla de reviews)
+  const [reviews, setReviews] = useState<Review[]>([
+    {
+      id: 1,
+      userName: 'María González',
+      userAvatar: 'https://i.pravatar.cc/150?img=1',
+      rating: 5,
+      date: '15 Dic 2024',
+      comment:
+        'Excelente comida y atención. El ambiente es muy agradable y la vista espectacular.',
+      images: [
+        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop',
+      ],
+      isOwn: false,
+    },
+  ]);
+
+  const showReviewOptions = (review: Review) => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancelar', 'Editar', 'Eliminar'],
+          destructiveButtonIndex: 2,
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            openReviewModal(review);
+          } else if (buttonIndex === 2) {
+            handleDeleteReview(review.id);
+          }
+        }
+      );
+    } else {
+      Alert.alert('Opciones de opinión', 'Selecciona una opción', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Editar', onPress: () => openReviewModal(review) },
+        { text: 'Eliminar', style: 'destructive', onPress: () => handleDeleteReview(review.id) },
+      ]);
+    }
+  };
+
+  const openReviewModal = (review?: Review) => {
+    if (review) {
+      setEditingReviewId(review.id);
+      setNewReview({
+        rating: review.rating,
+        comment: review.comment,
+        images: review.images || [],
+      });
+    } else {
+      setEditingReviewId(null);
+      setNewReview({
+        rating: 0,
+        comment: '',
+        images: [],
+      });
+    }
+    setShowReviewModal(true);
+  };
+
+  const filteredReviews =
+    reviewFilter === 'all'
+      ? reviews
+      : reviews.filter((review) => review.rating === reviewFilter);
+
+
+
   // Galería - CORREGIDO: usar gallery_urls en lugar de gallery_images
   const gallery = useMemo(() => {
     const images: string[] = [];
@@ -135,6 +265,8 @@ export default function DetailScreen() {
       ? images
       : ['https://via.placeholder.com/800x600?text=Sin+Imagen'];
   }, [business]);
+
+
 
   // Loading
   if (loading) {
@@ -243,6 +375,12 @@ export default function DetailScreen() {
         )}
 
         {hours && hours.length > 0 && <HoursSection businessHours={hours} />}
+
+        <TabsNavigation
+          selectedTab={selectedTab}
+          onTabChange={setSelectedTab}
+          reviewsCount={reviews.length}
+        />
 
         {selectedTab === 'about' ? (
           <AboutTab
