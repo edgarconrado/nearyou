@@ -35,6 +35,8 @@ export function useBusinessHours(businessId: string | undefined) {
         // No bloquear si no hay horarios
       }
 
+     // console.log("HORAS NEGOCIO " + JSON.stringify(hoursData, null, 2));
+
       setHours(hoursData || []);
 
       // Verificar si está abierto (solo si hay horarios)

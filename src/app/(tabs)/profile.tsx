@@ -5,7 +5,7 @@ import { useUserStats } from '@/hooks/use-user-stats';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,6 +17,123 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// ✨ Componente separado para estadísticas
+function StatsSection({ 
+  favoritesCount, 
+  stats, 
+  onFavorites, 
+  onReviews, 
+  onVisits,
+  visible 
+}: {
+  favoritesCount: number;
+  stats: any;
+  onFavorites: () => void;
+  onReviews: () => void;
+  onVisits: () => void;
+  visible: boolean;
+}) {
+  useEffect(() => {
+    if (visible) {
+      console.log('📊 StatsSection VISIBLE');
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <View style={styles.statsSection}>
+      <TouchableOpacity style={styles.statCard} onPress={onFavorites}>
+        <Ionicons name="heart" size={28} color="#FF3B30" />
+        <Text style={styles.statNumber}>{favoritesCount}</Text>
+        <Text style={styles.statLabel}>Favoritos</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.statCard} onPress={onReviews}>
+        <Ionicons name="star" size={28} color="#FFB800" />
+        <Text style={styles.statNumber}>{stats.reviews}</Text>
+        <Text style={styles.statLabel}>Reseñas</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.statCard} onPress={onVisits}>
+        <Ionicons name="location" size={28} color="#003D7A" />
+        <Text style={styles.statNumber}>{stats.visits}</Text>
+        <Text style={styles.statLabel}>Visitas</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ✨ Componente separado para actividad
+function ActivitySection({ 
+  favoritesCount, 
+  stats, 
+  onFavorites, 
+  onReviews, 
+  onVisits,
+  visible 
+}: {
+  favoritesCount: number;
+  stats: any;
+  onFavorites: () => void;
+  onReviews: () => void;
+  onVisits: () => void;
+  visible: boolean;
+}) {
+  useEffect(() => {
+    if (visible) {
+      console.log('📝 ActivitySection VISIBLE');
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Mi actividad</Text>
+
+      <TouchableOpacity style={styles.menuItem} onPress={onFavorites}>
+        <View style={styles.menuItemLeft}>
+          <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
+            <Ionicons name="heart" size={22} color="#FF3B30" />
+          </View>
+          <Text style={styles.menuItemText}>Lugares favoritos</Text>
+        </View>
+        <View style={styles.menuItemRight}>
+          <Text style={styles.menuItemCount}>{favoritesCount}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#CCC" />
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.menuItem} onPress={onReviews}>
+        <View style={styles.menuItemLeft}>
+          <View style={[styles.iconContainer, { backgroundColor: '#FFF8E1' }]}>
+            <Ionicons name="chatbox-ellipses" size={22} color="#FFB800" />
+          </View>
+          <Text style={styles.menuItemText}>Mis reseñas</Text>
+        </View>
+        <View style={styles.menuItemRight}>
+          <Text style={styles.menuItemCount}>{stats.reviews}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#CCC" />
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.menuItem} onPress={onVisits}>
+        <View style={styles.menuItemLeft}>
+          <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
+            <Ionicons name="location" size={22} color="#003D7A" />
+          </View>
+          <Text style={styles.menuItemText}>Lugares visitados</Text>
+        </View>
+        <View style={styles.menuItemRight}>
+          <Text style={styles.menuItemCount}>{stats.visits}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#CCC" />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -30,6 +147,54 @@ export default function ProfileScreen() {
 
   const loading = profileLoading || statsLoading || settingsLoading;
   const favoritesCount = favorites.length;
+
+  // ✨ Refs para tracking de valores previos (evitar ciclos)
+  const prevShowActivityRef = useRef<boolean | undefined>(undefined);
+  const prevShowEmailRef = useRef<boolean | undefined>(undefined);
+  const prevShowPhoneRef = useRef<boolean | undefined>(undefined);
+
+  // ✨ Solo log cuando REALMENTE cambia (evita ciclos)
+  useEffect(() => {
+    if (settings) {
+      const currentShowActivity = settings.show_activity;
+      
+      if (prevShowActivityRef.current !== currentShowActivity) {
+        console.log('🔄 show_activity cambió:', {
+          old: prevShowActivityRef.current,
+          new: currentShowActivity,
+        });
+        prevShowActivityRef.current = currentShowActivity;
+      }
+    }
+  }, [settings?.show_activity]);
+
+  useEffect(() => {
+    if (settings) {
+      const currentShowEmail = settings.show_email;
+      
+      if (prevShowEmailRef.current !== currentShowEmail) {
+        console.log('🔄 show_email cambió:', {
+          old: prevShowEmailRef.current,
+          new: currentShowEmail,
+        });
+        prevShowEmailRef.current = currentShowEmail;
+      }
+    }
+  }, [settings?.show_email]);
+
+  useEffect(() => {
+    if (settings) {
+      const currentShowPhone = settings.show_phone;
+      
+      if (prevShowPhoneRef.current !== currentShowPhone) {
+        console.log('🔄 show_phone cambió:', {
+          old: prevShowPhoneRef.current,
+          new: currentShowPhone,
+        });
+        prevShowPhoneRef.current = currentShowPhone;
+      }
+    }
+  }, [settings?.show_phone]);
 
   // Formatear fecha de miembro
   const formatMemberSince = (date: string | null) => {
@@ -231,92 +396,25 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Estadísticas - Solo mostrar si show_activity está activado */}
-        {showActivity && (
-          <View style={styles.statsSection}>
-            <TouchableOpacity
-              style={styles.statCard}
-              onPress={handleFavorites}
-            >
-              <Ionicons name="heart" size={28} color="#FF3B30" />
-              <Text style={styles.statNumber}>{favoritesCount}</Text>
-              <Text style={styles.statLabel}>Favoritos</Text>
-            </TouchableOpacity>
+        {/* Estadísticas - Componente que se muestra/oculta */}
+        <StatsSection
+          visible={showActivity}
+          favoritesCount={favoritesCount}
+          stats={stats}
+          onFavorites={handleFavorites}
+          onReviews={handleMyReviews}
+          onVisits={handleMyVisits}
+        />
 
-            <TouchableOpacity
-              style={styles.statCard}
-              onPress={handleMyReviews}
-            >
-              <Ionicons name="star" size={28} color="#FFB800" />
-              <Text style={styles.statNumber}>{stats.reviews}</Text>
-              <Text style={styles.statLabel}>Reseñas</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.statCard}
-              onPress={handleMyVisits}
-            >
-              <Ionicons name="location" size={28} color="#003D7A" />
-              <Text style={styles.statNumber}>{stats.visits}</Text>
-              <Text style={styles.statLabel}>Visitas</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Mi actividad - Solo mostrar si show_activity está activado */}
-        {showActivity && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mi actividad</Text>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleFavorites}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
-                  <Ionicons name="heart" size={22} color="#FF3B30" />
-                </View>
-                <Text style={styles.menuItemText}>Lugares favoritos</Text>
-              </View>
-              <View style={styles.menuItemRight}>
-                <Text style={styles.menuItemCount}>{favoritesCount}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#CCC" />
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleMyReviews}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: '#FFF8E1' }]}>
-                  <Ionicons name="chatbox-ellipses" size={22} color="#FFB800" />
-                </View>
-                <Text style={styles.menuItemText}>Mis reseñas</Text>
-              </View>
-              <View style={styles.menuItemRight}>
-                <Text style={styles.menuItemCount}>{stats.reviews}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#CCC" />
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleMyVisits}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
-                  <Ionicons name="location" size={22} color="#003D7A" />
-                </View>
-                <Text style={styles.menuItemText}>Lugares visitados</Text>
-              </View>
-              <View style={styles.menuItemRight}>
-                <Text style={styles.menuItemCount}>{stats.visits}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#CCC" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Mi actividad - Componente que se muestra/oculta */}
+        <ActivitySection
+          visible={showActivity}
+          favoritesCount={favoritesCount}
+          stats={stats}
+          onFavorites={handleFavorites}
+          onReviews={handleMyReviews}
+          onVisits={handleMyVisits}
+        />
 
         {/* Mensaje informativo si la actividad está oculta */}
         {!showActivity && (

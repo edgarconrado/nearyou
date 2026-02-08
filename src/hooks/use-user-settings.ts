@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
-import { Tables, TablesInsert, TablesUpdate } from '@/types/database_types';
+import { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 // Tipos derivados de la base de datos
@@ -27,13 +27,37 @@ const defaultSettings: Omit<UserSettingsInsert, 'user_id'> = {
   language: 'es',
 };
 
+// ✨ Función para comparar objetos profundamente
+function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
+  if (obj1 == null || obj2 == null) return false;
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  for (const key of keys1) {
+    if (!keys2.includes(key)) return false;
+    if (obj1[key] !== obj2[key]) return false;
+  }
+
+  return true;
+}
+
 export function useUserSettings(userId: string | null | undefined) {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  // ✨ Referencia al valor anterior para detectar cambios REALES
+  const prevSettingsRef = useRef<UserSettings | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isMountedRef = useRef(true);
 
   // Cargar configuraciones
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     if (!userId) {
       setLoading(false);
       return;
@@ -43,14 +67,17 @@ export function useUserSettings(userId: string | null | undefined) {
       setLoading(true);
       setError(null);
 
+      console.log('📥 Fetching settings...');
+
       const { data, error: fetchError } = await supabase
         .from('user_settings')
         .select('*')
         .eq('user_id', userId)
         .single();
 
+      if (!isMountedRef.current) return;
+
       if (fetchError) {
-        // Si no existe, crear configuración por defecto
         if (fetchError.code === 'PGRST116') {
           await createDefaultSettings(userId);
           return;
@@ -58,14 +85,28 @@ export function useUserSettings(userId: string | null | undefined) {
         throw fetchError;
       }
 
-      setSettings(data);
+      // ✨ Solo actualizar si los datos REALMENTE cambiaron
+      if (!deepEqual(prevSettingsRef.current, data)) {
+        console.log('✅ Settings changed, updating state');
+        console.log('Old:', JSON.stringify(prevSettingsRef.current, null, 2));
+        console.log('New:', JSON.stringify(data, null, 2));
+        
+        prevSettingsRef.current = data;
+        setSettings(data);
+      } else {
+        console.log('⏭️ Settings unchanged, skipping update');
+      }
     } catch (err) {
-      console.error('Error fetching user settings:', err);
-      setError(err instanceof Error ? err : new Error('Error al cargar configuraciones'));
+      console.error('❌ Error fetching settings:', err);
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err : new Error('Error al cargar configuraciones'));
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [userId]);
 
   // Crear configuración por defecto
   const createDefaultSettings = async (uid: string) => {
@@ -83,10 +124,15 @@ export function useUserSettings(userId: string | null | undefined) {
 
       if (insertError) throw insertError;
 
-      setSettings(data);
+      if (isMountedRef.current) {
+        prevSettingsRef.current = data;
+        setSettings(data);
+      }
     } catch (err) {
-      console.error('Error creating default settings:', err);
-      setError(err instanceof Error ? err : new Error('Error al crear configuraciones'));
+      console.error('❌ Error creating settings:', err);
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err : new Error('Error al crear configuraciones'));
+      }
     }
   };
 
@@ -98,6 +144,9 @@ export function useUserSettings(userId: string | null | undefined) {
     if (!userId || !settings) return false;
 
     try {
+      console.log(`📝 Updating ${String(key)}: ${settings[key]} → ${value}`);
+
+      // Actualización en Supabase primero
       const updates: UserSettingsUpdate = { [key]: value };
 
       const { error: updateError } = await supabase
@@ -107,21 +156,22 @@ export function useUserSettings(userId: string | null | undefined) {
 
       if (updateError) throw updateError;
 
-      // Actualizar estado local inmediatamente (optimistic update)
-      setSettings(prev => prev ? { ...prev, [key]: value } : null);
+      console.log(`✅ ${String(key)} updated successfully`);
+      
+      // ✨ NO actualizar el estado aquí - dejar que realtime lo haga
+      // Esto asegura que el estado siempre viene de la DB
+      
       return true;
     } catch (err) {
-      console.error(`Error updating setting ${String(key)}:`, err);
+      console.error(`❌ Error updating ${String(key)}:`, err);
       Alert.alert('Error', 'No se pudo actualizar la configuración');
-      // Revertir cambio optimista si falla
-      await fetchSettings();
       return false;
     }
   };
 
   // Actualizar múltiples configuraciones
   const updateSettings = async (updates: UserSettingsUpdate): Promise<boolean> => {
-    if (!userId || !settings) return false;
+    if (!userId) return false;
 
     try {
       const { error: updateError } = await supabase
@@ -131,14 +181,10 @@ export function useUserSettings(userId: string | null | undefined) {
 
       if (updateError) throw updateError;
 
-      // Actualizar estado local inmediatamente (optimistic update)
-      setSettings(prev => prev ? { ...prev, ...updates } : null);
       return true;
     } catch (err) {
-      console.error('Error updating settings:', err);
+      console.error('❌ Error updating settings:', err);
       Alert.alert('Error', 'No se pudieron actualizar las configuraciones');
-      // Revertir cambio optimista si falla
-      await fetchSettings();
       return false;
     }
   };
@@ -157,50 +203,85 @@ export function useUserSettings(userId: string | null | undefined) {
 
       if (updateError) throw updateError;
 
-      setSettings(prev => prev ? { ...prev, ...defaultSettings } : null);
       Alert.alert('Éxito', 'Configuraciones restauradas a valores por defecto');
       return true;
     } catch (err) {
-      console.error('Error resetting settings:', err);
+      console.error('❌ Error resetting settings:', err);
       Alert.alert('Error', 'No se pudieron resetear las configuraciones');
       return false;
     }
   };
 
-  // ✨ NUEVO: Suscripción en tiempo real
+  // ✨ Suscripción en tiempo real con manejo mejorado
   useEffect(() => {
     if (!userId) return;
 
     let channel: RealtimeChannel;
 
-    const setupRealtimeSubscription = () => {
+    const setupChannel = () => {
+      console.log('🔔 Setting up realtime subscription...');
+
       channel = supabase
-        .channel(`user_settings:${userId}`)
+        .channel(`user_settings:${userId}:${Date.now()}`) // ✨ Unique channel per mount
         .on(
           'postgres_changes',
           {
-            event: '*', // Escuchar INSERT, UPDATE, DELETE
+            event: '*',
             schema: 'public',
             table: 'user_settings',
             filter: `user_id=eq.${userId}`,
           },
           (payload) => {
-            console.log('🔄 Cambio en tiempo real detectado:', payload);
+            console.log('🔄 Realtime event:', payload.eventType);
+            console.log('Payload:', JSON.stringify(payload, null, 2));
+
+            if (!isMountedRef.current) {
+              console.log('⏭️ Component unmounted, ignoring event');
+              return;
+            }
 
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-              // Actualizar estado con los nuevos datos
-              setSettings(payload.new as UserSettings);
+              const newData = payload.new as UserSettings;
+              
+              // ✨ Solo actualizar si realmente cambió
+              if (!deepEqual(prevSettingsRef.current, newData)) {
+                console.log('✅ Data changed via realtime, updating...');
+                console.log('Diff:', {
+                  show_email: {
+                    old: prevSettingsRef.current?.show_email,
+                    new: newData.show_email,
+                  },
+                  show_phone: {
+                    old: prevSettingsRef.current?.show_phone,
+                    new: newData.show_phone,
+                  },
+                  show_activity: {
+                    old: prevSettingsRef.current?.show_activity,
+                    new: newData.show_activity,
+                  },
+                });
+                
+                prevSettingsRef.current = newData;
+                setSettings(newData);
+              } else {
+                console.log('⏭️ Data unchanged, skipping update');
+              }
             } else if (payload.eventType === 'DELETE') {
-              // Si se elimina, volver a valores por defecto
+              console.log('🗑️ Settings deleted');
+              prevSettingsRef.current = null;
               setSettings(null);
             }
           }
         )
-        .subscribe((status) => {
+        .subscribe((status, err) => {
+          console.log('📡 Subscription status:', status);
+          
           if (status === 'SUBSCRIBED') {
-            console.log('✅ Suscrito a cambios en tiempo real de user_settings');
+            console.log('✅ Successfully subscribed to realtime');
           } else if (status === 'CHANNEL_ERROR') {
-            console.error('❌ Error en suscripción en tiempo real');
+            console.error('❌ Channel error:', err);
+          } else if (status === 'TIMED_OUT') {
+            console.warn('⏱️ Subscription timed out');
           }
         });
     };
@@ -208,17 +289,27 @@ export function useUserSettings(userId: string | null | undefined) {
     // Cargar datos iniciales
     fetchSettings();
 
-    // Configurar suscripción en tiempo real
-    setupRealtimeSubscription();
+    // Configurar canal de tiempo real
+    setupChannel();
 
-    // Cleanup: Remover suscripción al desmontar
+    // Cleanup
     return () => {
+      console.log('🧹 Cleaning up subscription...');
+      isMountedRef.current = false;
+      
       if (channel) {
-        console.log('🔌 Desuscribiendo de cambios en tiempo real');
         supabase.removeChannel(channel);
       }
     };
-  }, [userId]);
+  }, [userId, fetchSettings]);
+
+  // ✨ Marcar como mounted
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   return {
     settings,
