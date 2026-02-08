@@ -33,30 +33,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // UTILIDADES PARA FORMATEO DE HORARIOS
 // ========================================
 
-/**
- * Convierte hora en formato 24h a 12h con AM/PM
- * "14:30" -> "2:30 PM", "09:00" -> "9:00 AM"
- */
 function formatTimeTo12Hour(time24: string): string {
   if (!time24 || typeof time24 !== 'string') return '';
 
   try {
     const [hours, minutes] = time24.split(':').map(Number);
-    
+
     if (isNaN(hours) || isNaN(minutes)) return time24;
 
     const period = hours >= 12 ? 'PM' : 'AM';
     const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    
+
     return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
   } catch {
     return time24;
   }
 }
 
-/**
- * Obtiene el día de la semana actual en español
- */
 function getCurrentDayOfWeek(): string {
   const days = [
     'Domingo',
@@ -67,14 +60,11 @@ function getCurrentDayOfWeek(): string {
     'Viernes',
     'Sábado'
   ];
-  
+
   const now = new Date();
   return days[now.getDay()];
 }
 
-/**
- * Verifica si el negocio está abierto AHORA
- */
 function checkIfBusinessIsOpen(hours: any[]): boolean {
   if (!hours || hours.length === 0) return false;
 
@@ -84,74 +74,39 @@ function checkIfBusinessIsOpen(hours: any[]): boolean {
   const currentMinute = now.getMinutes();
   const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-  console.log('[checkIfBusinessIsOpen]', {
-    currentDay,
-    currentTime: `${currentHour}:${currentMinute}`,
-    currentTimeInMinutes,
-  });
-
-  // Buscar el horario de hoy
   const todayHours = hours.find(h => h.day === currentDay);
-  
-  if (!todayHours) {
-    console.log('[checkIfBusinessIsOpen] No hours found for today');
-    return false;
-  }
 
-  if (todayHours.isClosed) {
-    console.log('[checkIfBusinessIsOpen] Business is closed today');
-    return false;
-  }
+  if (!todayHours || todayHours.isClosed) return false;
 
   const opensAt = todayHours.opensAt;
   const closesAt = todayHours.closesAt;
 
-  if (!opensAt || !closesAt) {
-    console.log('[checkIfBusinessIsOpen] Missing open/close times');
-    return false;
-  }
+  if (!opensAt || !closesAt) return false;
 
   try {
-    // Convertir a minutos
     const [openHour, openMin] = opensAt.split(':').map(Number);
     const [closeHour, closeMin] = closesAt.split(':').map(Number);
-    
+
     if (isNaN(openHour) || isNaN(openMin) || isNaN(closeHour) || isNaN(closeMin)) {
-      console.log('[checkIfBusinessIsOpen] Invalid time format');
       return false;
     }
-    
+
     const openTimeInMinutes = openHour * 60 + openMin;
     const closeTimeInMinutes = closeHour * 60 + closeMin;
 
-    console.log('[checkIfBusinessIsOpen]', {
-      opensAt,
-      closesAt,
-      openTimeInMinutes,
-      closeTimeInMinutes,
-    });
-
-    // Verificar si está dentro del horario
-    const isOpen = currentTimeInMinutes >= openTimeInMinutes && 
-                   currentTimeInMinutes <= closeTimeInMinutes;
-    
-    console.log('[checkIfBusinessIsOpen] Result:', isOpen);
-    return isOpen;
-  } catch (err) {
-    console.error('[checkIfBusinessIsOpen] Error:', err);
+    return currentTimeInMinutes >= openTimeInMinutes &&
+      currentTimeInMinutes <= closeTimeInMinutes;
+  } catch {
     return false;
   }
 }
 
-/**
- * Obtiene el texto de cierre
- */
 function getClosingTimeText(hours: any[]): string | null {
   if (!hours || hours.length === 0) return null;
 
   const currentDay = getCurrentDayOfWeek();
   const todayHours = hours.find(h => h.day === currentDay);
-  
+
   if (!todayHours || todayHours.isClosed) return null;
   if (!todayHours.closesAt) return null;
 
@@ -186,7 +141,6 @@ export default function DetailScreen() {
 
   const { location: userLocation } = useUserLocation();
 
-  // Obtener horarios del hook
   const {
     hours: rawHours,
     isOpen: hookIsOpen,
@@ -206,9 +160,14 @@ export default function DetailScreen() {
 
         if (error || !data) throw error;
 
-        console.log('[DetailScreen] Business loaded:', data.name);
+        console.log('[DetailScreen] Business loaded:', {
+          name: data.name,
+          category_name: data.category_name,
+          category_id: data.category_id,
+        });
+
         setBusiness(data);
-        BusinessesService.incrementVisitCount(businessId).catch(() => {});
+        BusinessesService.incrementVisitCount(businessId).catch(() => { });
       } catch (err) {
         console.error('[DetailScreen] Error loading business:', err);
         setError('No se pudo cargar el negocio');
@@ -243,7 +202,7 @@ export default function DetailScreen() {
   // Galería
   const gallery = useMemo(() => {
     const images: string[] = [];
-    
+
     if (business?.main_image_url) {
       images.push(business.main_image_url);
     }
@@ -258,10 +217,9 @@ export default function DetailScreen() {
       : ['https://via.placeholder.com/800x600?text=Sin+Imagen'];
   }, [business]);
 
-  // Calcular si está abierto (usar función manual, no el hook)
+  // Calcular si está abierto
   const isActuallyOpen = useMemo(() => {
     if (!rawHours || rawHours.length === 0) {
-      // Si no hay horarios, usar el valor de la BD
       return business?.is_open ?? false;
     }
     return checkIfBusinessIsOpen(rawHours);
@@ -273,7 +231,7 @@ export default function DetailScreen() {
     return getClosingTimeText(rawHours);
   }, [rawHours]);
 
-  // Formatear horarios para mostrar
+  // Formatear horarios
   const businessHours = useMemo(() => {
     if (!rawHours || rawHours.length === 0) return [];
 
@@ -281,12 +239,47 @@ export default function DetailScreen() {
 
     return rawHours.map(hour => ({
       day: hour.day,
-      hours: hour.isClosed 
-        ? 'Cerrado' 
+      hours: hour.isClosed
+        ? 'Cerrado'
         : `${formatTimeTo12Hour(hour.opensAt || '')} - ${formatTimeTo12Hour(hour.closesAt || '')}`,
       isToday: hour.day === currentDay,
     }));
   }, [rawHours]);
+
+  // Función para compartir
+  const handleShare = async () => {
+    try {
+      console.log('[handleShare] Sharing business:', business?.name);
+
+      const message = [
+        business?.name || '',
+        business?.description || '',
+        business?.address ? `📍 ${business.address}` : '',
+        business?.phone ? `📞 ${business.phone}` : '',
+        business?.website || '',
+      ].filter(Boolean).join('\n\n');
+
+      const result = await Share.share({
+        message: message,
+        title: business?.name || 'Negocio',
+      });
+
+      console.log('[handleShare] Share result:', result);
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('[handleShare] Shared with activity type:', result.activityType);
+        } else {
+          console.log('[handleShare] Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('[handleShare] Share dismissed');
+      }
+    } catch (err) {
+      console.error('[handleShare] Error sharing:', err);
+      Alert.alert('Error', 'No se pudo compartir la información');
+    }
+  };
 
   // Loading
   if (loading) {
@@ -306,7 +299,7 @@ export default function DetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
           <Text style={styles.error}>{error ?? 'Negocio no encontrado'}</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
@@ -317,10 +310,11 @@ export default function DetailScreen() {
     );
   }
 
-  // Datos normalizados
+  // Datos normalizados - INCLUIR CATEGORY
   const businessData = {
     id: business.id,
     name: business.name,
+    category: business.category_name || 'Sin categoría', // ✅ AGREGADO
     rating: business.average_rating ?? 0,
     reviews: business.total_reviews ?? 0,
     address: business.address ?? '',
@@ -336,7 +330,7 @@ export default function DetailScreen() {
     },
     gallery,
     closingTime: closingTimeText,
-    isOpen: isActuallyOpen, // ✅ Usar el cálculo real
+    isOpen: isActuallyOpen,
     priceRange: business.price_range ?? '',
     features: Array.isArray(business.features) ? business.features : [],
     postalCode: business.postal_code ?? '',
@@ -371,6 +365,7 @@ export default function DetailScreen() {
       <DetailHeader
         businessName={businessData.name}
         onBack={() => router.back()}
+        onShare={handleShare}
       />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -384,18 +379,17 @@ export default function DetailScreen() {
         />
 
         <QuickActions
+          hasPhone={!!businessData.phone}
+          hasWebsite={!!businessData.website}
+          hasCoordinates={!!(businessData.coordinates.latitude && businessData.coordinates.longitude)}
           onCall={() => {
             if (businessData.phone) {
               Linking.openURL(`tel:${businessData.phone}`);
-            } else {
-              Alert.alert('No disponible', 'Este negocio no tiene teléfono registrado');
             }
           }}
           onWebsite={() => {
             if (businessData.website) {
               Linking.openURL(businessData.website);
-            } else {
-              Alert.alert('No disponible', 'Este negocio no tiene sitio web registrado');
             }
           }}
           onDirections={() => {
@@ -403,20 +397,9 @@ export default function DetailScreen() {
               Linking.openURL(
                 `https://maps.google.com/?q=${businessData.coordinates.latitude},${businessData.coordinates.longitude}`
               );
-            } else {
-              Alert.alert('No disponible', 'No hay coordenadas disponibles');
             }
           }}
-          onShare={async () => {
-            try {
-              await Share.share({
-                message: `${businessData.name}\n${businessData.address}\n${businessData.phone || ''}\n${businessData.website || ''}`,
-                title: businessData.name,
-              });
-            } catch (err) {
-              console.error('Error sharing:', err);
-            }
-          }}
+          onShare={handleShare}
         />
 
         {businessData.coordinates.latitude !== 0 && businessData.coordinates.longitude !== 0 && (
@@ -484,8 +467,8 @@ export default function DetailScreen() {
                 Alert.alert('Escribir reseña', 'Función en desarrollo');
               }
             }}
-            onFilterChange={() => {}}
-            onReviewOptions={() => {}}
+            onFilterChange={() => { }}
+            onReviewOptions={() => { }}
           />
         )}
 
@@ -500,13 +483,13 @@ export default function DetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F5F5F5' 
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5'
   },
-  center: { 
-    flex: 1, 
-    justifyContent: 'center', 
+  center: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
@@ -515,8 +498,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  error: { 
-    color: '#D32F2F', 
+  error: {
+    color: '#D32F2F',
     marginBottom: 20,
     fontSize: 16,
     textAlign: 'center',

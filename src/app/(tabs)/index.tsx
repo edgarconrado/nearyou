@@ -36,7 +36,7 @@ export default function HomeScreen() {
       <Header />
 
       <Logo
-        version='Versión 1.0.8'
+        version='Versión 1.0.8r1'
         slogan='Descubre, explora y comparte experiencias'
       />
 

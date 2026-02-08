@@ -565,7 +565,7 @@ export default function ProfileScreen() {
 
         {/* Versión de la app */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Versión 1.0.8</Text>
+          <Text style={styles.versionText}>Versión 1.0.8r1</Text>
           <Text style={styles.versionSubtext}>
             Última actualización: {new Date().toLocaleDateString('es-ES')}
           </Text>
