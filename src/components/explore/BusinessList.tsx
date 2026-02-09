@@ -1,6 +1,6 @@
 import type { BusinessFull } from '@services/businesses.service';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BusinessCard } from './BusinessCard';
 
 interface BusinessListProps {
@@ -45,15 +45,21 @@ export const BusinessList: React.FC<BusinessListProps> = ({
     }
 
     return (
-        <>
-            {businesses.map((business) => (
+        <FlatList
+            data={businesses}
+            renderItem={({ item }) => (
                 <BusinessCard
-                    key={business.id}
-                    business={business}
-                    onPress={() => onBusinessPress(business)}
+                    business={item}
+                    onPress={() => onBusinessPress(item)}
                 />
-            ))}
-        </>
+            )}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false} // Deshabilitamos el scroll interno porque el padre ya tiene ScrollView
+            contentContainerStyle={styles.listContent}
+        />
     );
 };
 
@@ -84,5 +90,12 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '600',
+    },
+    columnWrapper: {
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    listContent: {
+        paddingBottom: 16,
     },
 });
