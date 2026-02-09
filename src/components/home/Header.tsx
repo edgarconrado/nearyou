@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -13,15 +14,16 @@ export function Header({ showBackButton = false, onBackPress }: HeaderProps = {}
         {/* Logo/Icono lado izquierdo */}
         <View style={styles.logoSection}>
           <View style={styles.logoCircle}>
-            <Text style={styles.logoIcon}>🏖️</Text>
+            {/* <Text style={styles.logoIcon}>🏖️</Text> */}
+            <Ionicons name="location" size={16} color="#FFFF" />
           </View>
         </View>
 
         {/* Información central */}
         <View style={styles.infoSection}>
-          <Text style={styles.appName}>TurismoMX</Text>
+          <Text style={styles.appName}>NearYou</Text>
           <View style={styles.metaInfo}>
-            <Text style={styles.versionBadge}>v1.0.8r1</Text>
+            <Text style={styles.versionBadge}>v1.0.8r2</Text>
             <Text style={styles.separator}>•</Text>
             <Text style={styles.subtitle}>Explora México</Text>
           </View>
@@ -34,13 +36,14 @@ export function Header({ showBackButton = false, onBackPress }: HeaderProps = {}
               <Text style={styles.iconText}>←</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.iconButton}>
+            <View />
+/*             <TouchableOpacity style={styles.iconButton}>
               <View style={styles.menuIcon}>
                 <View style={styles.menuDot} />
                 <View style={styles.menuDot} />
                 <View style={styles.menuDot} />
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> */
           )}
         </View>
       </View>

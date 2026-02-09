@@ -28,7 +28,7 @@ export default function AboutScreen() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Logo y nombre de la app */}
                 <Logo
-                    version='Versión 1.0.8r1'
+                    version='Versión 1.0.8r2'
                     slogan='Descubre, explora y comparte experiencias'
                 />
 
