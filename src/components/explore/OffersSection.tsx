@@ -15,9 +15,6 @@ export const OffersSection: React.FC<OffersSectionProps> = ({ zoneId, onSeeAll }
         withBusiness: true,
         autoRefresh: true, // Actualización en tiempo real
     });
-
-
-    console.log(zoneId);
     
     if (loading) {
         return (

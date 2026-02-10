@@ -19,13 +19,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ✨ Componente separado para estadísticas
-function StatsSection({ 
-  favoritesCount, 
-  stats, 
-  onFavorites, 
-  onReviews, 
+function StatsSection({
+  favoritesCount,
+  stats,
+  onFavorites,
+  onReviews,
   onVisits,
-  visible 
+  visible
 }: {
   favoritesCount: number;
   stats: any;
@@ -36,7 +36,6 @@ function StatsSection({
 }) {
   useEffect(() => {
     if (visible) {
-      console.log('📊 StatsSection VISIBLE');
     }
   }, [visible]);
 
@@ -66,13 +65,13 @@ function StatsSection({
 }
 
 // ✨ Componente separado para actividad
-function ActivitySection({ 
-  favoritesCount, 
-  stats, 
-  onFavorites, 
-  onReviews, 
+function ActivitySection({
+  favoritesCount,
+  stats,
+  onFavorites,
+  onReviews,
   onVisits,
-  visible 
+  visible
 }: {
   favoritesCount: number;
   stats: any;
@@ -83,7 +82,6 @@ function ActivitySection({
 }) {
   useEffect(() => {
     if (visible) {
-      console.log('📝 ActivitySection VISIBLE');
     }
   }, [visible]);
 
@@ -140,8 +138,9 @@ export default function ProfileScreen() {
   const { signOut, userId } = useAuth();
 
   // Hooks personalizados
-  const { profile, loading: profileLoading, error, refetch } = useProfile(userId);
-  const { stats, loading: statsLoading } = useUserStats(userId);
+  const safeUserId = userId ?? null;
+  const { profile, loading: profileLoading, error, refetch } = useProfile(safeUserId);
+  const { stats, loading: statsLoading } = useUserStats(safeUserId);
   const { favorites } = useFavorites();
   const { settings, loading: settingsLoading } = useUserSettings(userId);
 
@@ -149,20 +148,16 @@ export default function ProfileScreen() {
   const favoritesCount = favorites.length;
 
   // ✨ Refs para tracking de valores previos (evitar ciclos)
-  const prevShowActivityRef = useRef<boolean | undefined>(undefined);
-  const prevShowEmailRef = useRef<boolean | undefined>(undefined);
-  const prevShowPhoneRef = useRef<boolean | undefined>(undefined);
+  const prevShowActivityRef = useRef<boolean | null>(null);
+  const prevShowEmailRef = useRef<boolean | null>(null);
+  const prevShowPhoneRef = useRef<boolean | null>(null);
 
   // ✨ Solo log cuando REALMENTE cambia (evita ciclos)
   useEffect(() => {
     if (settings) {
       const currentShowActivity = settings.show_activity;
-      
+
       if (prevShowActivityRef.current !== currentShowActivity) {
-        console.log('🔄 show_activity cambió:', {
-          old: prevShowActivityRef.current,
-          new: currentShowActivity,
-        });
         prevShowActivityRef.current = currentShowActivity;
       }
     }
@@ -171,12 +166,8 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (settings) {
       const currentShowEmail = settings.show_email;
-      
+
       if (prevShowEmailRef.current !== currentShowEmail) {
-        console.log('🔄 show_email cambió:', {
-          old: prevShowEmailRef.current,
-          new: currentShowEmail,
-        });
         prevShowEmailRef.current = currentShowEmail;
       }
     }
@@ -185,12 +176,8 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (settings) {
       const currentShowPhone = settings.show_phone;
-      
+
       if (prevShowPhoneRef.current !== currentShowPhone) {
-        console.log('🔄 show_phone cambió:', {
-          old: prevShowPhoneRef.current,
-          new: currentShowPhone,
-        });
         prevShowPhoneRef.current = currentShowPhone;
       }
     }
@@ -271,7 +258,7 @@ export default function ProfileScreen() {
   };
 
   const handleLanguage = () => {
-    router.push('/language-settings');
+    router.push('/language');
   };
 
   const handleHelp = () => {
@@ -425,9 +412,9 @@ export default function ProfileScreen() {
                 Actividad oculta
               </Text>
               <Text style={styles.privacyInfoText}>
-                Has ocultado tu actividad (favoritos, reseñas y visitas). 
+                Has ocultado tu actividad (favoritos, reseñas y visitas).
                 Puedes cambiar esto en{' '}
-                <Text 
+                <Text
                   style={styles.privacyInfoLink}
                   onPress={handlePrivacy}
                 >
@@ -514,7 +501,9 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.menuItemRight}>
               <Text style={styles.languageText}>
-                {settings ? getLanguageName(settings.language) : 'Español'}
+                {settings
+                  ? getLanguageName(settings.language ?? 'es')
+                  : 'es'}
               </Text>
               <Ionicons name="chevron-forward" size={20} color="#CCC" />
             </View>
@@ -565,7 +554,7 @@ export default function ProfileScreen() {
 
         {/* Versión de la app */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Versión 1.0.8r3</Text>
+          <Text style={styles.versionText}>Versión 1.0.9r20</Text>
           <Text style={styles.versionSubtext}>
             Última actualización: {new Date().toLocaleDateString('es-ES')}
           </Text>

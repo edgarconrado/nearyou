@@ -23,7 +23,7 @@ export function Header({ showBackButton = false, onBackPress }: HeaderProps = {}
         <View style={styles.infoSection}>
           <Text style={styles.appName}>NearYou</Text>
           <View style={styles.metaInfo}>
-            <Text style={styles.versionBadge}>v1.0.8r3</Text>
+            <Text style={styles.versionBadge}>v1.0.9r20</Text>
             <Text style={styles.separator}>•</Text>
             <Text style={styles.subtitle}>Explora México</Text>
           </View>

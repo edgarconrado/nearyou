@@ -18,11 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function MyFavoritesScreen() {
     const router = useRouter();
     // Ahora usa el contexto global - los cambios se sincronizan automáticamente
-    const { favorites, loading, removeFavorite, refetch, userId, isSignedIn } = useFavorites();
+    const { favorites, loading, removeFavorite, refetch } = useFavorites();
     const [refreshing, setRefreshing] = React.useState(false);
 
     const onRefresh = async () => {
-        console.log('🔄 Manual refresh triggered');
         setRefreshing(true);
         await refetch();
         setRefreshing(false);
@@ -38,14 +37,10 @@ export default function MyFavoritesScreen() {
                     text: 'Eliminar',
                     style: 'destructive',
                     onPress: async () => {
-                        console.log('❌ Removing favorite:', businessId);
                         const success = await removeFavorite(businessId);
-                        
                         if (success) {
-                            console.log('✅ Favorite removed successfully');
                             // No need to alert, the list updates automatically
                         } else {
-                            console.log('❌ Failed to remove favorite');
                             Alert.alert('Error', 'No se pudo eliminar el favorito');
                         }
                     }
@@ -86,7 +81,6 @@ export default function MyFavoritesScreen() {
             <TouchableOpacity
                 style={styles.card}
                 onPress={() => {
-                    console.log('👉 Navigating to business:', business.id);
                     router.push({
                         pathname: '/detail',
                         params: { 

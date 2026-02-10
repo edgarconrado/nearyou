@@ -68,27 +68,30 @@ export function BusinessCard({ business, onPress }: BusinessCardProps) {
           </Text>
         </View>
 
-        {/* Categoría */}
-        {business.category_name && (
-          <View style={styles.infoRow}>
-            <Ionicons name="pricetags-outline" size={11} color="#666" />
-            <Text style={styles.categoryText} numberOfLines={1}>
-              {business.category_name}
-            </Text>
-          </View>
-        )}
+        {/* Categoría y Distancia en la misma fila */}
+        <View style={styles.bottomRow}>
+          {/* Categoría */}
+          {business.category_name && (
+            <View style={styles.categoryContainer}>
+              <Ionicons name="pricetags-outline" size={11} color="#666" />
+              <Text style={styles.categoryText} numberOfLines={1}>
+                {business.category_name}
+              </Text>
+            </View>
+          )}
 
-        {/* Distancia - Más prominente */}
-        {hasDistance && (
-          <View style={styles.distanceRow}>
-            <Ionicons name="location" size={13} color="#003D7A" />
-            <Text style={styles.distanceText}>
-              {business.distance! < 1
-                ? `${Math.round(business.distance! * 1000)} m`
-                : `${business.distance!.toFixed(1)} km`}
-            </Text>
-          </View>
-        )}
+          {/* Distancia */}
+          {hasDistance && (
+            <View style={styles.distanceContainer}>
+              <Ionicons name="location" size={12} color="#003D7A" />
+              <Text style={styles.distanceText}>
+                {business.distance! < 1
+                  ? `${Math.round(business.distance! * 1000)} m`
+                  : `${business.distance!.toFixed(1)} km`}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     </Pressable>
   );
@@ -195,28 +198,35 @@ const styles = StyleSheet.create({
   closedText: {
     color: '#C62828', // Rojo oscuro para texto
   },
-  infoRow: {
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  categoryContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flex: 1,
+    minWidth: 0, // Permite que se encoja si es necesario
   },
   categoryText: {
     fontSize: 11,
     color: '#666',
     flex: 1,
   },
-  distanceRow: {
+  distanceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     backgroundColor: '#E3F2FD',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     borderRadius: 8,
-    alignSelf: 'flex-start',
   },
   distanceText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#003D7A',
     fontWeight: '700',
   },

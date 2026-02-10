@@ -100,8 +100,6 @@ export function useBusinesses(options: UseBusinessesOptions = {}) {
   };
 
   const handleRealtimeChange = (payload: RealtimePostgresChangesPayload<Business>) => {
-    console.log('Cambio en negocios:', payload);
-
     switch (payload.eventType) {
       case 'INSERT':
         if (payload.new.is_active) {

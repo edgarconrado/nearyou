@@ -30,7 +30,6 @@ export function useProfile(userId: string | null) {
                     filter: `id=eq.${userId}`,
                 },
                 (payload) => {
-                    console.log('Perfil actualizado:', payload);
                     if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
                         setProfile(payload.new as Profile);
                     }

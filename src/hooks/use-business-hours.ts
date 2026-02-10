@@ -27,21 +27,13 @@ export function useBusinessHours(businessId: string | undefined) {
       setError(null);
 
       // Cargar horarios formateados
-      const { data: hoursData, error: hoursError } = 
+      const { data: hoursData, error: hoursError } =
         await BusinessHoursService.getFormattedBusinessHours(businessId);
-
-      if (hoursError) {
-        console.warn('Error cargando horarios:', hoursError);
-        // No bloquear si no hay horarios
-      }
-
-     // console.log("HORAS NEGOCIO " + JSON.stringify(hoursData, null, 2));
-
       setHours(hoursData || []);
 
       // Verificar si está abierto (solo si hay horarios)
       if (hoursData && hoursData.length > 0) {
-        const { isOpen: openStatus, error: openError } = 
+        const { isOpen: openStatus, error: openError } =
           await BusinessHoursService.isBusinessOpen(businessId);
 
         if (!openError) {
@@ -49,7 +41,7 @@ export function useBusinessHours(businessId: string | undefined) {
         }
 
         // Obtener hora de cierre de hoy
-        const { closingTime: closeTime, error: closeError } = 
+        const { closingTime: closeTime, error: closeError } =
           await BusinessHoursService.getTodayClosingTime(businessId);
 
         if (!closeError && closeTime) {

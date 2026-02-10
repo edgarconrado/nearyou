@@ -22,7 +22,7 @@ export default function EditProfileScreen() {
   const router = useRouter();
   const { userId } = useAuth();
   const { user } = useUser();
-  const { profile, loading, updateProfile } = useProfile(userId);
+  const { profile, loading, updateProfile } = useProfile(userId ?? null);
 
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -103,9 +103,6 @@ export default function EditProfileScreen() {
       const random = Math.random().toString(36).substring(7);
       const fileName = `${userId}_${timestamp}_${random}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
-
-      console.log('📤 Uploading to Supabase:', filePath);
-
       const response = await fetch(uri);
       const blob = await response.blob();
 
@@ -127,8 +124,7 @@ export default function EditProfileScreen() {
         .getPublicUrl(filePath);
 
       const publicUrl = `${data.publicUrl}?t=${timestamp}`;
-      console.log('✅ Uploaded to Supabase:', publicUrl);
-      
+  
       return publicUrl;
     } catch (error) {
       console.error('Error uploading to Supabase:', error);
@@ -140,26 +136,20 @@ export default function EditProfileScreen() {
   const updateClerkAvatar = async (imageUri: string): Promise<boolean> => {
     try {
       if (!user) {
-        console.warn('⚠️ User not available, skipping Clerk update');
         return false;
       }
 
-      console.log('🔄 Converting image to base64 for Clerk...');
       const base64 = await convertToBase64(imageUri);
       
       if (!base64) {
-        console.error('❌ Failed to convert image to base64');
         return false;
       }
 
-      console.log('📤 Updating Clerk avatar with base64 data...');
-      
       // ✅ Clerk requiere un File o base64 string
       await user.setProfileImage({
         file: `data:image/jpeg;base64,${base64}`,
       });
 
-      console.log('✅ Clerk avatar updated successfully');
       return true;
     } catch (error: any) {
       console.error('❌ Error updating Clerk avatar:', error);
@@ -187,8 +177,7 @@ export default function EditProfileScreen() {
 
       if (localImageUri) {
         setUploadingImage(true);
-        console.log('📷 Processing new avatar...');
-        
+
         try {
           // 1. Subir a Supabase primero
           const supabaseUrl = await uploadToSupabase(localImageUri);
@@ -212,8 +201,6 @@ export default function EditProfileScreen() {
       }
 
       // Actualizar perfil en Supabase
-      console.log('💾 Saving profile to Supabase...');
-      
       const result = await updateProfile({
         full_name: fullName.trim(),
         email: email.trim(),

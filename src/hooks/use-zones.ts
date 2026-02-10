@@ -1,5 +1,5 @@
 // hooks/useZones.ts
-import type { Zone } from '@/lib/supabase';
+import type { Zone } from '@/services/zones.service';
 import { ZonesService } from '@/services/zones.service';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';

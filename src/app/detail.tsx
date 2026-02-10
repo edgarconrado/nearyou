@@ -145,7 +145,7 @@ export default function DetailScreen() {
     hours: rawHours,
     isOpen: hookIsOpen,
     closingTimeFormatted: hookClosingTime,
-  } = useBusinessHours(business?.id);
+  } = useBusinessHours(business?.id ?? undefined);
 
   // Cargar negocio
   useEffect(() => {
@@ -159,12 +159,6 @@ export default function DetailScreen() {
         const { data, error } = await BusinessesService.getBusinessFullById(businessId);
 
         if (error || !data) throw error;
-
-        console.log('[DetailScreen] Business loaded:', {
-          name: data.name,
-          category_name: data.category_name,
-          category_id: data.category_id,
-        });
 
         setBusiness(data);
         BusinessesService.incrementVisitCount(businessId).catch(() => { });
@@ -249,8 +243,6 @@ export default function DetailScreen() {
   // Función para compartir
   const handleShare = async () => {
     try {
-      console.log('[handleShare] Sharing business:', business?.name);
-
       const message = [
         business?.name || '',
         business?.description || '',
@@ -263,8 +255,6 @@ export default function DetailScreen() {
         message: message,
         title: business?.name || 'Negocio',
       });
-
-      console.log('[handleShare] Share result:', result);
 
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
@@ -363,7 +353,7 @@ export default function DetailScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
 
       <DetailHeader
-        businessName={businessData.name}
+        businessName={businessData.name ?? ''}
         onBack={() => router.back()}
         onShare={handleShare}
       />
@@ -405,7 +395,7 @@ export default function DetailScreen() {
         {businessData.coordinates.latitude !== 0 && businessData.coordinates.longitude !== 0 && (
           <LocationSection
             coordinates={businessData.coordinates}
-            businessName={businessData.name}
+            businessName={businessData.name ?? ''}
             address={businessData.address}
             city={businessData.city}
             postalCode={businessData.postalCode}

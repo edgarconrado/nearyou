@@ -50,7 +50,7 @@ export function useUserSettings(userId: string | null | undefined) {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
+
   // ✨ Referencia al valor anterior para detectar cambios REALES
   const prevSettingsRef = useRef<UserSettings | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -66,8 +66,6 @@ export function useUserSettings(userId: string | null | undefined) {
     try {
       setLoading(true);
       setError(null);
-
-      console.log('📥 Fetching settings...');
 
       const { data, error: fetchError } = await supabase
         .from('user_settings')
@@ -87,17 +85,11 @@ export function useUserSettings(userId: string | null | undefined) {
 
       // ✨ Solo actualizar si los datos REALMENTE cambiaron
       if (!deepEqual(prevSettingsRef.current, data)) {
-        console.log('✅ Settings changed, updating state');
-        console.log('Old:', JSON.stringify(prevSettingsRef.current, null, 2));
-        console.log('New:', JSON.stringify(data, null, 2));
-        
+
         prevSettingsRef.current = data;
         setSettings(data);
-      } else {
-        console.log('⏭️ Settings unchanged, skipping update');
       }
     } catch (err) {
-      console.error('❌ Error fetching settings:', err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err : new Error('Error al cargar configuraciones'));
       }
@@ -144,7 +136,6 @@ export function useUserSettings(userId: string | null | undefined) {
     if (!userId || !settings) return false;
 
     try {
-      console.log(`📝 Updating ${String(key)}: ${settings[key]} → ${value}`);
 
       // Actualización en Supabase primero
       const updates: UserSettingsUpdate = { [key]: value };
@@ -156,14 +147,8 @@ export function useUserSettings(userId: string | null | undefined) {
 
       if (updateError) throw updateError;
 
-      console.log(`✅ ${String(key)} updated successfully`);
-      
-      // ✨ NO actualizar el estado aquí - dejar que realtime lo haga
-      // Esto asegura que el estado siempre viene de la DB
-      
       return true;
     } catch (err) {
-      console.error(`❌ Error updating ${String(key)}:`, err);
       Alert.alert('Error', 'No se pudo actualizar la configuración');
       return false;
     }
@@ -183,7 +168,6 @@ export function useUserSettings(userId: string | null | undefined) {
 
       return true;
     } catch (err) {
-      console.error('❌ Error updating settings:', err);
       Alert.alert('Error', 'No se pudieron actualizar las configuraciones');
       return false;
     }
@@ -206,7 +190,6 @@ export function useUserSettings(userId: string | null | undefined) {
       Alert.alert('Éxito', 'Configuraciones restauradas a valores por defecto');
       return true;
     } catch (err) {
-      console.error('❌ Error resetting settings:', err);
       Alert.alert('Error', 'No se pudieron resetear las configuraciones');
       return false;
     }
@@ -219,8 +202,6 @@ export function useUserSettings(userId: string | null | undefined) {
     let channel: RealtimeChannel;
 
     const setupChannel = () => {
-      console.log('🔔 Setting up realtime subscription...');
-
       channel = supabase
         .channel(`user_settings:${userId}:${Date.now()}`) // ✨ Unique channel per mount
         .on(
@@ -232,57 +213,28 @@ export function useUserSettings(userId: string | null | undefined) {
             filter: `user_id=eq.${userId}`,
           },
           (payload) => {
-            console.log('🔄 Realtime event:', payload.eventType);
-            console.log('Payload:', JSON.stringify(payload, null, 2));
 
             if (!isMountedRef.current) {
-              console.log('⏭️ Component unmounted, ignoring event');
               return;
             }
 
             if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
               const newData = payload.new as UserSettings;
-              
+
               // ✨ Solo actualizar si realmente cambió
               if (!deepEqual(prevSettingsRef.current, newData)) {
-                console.log('✅ Data changed via realtime, updating...');
-                console.log('Diff:', {
-                  show_email: {
-                    old: prevSettingsRef.current?.show_email,
-                    new: newData.show_email,
-                  },
-                  show_phone: {
-                    old: prevSettingsRef.current?.show_phone,
-                    new: newData.show_phone,
-                  },
-                  show_activity: {
-                    old: prevSettingsRef.current?.show_activity,
-                    new: newData.show_activity,
-                  },
-                });
-                
+
+
                 prevSettingsRef.current = newData;
                 setSettings(newData);
-              } else {
-                console.log('⏭️ Data unchanged, skipping update');
               }
             } else if (payload.eventType === 'DELETE') {
-              console.log('🗑️ Settings deleted');
               prevSettingsRef.current = null;
               setSettings(null);
             }
           }
         )
         .subscribe((status, err) => {
-          console.log('📡 Subscription status:', status);
-          
-          if (status === 'SUBSCRIBED') {
-            console.log('✅ Successfully subscribed to realtime');
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error('❌ Channel error:', err);
-          } else if (status === 'TIMED_OUT') {
-            console.warn('⏱️ Subscription timed out');
-          }
         });
     };
 
@@ -294,9 +246,8 @@ export function useUserSettings(userId: string | null | undefined) {
 
     // Cleanup
     return () => {
-      console.log('🧹 Cleaning up subscription...');
       isMountedRef.current = false;
-      
+
       if (channel) {
         supabase.removeChannel(channel);
       }

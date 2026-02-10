@@ -1,7 +1,12 @@
 // services/zones.service.ts
-import type { Zone } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database.types';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+
+// Exportar tipos de Zone
+export type Zone = Database['public']['Tables']['zones']['Row'];
+export type ZoneInsert = Database['public']['Tables']['zones']['Insert'];
+export type ZoneUpdate = Database['public']['Tables']['zones']['Update'];
 
 export class ZonesService {
   /**
@@ -88,7 +93,7 @@ export class ZonesService {
   /**
    * Crear una nueva zona
    */
-  static async createZone(zone: Omit<Zone, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Zone | null; error: Error | null }> {
+  static async createZone(zone: ZoneInsert): Promise<{ data: Zone | null; error: Error | null }> {
     try {
       const { data, error } = await supabase
         .from('zones')
@@ -109,7 +114,7 @@ export class ZonesService {
    * Crear una zona con imagen (sube la imagen primero y luego crea la zona)
    */
   static async createZoneWithImage(
-    zone: Omit<Zone, 'id' | 'created_at' | 'updated_at' | 'image_url'>,
+    zone: Omit<ZoneInsert, 'image_url'>,
     imageFile: string
   ): Promise<{ data: Zone | null; error: Error | null }> {
     try {
@@ -125,7 +130,7 @@ export class ZonesService {
       if (uploadError) throw uploadError;
 
       // Crear zona con la URL de la imagen
-      const zoneWithImage = {
+      const zoneWithImage: ZoneInsert = {
         ...zone,
         image_url: url,
       };
@@ -140,7 +145,7 @@ export class ZonesService {
   /**
    * Actualizar una zona existente
    */
-  static async updateZone(id: string, updates: Partial<Zone>): Promise<{ data: Zone | null; error: Error | null }> {
+  static async updateZone(id: string, updates: ZoneUpdate): Promise<{ data: Zone | null; error: Error | null }> {
     try {
       const { data, error } = await supabase
         .from('zones')
@@ -163,7 +168,7 @@ export class ZonesService {
    */
   static async updateZoneWithImage(
     id: string,
-    updates: Partial<Zone>,
+    updates: ZoneUpdate,
     imageFile: string,
     oldImageUrl?: string | null
   ): Promise<{ data: Zone | null; error: Error | null }> {
@@ -180,7 +185,7 @@ export class ZonesService {
       if (uploadError) throw uploadError;
 
       // Actualizar zona con nueva URL
-      const updatesWithImage = {
+      const updatesWithImage: ZoneUpdate = {
         ...updates,
         image_url: url,
       };
