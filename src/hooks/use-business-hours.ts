@@ -49,7 +49,6 @@ export function useBusinessHours(businessId: string | undefined) {
         }
       }
     } catch (err) {
-      console.warn('Error loading business hours:', err);
       // No establecer error - solo loguearlo
       // setError('Error al cargar horarios');
     } finally {

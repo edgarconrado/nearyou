@@ -40,7 +40,6 @@ export class ReviewsService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching reviews:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -60,7 +59,6 @@ export class ReviewsService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching review by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -81,7 +79,6 @@ export class ReviewsService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching reviews by business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -105,7 +102,6 @@ export class ReviewsService {
 
       return { data: data as ReviewWithUser[], error: null };
     } catch (error) {
-      console.error('Error fetching reviews with user:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -125,7 +121,6 @@ export class ReviewsService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching reviews by user:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -148,7 +143,6 @@ export class ReviewsService {
 
       return { data: data as ReviewWithBusiness[], error: null };
     } catch (error) {
-      console.error('Error fetching reviews by user with business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -172,7 +166,6 @@ export class ReviewsService {
 
       return { hasReviewed: !!data, review: data, error: null };
     } catch (error) {
-      console.error('Error checking user review:', error);
       return { hasReviewed: false, review: null, error: error as Error };
     }
   }
@@ -214,7 +207,6 @@ export class ReviewsService {
         error: null,
       };
     } catch (error) {
-      console.error('Error fetching review stats:', error);
       return { stats: null, error: error as Error };
     }
   }
@@ -239,7 +231,6 @@ export class ReviewsService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating review:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -272,7 +263,6 @@ export class ReviewsService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating review:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -296,7 +286,6 @@ export class ReviewsService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting review:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -315,7 +304,6 @@ export class ReviewsService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error hiding review:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -337,7 +325,6 @@ export class ReviewsService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error incrementing helpful count:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -359,7 +346,6 @@ export class ReviewsService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error incrementing reported count:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -379,7 +365,6 @@ export class ReviewsService {
         });
       }
     } catch (error) {
-      console.error('Error updating business rating:', error);
     }
   }
 

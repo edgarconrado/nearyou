@@ -24,7 +24,6 @@ export class ZonesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching zones:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -44,7 +43,6 @@ export class ZonesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching zone by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -64,7 +62,6 @@ export class ZonesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching zone by slug:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -85,7 +82,6 @@ export class ZonesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching zones by state:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -105,7 +101,6 @@ export class ZonesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating zone:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -137,7 +132,6 @@ export class ZonesService {
 
       return await this.createZone(zoneWithImage);
     } catch (error) {
-      console.error('Error creating zone with image:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -158,7 +152,6 @@ export class ZonesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating zone:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -192,7 +185,6 @@ export class ZonesService {
 
       return await this.updateZone(id, updatesWithImage);
     } catch (error) {
-      console.error('Error updating zone with image:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -211,7 +203,6 @@ export class ZonesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deactivating zone:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -230,7 +221,6 @@ export class ZonesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting zone:', error);
       return { success: false, error: error as Error };
     }
   }

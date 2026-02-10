@@ -36,7 +36,6 @@ export class FavoritesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching user favorites:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -69,7 +68,6 @@ export class FavoritesService {
 
       return { data: data as FavoriteWithBusiness[], error: null };
     } catch (error) {
-      console.error('Error fetching favorites with business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -90,7 +88,6 @@ export class FavoritesService {
 
       return { ids, error: null };
     } catch (error) {
-      console.error('Error fetching favorite business ids:', error);
       return { ids: [], error: error as Error };
     }
   }
@@ -111,7 +108,6 @@ export class FavoritesService {
 
       return { isFavorite: !!data, favoriteId: data?.id || null, error: null };
     } catch (error) {
-      console.error('Error checking favorite:', error);
       return { isFavorite: false, favoriteId: null, error: error as Error };
     }
   }
@@ -140,7 +136,6 @@ export class FavoritesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error adding favorite:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -160,7 +155,6 @@ export class FavoritesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error removing favorite:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -179,7 +173,6 @@ export class FavoritesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error removing favorite by id:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -205,7 +198,6 @@ export class FavoritesService {
         return { isFavorite: true, data, error };
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
       return { isFavorite: false, data: null, error: error as Error };
     }
   }
@@ -224,7 +216,6 @@ export class FavoritesService {
 
       return { count: count || 0, error: null };
     } catch (error) {
-      console.error('Error fetching favorites count:', error);
       return { count: 0, error: error as Error };
     }
   }
@@ -243,7 +234,6 @@ export class FavoritesService {
 
       return { count: count || 0, error: null };
     } catch (error) {
-      console.error('Error fetching business favorites count:', error);
       return { count: 0, error: error as Error };
     }
   }
@@ -262,7 +252,6 @@ export class FavoritesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error clearing user favorites:', error);
       return { success: false, error: error as Error };
     }
   }

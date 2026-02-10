@@ -3,12 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -119,7 +119,6 @@ export default function LanguageScreen() {
           onPress: () => {
             setSelectedLanguage(languageCode);
             // Aquí irá la lógica para cambiar el idioma real de la app
-            console.log('Idioma cambiado a:', languageCode);
             
             // Mostrar mensaje de éxito
             setTimeout(() => {

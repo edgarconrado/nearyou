@@ -23,10 +23,8 @@ export function useCategories() {
         throw fetchError;
       }
 
-      console.log("Categories" + data);
       setCategories(data || []);
     } catch (err) {
-      console.error('Error loading categories:', err);
       setError('Error al cargar las categorías');
     } finally {
       setLoading(false);

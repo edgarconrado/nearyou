@@ -35,7 +35,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching offers:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -59,7 +58,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching valid offers:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -94,7 +92,6 @@ export class OffersService {
 
       return { data: data as OfferWithBusiness[], error: null };
     } catch (error) {
-      console.error('Error fetching valid offers with business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -114,7 +111,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching offer by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -145,7 +141,6 @@ export class OffersService {
 
       return { data: data as OfferWithBusiness, error: null };
     } catch (error) {
-      console.error('Error fetching offer with business by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -166,7 +161,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching offers by business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -191,7 +185,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching valid offers by business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -228,7 +221,6 @@ export class OffersService {
 
       return { data: data as OfferWithBusiness[], error: null };
     } catch (error) {
-      console.error('Error fetching offers by zone:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -258,7 +250,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching expiring soon offers:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -284,7 +275,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching offers by min discount:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -310,7 +300,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error searching offers:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -372,7 +361,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating offer:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -393,7 +381,6 @@ export class OffersService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating offer:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -412,7 +399,6 @@ export class OffersService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deactivating offer:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -431,7 +417,6 @@ export class OffersService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting offer:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -455,7 +440,6 @@ export class OffersService {
 
       return { count: data?.length || 0, error: null };
     } catch (error) {
-      console.error('Error deactivating expired offers:', error);
       return { count: 0, error: error as Error };
     }
   }
@@ -479,7 +463,6 @@ export class OffersService {
 
       return { count: count || 0, error: null };
     } catch (error) {
-      console.error('Error counting valid offers:', error);
       return { count: 0, error: error as Error };
     }
   }

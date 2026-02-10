@@ -90,7 +90,6 @@ export default function EditProfileScreen() {
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.error('Error converting to base64:', error);
       return null;
     }
   };
@@ -115,7 +114,6 @@ export default function EditProfileScreen() {
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
@@ -127,7 +125,6 @@ export default function EditProfileScreen() {
   
       return publicUrl;
     } catch (error) {
-      console.error('Error uploading to Supabase:', error);
       return null;
     }
   };
@@ -152,8 +149,6 @@ export default function EditProfileScreen() {
 
       return true;
     } catch (error: any) {
-      console.error('❌ Error updating Clerk avatar:', error);
-      console.error('Error details:', error.message || error);
       // No bloquear el guardado si Clerk falla
       return false;
     }
@@ -192,7 +187,6 @@ export default function EditProfileScreen() {
             return;
           }
         } catch (error) {
-          console.error('Error processing image:', error);
           Alert.alert('Error', 'No se pudo procesar la imagen');
           return;
         } finally {
@@ -228,7 +222,6 @@ export default function EditProfileScreen() {
         throw result.error;
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
       Alert.alert('Error', 'No se pudo actualizar el perfil');
     } finally {
       setSaving(false);

@@ -21,7 +21,6 @@ export function useAuthSync() {
                 hasSyncedRef.current = true;
                 const { error } = await ClerkSupabaseService.syncUserWithSupabase(user);
             } catch (error) {
-                console.error('Error en useAuthSync:', error);
             }
         };
 

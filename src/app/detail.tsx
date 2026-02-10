@@ -163,7 +163,6 @@ export default function DetailScreen() {
         setBusiness(data);
         BusinessesService.incrementVisitCount(businessId).catch(() => { });
       } catch (err) {
-        console.error('[DetailScreen] Error loading business:', err);
         setError('No se pudo cargar el negocio');
       } finally {
         setLoading(false);
@@ -256,17 +255,7 @@ export default function DetailScreen() {
         title: business?.name || 'Negocio',
       });
 
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log('[handleShare] Shared with activity type:', result.activityType);
-        } else {
-          console.log('[handleShare] Shared successfully');
-        }
-      } else if (result.action === Share.dismissedAction) {
-        console.log('[handleShare] Share dismissed');
-      }
     } catch (err) {
-      console.error('[handleShare] Error sharing:', err);
       Alert.alert('Error', 'No se pudo compartir la información');
     }
   };

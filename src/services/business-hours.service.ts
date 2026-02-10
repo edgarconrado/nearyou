@@ -44,7 +44,6 @@ export class BusinessHoursService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching business hours:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -78,7 +77,6 @@ export class BusinessHoursService {
 
       return { data: formatted, error: null };
     } catch (error) {
-      console.error('Error formatting business hours:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -103,7 +101,6 @@ export class BusinessHoursService {
         .maybeSingle(); // Cambiado de .single() a .maybeSingle()
 
       if (error) {
-        console.warn('Error checking if business is open:', error);
         return { isOpen: false, error: error as Error };
       }
 
@@ -127,7 +124,6 @@ export class BusinessHoursService {
 
       return { isOpen, error: null };
     } catch (error) {
-      console.warn('Error checking if business is open:', error);
       return { isOpen: false, error: error as Error };
     }
   }
@@ -150,13 +146,11 @@ export class BusinessHoursService {
         .maybeSingle(); // Cambiado de .single() a .maybeSingle()
 
       if (error) {
-        console.warn('Error fetching today hours:', error);
         return { data: null, error: error as Error };
       }
 
       return { data, error: null };
     } catch (error) {
-      console.warn('Error fetching today hours:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -181,7 +175,6 @@ export class BusinessHoursService {
 
       return { closingTime: todayHours.closes_at, error: null };
     } catch (error) {
-      console.error('Error fetching closing time:', error);
       return { closingTime: null, error: error as Error };
     }
   }
@@ -235,7 +228,6 @@ export class BusinessHoursService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating business hours:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -259,7 +251,6 @@ export class BusinessHoursService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating business hours:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -281,7 +272,6 @@ export class BusinessHoursService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting business hours:', error);
       return { success: false, error: error as Error };
     }
   }

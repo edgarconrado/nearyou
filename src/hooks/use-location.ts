@@ -42,7 +42,6 @@ export function useLocation() {
             // Obtener ubicación actual
             await getCurrentLocation();
         } catch (err) {
-            console.error('Error requesting location permission:', err);
             setError('Error al obtener permisos de ubicación');
             setLoading(false);
         }
@@ -62,7 +61,6 @@ export function useLocation() {
 
             setError(null);
         } catch (err) {
-            console.error('Error getting current location:', err);
             setError('No se pudo obtener la ubicación actual');
         } finally {
             setLoading(false);

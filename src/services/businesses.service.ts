@@ -24,7 +24,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching businesses:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -44,7 +43,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching businesses full:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -64,7 +62,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching business by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -84,7 +81,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching business full by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -104,7 +100,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching business by slug:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -125,7 +120,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching businesses by zone:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -146,7 +140,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching businesses full by zone:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -167,7 +160,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching businesses by category:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -192,7 +184,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching businesses by zone and category:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -214,7 +205,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error searching businesses:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -253,7 +243,6 @@ export class BusinessesService {
 
       return { data: nearby || [], error: null };
     } catch (error) {
-      console.error('Error fetching nearby businesses:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -276,7 +265,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching top rated businesses:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -296,7 +284,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -317,7 +304,6 @@ export class BusinessesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating business:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -334,9 +320,6 @@ export class BusinessesService {
         return { success: true, error: null };
       }
 
-      // Si la función RPC no existe o falla, hacerlo manualmente
-      console.log('RPC no disponible, incrementando manualmente');
-
       // Primero obtener el negocio actual
       const { data: business, error: fetchError } = await supabase
         .from('businesses')
@@ -345,7 +328,6 @@ export class BusinessesService {
         .single();
 
       if (fetchError) {
-        console.warn('No se pudo obtener el negocio para incrementar visitas:', fetchError);
         // No lanzar error, solo loguear - no es crítico
         return { success: false, error: fetchError as Error };
       }
@@ -359,13 +341,11 @@ export class BusinessesService {
         .eq('id', id);
 
       if (updateError) {
-        console.warn('No se pudo incrementar el contador de visitas:', updateError);
         return { success: false, error: updateError as Error };
       }
 
       return { success: true, error: null };
     } catch (error) {
-      console.warn('Error incrementando visitas:', error);
       // No lanzar error, solo retornar - no queremos que esto bloquee la carga
       return { success: false, error: error as Error };
     }
@@ -385,7 +365,6 @@ export class BusinessesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deactivating business:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -404,7 +383,6 @@ export class BusinessesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting business:', error);
       return { success: false, error: error as Error };
     }
   }

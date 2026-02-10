@@ -22,7 +22,6 @@ export class CategoriesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching categories:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -42,7 +41,6 @@ export class CategoriesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching category by id:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -62,7 +60,6 @@ export class CategoriesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error fetching category by slug:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -82,7 +79,6 @@ export class CategoriesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error creating category:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -103,7 +99,6 @@ export class CategoriesService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating category:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -122,7 +117,6 @@ export class CategoriesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deactivating category:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -141,7 +135,6 @@ export class CategoriesService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting category:', error);
       return { success: false, error: error as Error };
     }
   }

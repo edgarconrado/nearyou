@@ -62,7 +62,6 @@ export function useOffers(options: UseOffersOptions = {}) {
 
       setOffers(data as OfferWithBusiness[] || []);
     } catch (err) {
-      console.error('Error in useOffers:', err);
       setError('Error al cargar las ofertas');
     } finally {
       setLoading(false);

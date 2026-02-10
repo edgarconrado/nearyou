@@ -59,8 +59,6 @@ export function useBusinessFavorite(businessId: string | null) {
 
     if (!success) {
       setError(new Error('Failed to toggle favorite'));
-    } else {
-      console.log('[useBusinessFavorite] Toggled successfully');
     }
 
     setToggling(false);

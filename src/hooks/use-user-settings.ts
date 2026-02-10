@@ -121,7 +121,6 @@ export function useUserSettings(userId: string | null | undefined) {
         setSettings(data);
       }
     } catch (err) {
-      console.error('❌ Error creating settings:', err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err : new Error('Error al crear configuraciones'));
       }
