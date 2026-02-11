@@ -1,4 +1,4 @@
-import type { Database } from '@/types/database.types'; // Ajusta la ruta según tu proyecto
+import type { Database } from '@/types/database.types';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -7,18 +7,23 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'rea
 type Business = Database['public']['Tables']['businesses']['Row'];
 
 // Tipo para los datos del negocio que se muestran en la UI
-// Extiende del tipo de la BD pero agrega campos calculados/formateados
-export interface BusinessData extends Partial<Business> {
-    id: string;
-    name: string;
+// NO extendemos de Partial<Business> para evitar conflictos de tipos
+export interface BusinessData {
+    id: string | null;
+    name: string | null;
     category?: string; // Nombre de la categoría (calculado)
     rating?: number; // average_rating renombrado
     reviews?: number; // total_reviews renombrado
     isOpen?: boolean; // is_open renombrado
-    description?: string;
+    description?: string | null;
     priceRange?: string; // price_range renombrado
     features?: string[];
     closingTime?: string | null;
+    // Campos adicionales de Business que pueden ser necesarios
+    average_rating?: number | null;
+    total_reviews?: number | null;
+    is_open?: boolean | null;
+    price_range?: string | null;
 }
 
 interface BusinessInfoProps {
@@ -53,7 +58,7 @@ export const BusinessInfo: React.FC<BusinessInfoProps> = ({
     };
 
     // Extraer valores con fallbacks seguros
-    const displayName = business.name;
+    const displayName = business.name || 'Sin nombre';
     const displayCategory = business.category || 'Sin categoría';
     const displayPriceRange = business.priceRange || business.price_range || '$';
     const displayRating = business.rating ?? business.average_rating ?? 0;
@@ -107,7 +112,7 @@ export const BusinessInfo: React.FC<BusinessInfoProps> = ({
                     {displayIsOpen ? 'Abierto ahora' : 'Cerrado'}
                 </Text>
                 {displayIsOpen && business.closingTime && (
-                    <Text style={styles.statusHours}> • Cierra a las {business.closingTime}</Text>
+                    <Text style={styles.statusHours}> • {business.closingTime}</Text>
                 )}
             </View>
 

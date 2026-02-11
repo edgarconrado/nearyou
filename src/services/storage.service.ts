@@ -19,7 +19,7 @@ export class StorageService {
     try {
       // Leer el archivo como base64
       const base64 = await FileSystem.readAsStringAsync(file, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       // Generar nombre único para el archivo
@@ -50,7 +50,6 @@ export class StorageService {
 
       return { url: data.publicUrl, error: null };
     } catch (error) {
-      console.error('Error uploading image:', error);
       return { url: null, error: error as Error };
     }
   }
@@ -72,7 +71,6 @@ export class StorageService {
       // Subir nueva imagen
       return await this.uploadZoneImage(file, zoneName);
     } catch (error) {
-      console.error('Error updating image:', error);
       return { url: null, error: error as Error };
     }
   }
@@ -84,7 +82,7 @@ export class StorageService {
     try {
       // Extraer el path del archivo de la URL
       const filePath = this.extractPathFromUrl(imageUrl);
-      
+
       if (!filePath) {
         throw new Error('Invalid image URL');
       }
@@ -97,7 +95,6 @@ export class StorageService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting image:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -115,7 +112,6 @@ export class StorageService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deleting image:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -144,7 +140,6 @@ export class StorageService {
 
       return { files: data, error: null };
     } catch (error) {
-      console.error('Error listing images:', error);
       return { files: null, error: error as Error };
     }
   }

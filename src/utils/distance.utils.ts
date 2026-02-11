@@ -75,32 +75,38 @@ export function calculateAndFormatDistance(
 }
 
 /**
- * Ordenar una lista de lugares por distancia al usuario
+ * Ordenar una lista de lugares por distancia al usuario Y AGREGAR la propiedad distance
  */
 export function sortByDistance<T extends { latitude: number | null; longitude: number | null }>(
     items: T[],
     userLocation: Coordinates | null
-): T[] {
+): (T & { distance?: number })[] {
     if (!userLocation) {
         return items;
     }
 
-    return [...items].sort((a, b) => {
-        // Si alguno no tiene coordenadas, ponerlo al final
-        if (!a.latitude || !a.longitude) return 1;
-        if (!b.latitude || !b.longitude) return -1;
+    // Agregar la propiedad distance a cada item y ordenar
+    const itemsWithDistance = items.map(item => {
+        // Si no tiene coordenadas, no calcular distancia
+        if (!item.latitude || !item.longitude) {
+            return { ...item, distance: undefined };
+        }
 
-        const distanceA = calculateDistance(userLocation, {
-            latitude: a.latitude,
-            longitude: a.longitude,
+        const distance = calculateDistance(userLocation, {
+            latitude: item.latitude,
+            longitude: item.longitude,
         });
 
-        const distanceB = calculateDistance(userLocation, {
-            latitude: b.latitude,
-            longitude: b.longitude,
-        });
+        return { ...item, distance };
+    });
 
-        return distanceA - distanceB;
+    // Ordenar por distancia
+    return itemsWithDistance.sort((a, b) => {
+        // Si alguno no tiene distancia, ponerlo al final
+        if (a.distance === undefined) return 1;
+        if (b.distance === undefined) return -1;
+
+        return a.distance - b.distance;
     });
 }
 

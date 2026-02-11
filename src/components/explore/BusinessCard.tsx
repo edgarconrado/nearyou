@@ -1,217 +1,233 @@
-import { useUserLocation } from '@/contexts/LocationContext';
-import type { BusinessFull } from '@/services/businesses.service';
-import { calculateAndFormatDistance } from '@/utils/distance.utils';
+// components/explore/BusinessCard.tsx
 import { Ionicons } from '@expo/vector-icons';
+import type { BusinessFull } from '@services/businesses.service';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface BusinessCardProps {
-    business: BusinessFull;
-    onPress: () => void;
+  business: BusinessFull;
+  onPress: () => void;
 }
 
-export const BusinessCard: React.FC<BusinessCardProps> = ({ business, onPress }) => {
-    const { location: userLocation } = useUserLocation();
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+// Ancho de cada tarjeta: (ancho total - padding lateral - gap entre tarjetas) / 2
+const CARD_WIDTH = (SCREEN_WIDTH - 32 - 12) / 2;
 
-    const renderStars = (rating: number) => {
-        const stars = [];
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 !== 0;
+export function BusinessCard({ business, onPress }: BusinessCardProps) {
+  const hasOffers = business.active_offers_count && business.active_offers_count > 0;
+  const hasDistance = business.distance !== undefined && business.distance !== null;
+  
+  // Determinar si está abierto basado en el campo is_open
+  const isOpen = business.is_open ?? true; // Por defecto abierto si no está definido
 
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<Ionicons key={`star-${i}`} name="star" size={14} color="#FFB800" />);
-        }
-        if (hasHalfStar) {
-            stars.push(<Ionicons key="half-star" name="star-half" size={14} color="#FFB800" />);
-        }
-        const emptyStars = 5 - Math.ceil(rating);
-        for (let i = 0; i < emptyStars; i++) {
-            stars.push(<Ionicons key={`empty-${i}`} name="star-outline" size={14} color="#FFB800" />);
-        }
-        return stars;
-    };
+  // Usar cover_image_url o main_image_url
+  const imageUrl = business.main_image_url;
 
-    // Determinar si está abierto basado en horarios (simplificado)
-    // TODO: Implementar lógica real basada en opening_hours
-    const isOpen = business.is_active;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        pressed && styles.cardPressed,
+      ]}
+    >
+      {/* Imagen del negocio */}
+      <View style={styles.imageContainer}>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <Ionicons name="business" size={40} color="#CCC" />
+          </View>
+        )}
 
-    // Calcular distancia real
-    const getDistance = (): string => {
-        if (!business.latitude || !business.longitude) {
-            return 'N/A';
-        }
+        {/* Badge de ofertas - Esquina superior derecha */}
+        {hasOffers && (
+          <View style={styles.offerBadge}>
+            <Ionicons name="pricetag" size={12} color="#FFF" />
+            <Text style={styles.offerBadgeText}>{business.active_offers_count}</Text>
+          </View>
+        )}
+      </View>
 
-        return calculateAndFormatDistance(
-            userLocation,
-            { latitude: business.latitude, longitude: business.longitude }
-        );
-    };
+      {/* Información del negocio */}
+      <View style={styles.content}>
+        <Text style={styles.businessName} numberOfLines={2}>
+          {business.name}
+        </Text>
 
-    // Obtener rating y reviews
-    const rating = business.average_rating || 0;
-    const reviews = business.total_reviews || 0;
+        {/* Indicador de abierto/cerrado - Debajo del nombre */}
+        <View style={[styles.statusBadge, isOpen ? styles.openBadge : styles.closedBadge]}>
+          <View style={[styles.statusDot, isOpen ? styles.openDot : styles.closedDot]} />
+          <Text style={[styles.statusText, isOpen ? styles.openText : styles.closedText]}>
+            {isOpen ? 'Abierto' : 'Cerrado'}
+          </Text>
+        </View>
 
-    return (
-        <TouchableOpacity
-            style={styles.businessCard}
-            activeOpacity={0.7}
-            onPress={onPress}
-        >
-            <Image
-                source={{
-                    uri: business.main_image_url || 'https://via.placeholder.com/400x180?text=Sin+Imagen'
-                }}
-                style={styles.businessImage}
-                resizeMode="cover"
-            />
-
-            <View style={styles.businessInfo}>
-                <View style={styles.businessHeader}>
-                    <Text style={styles.businessName} numberOfLines={1}>
-                        {business.name}
-                    </Text>
-                    <View style={[
-                        styles.statusBadge,
-                        isOpen ? styles.statusOpen : styles.statusClosed
-                    ]}>
-                        <Text style={[
-                            styles.statusText,
-                            !isOpen && styles.statusTextClosed
-                        ]}>
-                            {isOpen ? 'Abierto' : 'Cerrado'}
-                        </Text>
-                    </View>
-                </View>
-
-                <Text style={styles.businessCategory}>
-                    {business.category_name || 'Sin categoría'}
-                </Text>
-
-                <Text style={styles.businessDescription} numberOfLines={2}>
-                    {business.description || 'Sin descripción disponible'}
-                </Text>
-
-                <View style={styles.businessMeta}>
-                    <View style={styles.ratingContainer}>
-                        {rating > 0 ? (
-                            <>
-                                <View style={styles.starsRow}>
-                                    {renderStars(rating)}
-                                </View>
-                                <Text style={styles.ratingText}>
-                                    {rating.toFixed(1)} ({reviews})
-                                </Text>
-                            </>
-                        ) : (
-                            <Text style={styles.noRatingText}>Sin calificaciones</Text>
-                        )}
-                    </View>
-
-                    <View style={styles.distanceContainer}>
-                        <Ionicons name="navigate-outline" size={14} color="#666" />
-                        <Text style={styles.distanceText}>{getDistance()}</Text>
-                    </View>
-                </View>
+        {/* Categoría y Distancia en la misma fila */}
+        <View style={styles.bottomRow}>
+          {/* Categoría */}
+          {business.category_name && (
+            <View style={styles.categoryContainer}>
+              <Ionicons name="pricetags-outline" size={11} color="#666" />
+              <Text style={styles.categoryText} numberOfLines={1}>
+                {business.category_name}
+              </Text>
             </View>
-        </TouchableOpacity>
-    );
-};
+          )}
+
+          {/* Distancia */}
+          {hasDistance && (
+            <View style={styles.distanceContainer}>
+              <Ionicons name="location" size={12} color="#003D7A" />
+              <Text style={styles.distanceText}>
+                {business.distance! < 1
+                  ? `${Math.round(business.distance! * 1000)} m`
+                  : `${business.distance!.toFixed(1)} km`}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </Pressable>
+  );
+}
 
 const styles = StyleSheet.create({
-    businessCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        marginBottom: 16,
-        overflow: 'hidden',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    businessImage: {
-        width: '100%',
-        height: 180,
-        backgroundColor: '#F0F0F0',
-    },
-    businessInfo: {
-        padding: 16,
-    },
-    businessHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 6,
-    },
-    businessName: {
-        flex: 1,
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginRight: 8,
-    },
-    statusBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusOpen: {
-        backgroundColor: '#E8F5E9',
-    },
-    statusClosed: {
-        backgroundColor: '#FFEBEE',
-    },
-    statusText: {
-        fontSize: 11,
-        fontWeight: '600',
-        color: '#2E7D32',
-    },
-    statusTextClosed: {
-        color: '#C62828',
-    },
-    businessCategory: {
-        fontSize: 13,
-        color: '#003D7A',
-        fontWeight: '600',
-        marginBottom: 6,
-    },
-    businessDescription: {
-        fontSize: 14,
-        color: '#666',
-        lineHeight: 20,
-        marginBottom: 12,
-    },
-    businessMeta: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    starsRow: {
-        flexDirection: 'row',
-        gap: 2,
-    },
-    ratingText: {
-        fontSize: 13,
-        color: '#666',
-        fontWeight: '600',
-    },
-    noRatingText: {
-        fontSize: 13,
-        color: '#999',
-        fontStyle: 'italic',
-    },
-    distanceContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    distanceText: {
-        fontSize: 13,
-        color: '#666',
-    },
+  card: {
+    width: CARD_WIDTH,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  imageContainer: {
+    width: '100%',
+    height: 120,
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  offerBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D32F2F',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  offerBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  content: {
+    padding: 12,
+    gap: 5,
+  },
+  businessName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#333',
+    lineHeight: 18,
+    minHeight: 36, // Espacio para 2 líneas
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 3,
+    alignSelf: 'flex-start',
+  },
+  openBadge: {
+    backgroundColor: '#E8F5E9', // Verde muy suave
+  },
+  closedBadge: {
+    backgroundColor: '#FFEBEE', // Rojo muy suave
+  },
+  statusDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+  },
+  openDot: {
+    backgroundColor: '#4CAF50', // Verde
+  },
+  closedDot: {
+    backgroundColor: '#F44336', // Rojo
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  openText: {
+    color: '#2E7D32', // Verde oscuro para texto
+  },
+  closedText: {
+    color: '#C62828', // Rojo oscuro para texto
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+    minWidth: 0, // Permite que se encoja si es necesario
+  },
+  categoryText: {
+    fontSize: 11,
+    color: '#666',
+    flex: 1,
+  },
+  distanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  distanceText: {
+    fontSize: 11,
+    color: '#003D7A',
+    fontWeight: '700',
+  },
 });

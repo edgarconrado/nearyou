@@ -28,23 +28,11 @@ export default function SignInWithOAuth({ mode }: SignInWithOAuthProps) {
         
         // Detectar si es un nuevo usuario
         const isNewUser = !!signUp;
-        
-        if (isNewUser) {
-          console.log('🆕 Nuevo usuario detectado');
-          console.log('Session ID:', createdSessionId);
-          
-          // Obtener el usuario completo desde Clerk
-          // Nota: En este punto, useUser() en useAuthSync debería tener el usuario
-          console.log('✅ El hook useAuthSync se encargará de la sincronización');
-        } else {
-          console.log('🔄 Usuario existente - Login exitoso');
-        }
 
         // Redirigir al home
         router.replace('/(tabs)');
       }
     } catch (err: any) {
-      console.error('❌ OAuth error:', err);
       Alert.alert(
         'Error',
         err.errors?.[0]?.longMessage || 'No se pudo iniciar sesión. Inténtalo de nuevo.'

@@ -43,11 +43,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await FavoritesService.getUserFavoritesWithBusiness(userId);
 
         if (error) {
-            console.error('[FavoritesContext] fetch error:', error);
             setError(error);
             setFavorites([]);
         } else {
-            console.log('[FavoritesContext] Fetched favorites:', data?.length || 0);
             setFavorites(data ?? []);
         }
 
@@ -70,8 +68,6 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         async (businessId: string): Promise<boolean> => {
             if (!userId || !isSignedIn) return false;
 
-            console.log('[FavoritesContext] Toggling favorite:', businessId);
-
             // Update optimista
             const wasIsFavorite = favoriteIds.has(businessId);
 
@@ -84,13 +80,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
             const result = await FavoritesService.toggleFavorite(userId, businessId);
 
             if (result.error) {
-                console.error('[FavoritesContext] Toggle error:', result.error);
                 // Revertir cambio optimista
                 await fetchFavorites();
                 return false;
             }
-
-            console.log('[FavoritesContext] Toggled successfully, new state:', result.isFavorite);
 
             // Si se agregó, refrescar para obtener los datos completos del negocio
             if (result.isFavorite) {
@@ -107,21 +100,17 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         async (businessId: string): Promise<boolean> => {
             if (!userId || !isSignedIn) return false;
 
-            console.log('[FavoritesContext] Removing favorite:', businessId);
-
             // Update optimista
             setFavorites(prev => prev.filter(f => f.business_id !== businessId));
 
             const { success } = await FavoritesService.removeFavorite(userId, businessId);
 
             if (!success) {
-                console.error('[FavoritesContext] Remove failed, reverting');
                 // Revertir cambio optimista
                 await fetchFavorites();
                 return false;
             }
 
-            console.log('[FavoritesContext] Removed successfully');
             return true;
         },
         [userId, isSignedIn, fetchFavorites]

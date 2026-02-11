@@ -219,6 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   businessesContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
 });

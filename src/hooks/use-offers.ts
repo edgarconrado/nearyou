@@ -62,7 +62,6 @@ export function useOffers(options: UseOffersOptions = {}) {
 
       setOffers(data as OfferWithBusiness[] || []);
     } catch (err) {
-      console.error('Error in useOffers:', err);
       setError('Error al cargar las ofertas');
     } finally {
       setLoading(false);
@@ -70,8 +69,6 @@ export function useOffers(options: UseOffersOptions = {}) {
   };
 
   const handleRealtimeChange = (payload: RealtimePostgresChangesPayload<Offer>) => {
-    console.log('Cambio en ofertas:', payload);
-
     switch (payload.eventType) {
       case 'INSERT':
         if (OffersService.isOfferValid(payload.new)) {

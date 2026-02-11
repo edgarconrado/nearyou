@@ -55,7 +55,6 @@ export function useUserStats(userId: string | null) {
         visits: visitsCount || 0,
       });
     } catch (error) {
-      console.error('Error al cargar estadísticas:', error);
     } finally {
       setLoading(false);
     }

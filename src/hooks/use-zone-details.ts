@@ -32,7 +32,6 @@ export function useZoneDetails(zoneId: string | undefined) {
 
       setZone(data);
     } catch (err) {
-      console.error('Error loading zone details:', err);
       setError('Error al cargar información de la zona');
     } finally {
       setLoading(false);

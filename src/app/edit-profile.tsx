@@ -1,6 +1,6 @@
-import { useProfile } from '@/hooks/use-profile'; // Ajusta la ruta
-import { supabase } from '@/lib/supabase'; // Ajusta la ruta
-import { useAuth } from '@clerk/clerk-expo';
+import { useProfile } from '@/hooks/use-profile';
+import { supabase } from '@/lib/supabase';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -21,7 +21,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function EditProfileScreen() {
   const router = useRouter();
   const { userId } = useAuth();
-  const { profile, loading, updateProfile } = useProfile(userId);
+  const { user } = useUser();
+  const { profile, loading, updateProfile } = useProfile(userId ?? null);
 
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -71,26 +72,48 @@ export default function EditProfileScreen() {
     }
   };
 
-  const uploadImage = async (uri: string): Promise<string | null> => {
+  // ✨ Convertir imagen a base64
+  const convertToBase64 = async (uri: string): Promise<string | null> => {
     try {
-      setUploadingImage(true);
-
-      const fileExt = uri.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
       const response = await fetch(uri);
-      const arrayBuffer = await response.arrayBuffer();
+      const blob = await response.blob();
+      
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          // Extraer solo la parte base64 (sin el prefijo data:image/...)
+          const base64Data = base64String.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      return null;
+    }
+  };
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+  // ✨ Subir imagen a Supabase Storage
+  const uploadToSupabase = async (uri: string): Promise<string | null> => {
+    try {
+      const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpg';
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(7);
+      const fileName = `${userId}_${timestamp}_${random}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const { error: uploadError } = await supabase.storage
         .from('profiles')
-        .upload(filePath, arrayBuffer, {
+        .upload(filePath, blob, {
           contentType: `image/${fileExt}`,
-          upsert: true,
+          upsert: false,
+          cacheControl: '3600',
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
@@ -98,14 +121,36 @@ export default function EditProfileScreen() {
         .from('profiles')
         .getPublicUrl(filePath);
 
-      console.log('Image uploaded successfully:', data.publicUrl);
-      return data.publicUrl;
+      const publicUrl = `${data.publicUrl}?t=${timestamp}`;
+  
+      return publicUrl;
     } catch (error) {
-      console.error('Error subiendo imagen:', error);
-      Alert.alert('Error', 'No se pudo subir la imagen. Verifica que el bucket "profiles" existe y es público.');
       return null;
-    } finally {
-      setUploadingImage(false);
+    }
+  };
+
+  // ✨ Actualizar avatar en Clerk (requiere base64)
+  const updateClerkAvatar = async (imageUri: string): Promise<boolean> => {
+    try {
+      if (!user) {
+        return false;
+      }
+
+      const base64 = await convertToBase64(imageUri);
+      
+      if (!base64) {
+        return false;
+      }
+
+      // ✅ Clerk requiere un File o base64 string
+      await user.setProfileImage({
+        file: `data:image/jpeg;base64,${base64}`,
+      });
+
+      return true;
+    } catch (error: any) {
+      // No bloquear el guardado si Clerk falla
+      return false;
     }
   };
 
@@ -126,13 +171,30 @@ export default function EditProfileScreen() {
       let newAvatarUrl = avatarUrl;
 
       if (localImageUri) {
-        const uploadedUrl = await uploadImage(localImageUri);
-        if (uploadedUrl) {
-          newAvatarUrl = uploadedUrl;
+        setUploadingImage(true);
+
+        try {
+          // 1. Subir a Supabase primero
+          const supabaseUrl = await uploadToSupabase(localImageUri);
+          
+          if (supabaseUrl) {
+            newAvatarUrl = supabaseUrl;
+            
+            // 2. Intentar actualizar Clerk (no bloquear si falla)
+            await updateClerkAvatar(localImageUri);
+          } else {
+            Alert.alert('Error', 'No se pudo subir la imagen');
+            return;
+          }
+        } catch (error) {
+          Alert.alert('Error', 'No se pudo procesar la imagen');
+          return;
+        } finally {
+          setUploadingImage(false);
         }
       }
 
-      // Usar el hook para actualizar
+      // Actualizar perfil en Supabase
       const result = await updateProfile({
         full_name: fullName.trim(),
         email: email.trim(),
@@ -145,6 +207,7 @@ export default function EditProfileScreen() {
       });
 
       if (result.success) {
+        setLocalImageUri(null);
         Alert.alert(
           'Perfil actualizado',
           'Tu información ha sido actualizada exitosamente',
@@ -159,10 +222,10 @@ export default function EditProfileScreen() {
         throw result.error;
       }
     } catch (error) {
-      console.error('Error guardando perfil:', error);
       Alert.alert('Error', 'No se pudo actualizar el perfil');
     } finally {
       setSaving(false);
+      setUploadingImage(false);
     }
   };
 
@@ -204,10 +267,15 @@ export default function EditProfileScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarSection}>
-          <Image source={{ uri: displayAvatar }} style={styles.avatar} />
+          <Image 
+            key={displayAvatar}
+            source={{ uri: displayAvatar }} 
+            style={styles.avatar}
+          />
           {uploadingImage && (
             <View style={styles.uploadingOverlay}>
               <ActivityIndicator size="large" color="#003D7A" />
+              <Text style={styles.uploadingText}>Subiendo...</Text>
             </View>
           )}
           <TouchableOpacity
@@ -217,9 +285,18 @@ export default function EditProfileScreen() {
           >
             <Ionicons name="camera" size={20} color="#003D7A" />
             <Text style={styles.changePhotoText}>
-              {uploadingImage ? 'Subiendo...' : 'Cambiar foto'}
+              {uploadingImage ? 'Subiendo...' : localImageUri ? 'Cambiar de nuevo' : 'Cambiar foto'}
             </Text>
           </TouchableOpacity>
+          
+          {localImageUri && !uploadingImage && (
+            <View style={styles.pendingBadge}>
+              <Ionicons name="alert-circle" size={16} color="#FF9800" />
+              <Text style={styles.pendingText}>
+                Presiona "Guardar" para aplicar cambios
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.form}>
@@ -374,9 +451,15 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  uploadingText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   changePhotoButton: {
     flexDirection: 'row',
@@ -392,6 +475,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#003D7A',
+  },
+  pendingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#FFF8E1',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  pendingText: {
+    fontSize: 12,
+    color: '#F57C00',
+    fontWeight: '500',
   },
   form: {
     backgroundColor: '#FFFFFF',
@@ -436,27 +536,3 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 });
-
-{/*           <TouchableOpacity style={styles.changePasswordButton}>
-            <Ionicons name="key-outline" size={20} color="#003D7A" />
-            <Text style={styles.changePasswordText}>Cambiar contraseña</Text>
-          </TouchableOpacity> */}
-
-
-
-/*   changePasswordButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    marginTop: 8,
-  },
-  changePasswordText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#003D7A',
-  }, */

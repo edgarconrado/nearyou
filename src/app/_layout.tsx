@@ -3,13 +3,14 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import SplashScreen from '@/components/SplashScreen';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -40,9 +41,19 @@ function InitialLayout() {
   const segments = useSegments();
   const router = useRouter();
   const colorScheme = useColorScheme();
+  
+  const [appReady, setAppReady] = useState(false);
+  const [splashFinished, setSplashFinished] = useState(false);
 
   // Sincronizar usuario con Supabase cuando inicie sesión
   useAuthSync();
+
+  // Marcar la app como lista cuando Clerk termine de cargar
+  useEffect(() => {
+    if (isLoaded) {
+      setAppReady(true);
+    }
+  }, [isLoaded]);
 
   // Redirección automática según el estado de autenticación
   useEffect(() => {
@@ -51,13 +62,29 @@ function InitialLayout() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (isSignedIn && inAuthGroup) {
-      // Usuario autenticado en pantalla de auth -> redirigir a tabs
       router.replace('/(tabs)');
     } else if (!isSignedIn && !inAuthGroup) {
-      // Usuario no autenticado fuera de auth -> redirigir a sign-in
       router.replace('/(auth)/sign-in');
     }
   }, [isSignedIn, segments, isLoaded]);
+
+  // Mostrar splash hasta que termine la animación Y la app esté lista
+  if (!splashFinished || !appReady) {
+    return (
+      <SplashScreen 
+        onFinish={() => {
+          // Solo cerrar el splash si la app ya está lista
+          if (appReady) {
+            setSplashFinished(true);
+          } else {
+            // Si la animación terminó pero la app no está lista,
+            // esperar un poco y volver a verificar
+            setTimeout(() => setSplashFinished(true), 500);
+          }
+        }} 
+      />
+    );
+  }
 
   return (
     <LocationProvider>

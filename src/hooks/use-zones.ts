@@ -1,5 +1,5 @@
 // hooks/useZones.ts
-import type { Zone } from '@/lib/supabase';
+import type { Zone } from '@/services/zones.service';
 import { ZonesService } from '@/services/zones.service';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
@@ -27,14 +27,11 @@ export function useZones() {
       setError(null);
 
       const { data, error } = await ZonesService.getAllActiveZones();
-      console.log("Data zones:", data);
-      console.log("Error:", error);
 
       if (error) throw error;
 
       setZones(data || []);
     } catch (err) {
-      console.error('Error in useZones:', err);
       setError('Error al cargar las zonas');
     } finally {
       setLoading(false);
@@ -42,8 +39,6 @@ export function useZones() {
   };
 
   const handleRealtimeChange = (payload: RealtimePostgresChangesPayload<Zone>) => {
-    console.log('Cambio en tiempo real:', payload);
-
     switch (payload.eventType) {
       case 'INSERT':
         // Solo agregar si está activa

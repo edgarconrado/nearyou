@@ -3,34 +3,119 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface QuickActionsProps {
+    hasPhone?: boolean;
+    hasWebsite?: boolean;
+    hasCoordinates?: boolean;
     onCall: () => void;
-    onDirections: () => void;
     onWebsite: () => void;
+    onDirections: () => void;
     onShare: () => void;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({
+    hasPhone = true,
+    hasWebsite = true,
+    hasCoordinates = true,
     onCall,
-    onDirections,
     onWebsite,
+    onDirections,
     onShare,
 }) => {
     return (
         <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.actionButton} onPress={onCall}>
-                <Ionicons name="call" size={24} color="#003D7A" />
-                <Text style={styles.actionText}>Llamar</Text>
+            {/* Llamar */}
+            <TouchableOpacity 
+                style={[
+                    styles.actionButton,
+                    !hasPhone && styles.actionButtonDisabled
+                ]}
+                onPress={onCall}
+                disabled={!hasPhone}
+            >
+                <View style={[
+                    styles.actionIconContainer,
+                    !hasPhone && styles.actionIconContainerDisabled
+                ]}>
+                    <Ionicons 
+                        name="call" 
+                        size={24} 
+                        color={hasPhone ? "#003D7A" : "#999"}
+                    />
+                </View>
+                <Text style={[
+                    styles.actionText,
+                    !hasPhone && styles.actionTextDisabled
+                ]}>
+                    Llamar
+                </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={onDirections}>
-                <Ionicons name="navigate" size={24} color="#003D7A" />
-                <Text style={styles.actionText}>Cómo llegar</Text>
+
+            {/* Sitio web */}
+            <TouchableOpacity 
+                style={[
+                    styles.actionButton,
+                    !hasWebsite && styles.actionButtonDisabled
+                ]}
+                onPress={onWebsite}
+                disabled={!hasWebsite}
+            >
+                <View style={[
+                    styles.actionIconContainer,
+                    !hasWebsite && styles.actionIconContainerDisabled
+                ]}>
+                    <Ionicons 
+                        name="globe-outline" 
+                        size={24} 
+                        color={hasWebsite ? "#003D7A" : "#999"}
+                    />
+                </View>
+                <Text style={[
+                    styles.actionText,
+                    !hasWebsite && styles.actionTextDisabled
+                ]}>
+                    Sitio web
+                </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={onWebsite}>
-                <Ionicons name="globe" size={24} color="#003D7A" />
-                <Text style={styles.actionText}>Sitio web</Text>
+
+            {/* Direcciones */}
+            <TouchableOpacity 
+                style={[
+                    styles.actionButton,
+                    !hasCoordinates && styles.actionButtonDisabled
+                ]}
+                onPress={onDirections}
+                disabled={!hasCoordinates}
+            >
+                <View style={[
+                    styles.actionIconContainer,
+                    !hasCoordinates && styles.actionIconContainerDisabled
+                ]}>
+                    <Ionicons 
+                        name="navigate" 
+                        size={24} 
+                        color={hasCoordinates ? "#003D7A" : "#999"}
+                    />
+                </View>
+                <Text style={[
+                    styles.actionText,
+                    !hasCoordinates && styles.actionTextDisabled
+                ]}>
+                    Cómo llegar
+                </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={onShare}>
-                <Ionicons name="share-social" size={24} color="#003D7A" />
+
+            {/* Compartir - Siempre habilitado */}
+            <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={onShare}
+            >
+                <View style={styles.actionIconContainer}>
+                    <Ionicons 
+                        name="share-social" 
+                        size={24} 
+                        color="#003D7A"
+                    />
+                </View>
                 <Text style={styles.actionText}>Compartir</Text>
             </TouchableOpacity>
         </View>
@@ -40,20 +125,39 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
 const styles = StyleSheet.create({
     quickActions: {
         flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingVertical: 20,
+        paddingHorizontal: 16,
         backgroundColor: '#FFFFFF',
-        paddingVertical: 16,
-        paddingHorizontal: 8,
         borderBottomWidth: 1,
         borderBottomColor: '#E0E0E0',
     },
     actionButton: {
-        flex: 1,
         alignItems: 'center',
-        gap: 6,
+        flex: 1,
+    },
+    actionButtonDisabled: {
+        opacity: 0.5,
+    },
+    actionIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#E3F2FD',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    actionIconContainerDisabled: {
+        backgroundColor: '#F5F5F5',
     },
     actionText: {
-        fontSize: 12,
-        color: '#003D7A',
-        fontWeight: '600',
+        fontSize: 13,
+        color: '#333',
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+    actionTextDisabled: {
+        color: '#999',
     },
 });

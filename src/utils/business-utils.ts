@@ -82,7 +82,6 @@ export function parseBusinessFeatures(features: string[] | string | null | undef
             return JSON.parse(features);
         }
     } catch (error) {
-        console.error('Error parsing business features:', error);
     }
 
     return [];
@@ -113,7 +112,6 @@ export function parseGalleryUrls(
             }
         }
     } catch (error) {
-        console.error('Error parsing gallery URLs:', error);
     }
 
     // Retornar imágenes o placeholder

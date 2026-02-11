@@ -18,19 +18,9 @@ export function useAuthSync() {
             }
 
             try {
-                console.log('Sincronizando usuario con Supabase...');
                 hasSyncedRef.current = true;
-
                 const { error } = await ClerkSupabaseService.syncUserWithSupabase(user);
-
-                if (error) {
-                    console.error('Error sincronizando usuario:', error);
-                    // No lanzamos el error para no interrumpir el flujo
-                } else {
-                    console.log('Usuario sincronizado exitosamente');
-                }
             } catch (error) {
-                console.error('Error en useAuthSync:', error);
             }
         };
 

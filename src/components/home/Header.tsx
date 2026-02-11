@@ -1,61 +1,141 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export function Header() {
+interface HeaderProps {
+  showBackButton?: boolean;
+  onBackPress?: () => void;
+}
+
+export function Header({ showBackButton = false, onBackPress }: HeaderProps = {}) {
   return (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton}>
-        <Text style={styles.backIcon}></Text>
-      </TouchableOpacity>
-{/* 
-      <TouchableOpacity style={styles.menuButton}>
-        <View style={styles.menuIcon}>
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
+      <View style={styles.content}>
+        {/* Logo/Icono lado izquierdo */}
+        <View style={styles.logoSection}>
+          <View style={styles.logoCircle}>
+            {/* <Text style={styles.logoIcon}>🏖️</Text> */}
+            <Ionicons name="location" size={16} color="#FFFF" />
+          </View>
         </View>
-      </TouchableOpacity>
-*/}
+
+        {/* Información central */}
+        <View style={styles.infoSection}>
+          <Text style={styles.appName}>NearYou</Text>
+          <View style={styles.metaInfo}>
+            <Text style={styles.versionBadge}>v1.0.9r20</Text>
+            <Text style={styles.separator}>•</Text>
+            <Text style={styles.subtitle}>Explora México</Text>
+          </View>
+        </View>
+
+        {/* Botón de menú o back */}
+        <View style={styles.actionSection}>
+          {showBackButton ? (
+            <TouchableOpacity style={styles.iconButton} onPress={onBackPress}>
+              <Text style={styles.iconText}>←</Text>
+            </TouchableOpacity>
+          ) : (
+            <View />
+/*             <TouchableOpacity style={styles.iconButton}>
+              <View style={styles.menuIcon}>
+                <View style={styles.menuDot} />
+                <View style={styles.menuDot} />
+                <View style={styles.menuDot} />
+              </View>
+            </TouchableOpacity> */
+          )}
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
+    backgroundColor: '#003D7A',
     paddingTop: 50,
     paddingBottom: 16,
-    backgroundColor: '#003D7A',
+    paddingHorizontal: 16,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
+  content: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  backIcon: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuIcon: {
-    width: 24,
-    height: 18,
     justifyContent: 'space-between',
   },
-  menuLine: {
-    width: '100%',
-    height: 2,
+  logoSection: {
+    marginRight: 12,
+  },
+  logoCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  logoIcon: {
+    fontSize: 24,
+  },
+  infoSection: {
+    flex: 1,
+  },
+  appName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    letterSpacing: 0.3,
+  },
+  metaInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  versionBadge: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFD700',
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  separator: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginHorizontal: 6,
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#B8D4F1',
+  },
+  actionSection: {
+    marginLeft: 12,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconText: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  menuIcon: {
+    flexDirection: 'column',
+    gap: 3,
+  },
+  menuDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: '#FFFFFF',
-    borderRadius: 1,
   },
 });

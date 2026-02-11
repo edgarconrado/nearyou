@@ -30,7 +30,6 @@ export function useProfile(userId: string | null) {
                     filter: `id=eq.${userId}`,
                 },
                 (payload) => {
-                    console.log('Perfil actualizado:', payload);
                     if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
                         setProfile(payload.new as Profile);
                     }
@@ -62,7 +61,6 @@ export function useProfile(userId: string | null) {
 
             setProfile(data);
         } catch (err) {
-            console.error('Error al cargar perfil:', err);
             setError(err as Error);
         } finally {
             setLoading(false);
@@ -87,7 +85,6 @@ export function useProfile(userId: string | null) {
 
             return { success: true };
         } catch (err) {
-            console.error('Error al actualizar perfil:', err);
             return { success: false, error: err as Error };
         }
     };

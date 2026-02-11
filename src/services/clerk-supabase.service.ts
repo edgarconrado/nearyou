@@ -11,21 +11,16 @@ export class ClerkSupabaseService {
     try {
       // Validaciones previas
       if (!clerkUser) {
-        console.error('❌ clerkUser es undefined o null');
         return { data: null, error: new Error('Usuario de Clerk no proporcionado') };
       }
 
       if (!clerkUser.id) {
-        console.error('❌ clerkUser.id es undefined');
         return { data: null, error: new Error('ID de usuario no disponible') };
       }
-
-      console.log('🔄 Iniciando sincronización de usuario:', clerkUser.id);
 
       // Validar que tengamos un email
       const email = clerkUser.emailAddresses?.[0]?.emailAddress;
       if (!email) {
-        console.error('❌ No se encontró email en el usuario de Clerk');
         return { data: null, error: new Error('Email no disponible') };
       }
 
@@ -39,10 +34,7 @@ export class ClerkSupabaseService {
         is_verified: clerkUser.emailAddresses[0]?.verification?.status === 'verified',
       };
 
-      console.log('📝 Datos del perfil a crear:', JSON.stringify(profile, null, 2));
-
       // 2. Verificar si el perfil ya existe
-      console.log('🔍 Verificando si el perfil ya existe...');
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
         .select('id, email')
@@ -50,13 +42,10 @@ export class ClerkSupabaseService {
         .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('❌ Error verificando perfil existente:', checkError);
         throw checkError;
       }
 
       if (existingProfile) {
-        console.log('ℹ️  El perfil ya existe:', existingProfile.email);
-        console.log('🔄 Actualizando datos del perfil...');
         
         // Actualizar el perfil existente
         const { data: updatedProfile, error: updateError } = await supabase
@@ -71,11 +60,8 @@ export class ClerkSupabaseService {
           .single();
 
         if (updateError) {
-          console.error('❌ Error actualizando perfil:', updateError);
           throw updateError;
         }
-
-        console.log('✅ Perfil actualizado correctamente');
 
         // Asegurar que existan las configuraciones
         await this.ensureUserSettings(clerkUser.id);
@@ -84,7 +70,6 @@ export class ClerkSupabaseService {
       }
 
       // 3. Crear nuevo perfil
-      console.log('➕ Creando nuevo perfil en Supabase...');
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .insert(profile)
@@ -92,29 +77,15 @@ export class ClerkSupabaseService {
         .single();
 
       if (profileError) {
-        console.error('❌ Error creando perfil en Supabase:');
-        console.error('  Código:', profileError.code);
-        console.error('  Mensaje:', profileError.message);
-        console.error('  Detalles:', profileError.details);
-        console.error('  Hint:', profileError.hint);
         throw profileError;
       }
 
-      console.log('✅ Perfil creado exitosamente:', profileData.email);
-
       // 4. Crear configuración de usuario por defecto
-      console.log('⚙️  Creando configuraciones de usuario...');
       const { error: settingsError } = await this.ensureUserSettings(clerkUser.id);
       
-      if (settingsError) {
-        console.error('⚠️  Error creando configuraciones (el perfil fue creado):', settingsError);
-        // No lanzamos error aquí porque el perfil sí se creó
-      }
 
-      console.log('🎉 Sincronización completada exitosamente!');
       return { data: profileData, error: null };
     } catch (error) {
-      console.error('❌ Error fatal en syncUserWithSupabase:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -124,7 +95,6 @@ export class ClerkSupabaseService {
    */
   static async ensureUserSettings(userId: string) {
     try {
-      console.log('🔍 Verificando configuraciones del usuario:', userId);
 
       // Verificar si ya existen configuraciones
       const { data: existing, error: checkError } = await supabase
@@ -134,12 +104,10 @@ export class ClerkSupabaseService {
         .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('❌ Error verificando configuraciones:', checkError);
         throw checkError;
       }
 
       if (existing) {
-        console.log('✅ Las configuraciones ya existen para:', userId);
         return { success: true, error: null };
       }
 
@@ -162,24 +130,13 @@ export class ClerkSupabaseService {
         share_location: true,
       };
 
-      console.log('➕ Creando configuraciones por defecto...');
 
       const { error: insertError } = await supabase
         .from('user_settings')
         .insert(defaultSettings);
 
-      if (insertError) {
-        console.error('❌ Error creando configuraciones:');
-        console.error('  Código:', insertError.code);
-        console.error('  Mensaje:', insertError.message);
-        console.error('  Detalles:', insertError.details);
-        throw insertError;
-      }
-
-      console.log('✅ Configuraciones creadas exitosamente');
       return { success: true, error: null };
     } catch (error) {
-      console.error('❌ Error en ensureUserSettings:', error);
       return { success: false, error: error as Error };
     }
   }
@@ -199,7 +156,6 @@ export class ClerkSupabaseService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error getting user profile:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -235,7 +191,6 @@ export class ClerkSupabaseService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating user profile:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -255,7 +210,6 @@ export class ClerkSupabaseService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error getting user settings:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -294,7 +248,6 @@ export class ClerkSupabaseService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error updating user settings:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -316,7 +269,6 @@ export class ClerkSupabaseService {
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error getting user stats:', error);
       return { data: null, error: error as Error };
     }
   }
@@ -335,7 +287,6 @@ export class ClerkSupabaseService {
 
       return { success: true, error: null };
     } catch (error) {
-      console.error('Error deactivating user:', error);
       return { success: false, error: error as Error };
     }
   }

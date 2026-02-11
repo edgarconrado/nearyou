@@ -28,7 +28,7 @@ export default function AboutScreen() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Logo y nombre de la app */}
                 <Logo
-                    version='Versión 1.0.7'
+                    version='Versión 1.0.9r20'
                     slogan='Descubre, explora y comparte experiencias'
                 />
 
@@ -119,28 +119,28 @@ export default function AboutScreen() {
                     <View style={styles.socialLinks}>
                         <TouchableOpacity
                             style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://www.facebook.com/tuapp')}
+                            onPress={() => Linking.openURL('https://www.facebook.com/nearyou')}
                         >
                             <Ionicons name="logo-facebook" size={28} color="#1877F2" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://www.instagram.com/tuapp')}
+                            onPress={() => Linking.openURL('https://www.instagram.com/nearyou')}
                         >
                             <Ionicons name="logo-instagram" size={28} color="#E4405F" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://twitter.com/tuapp')}
+                            onPress={() => Linking.openURL('https://twitter.com/nearyou')}
                         >
                             <Ionicons name="logo-twitter" size={28} color="#1DA1F2" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://www.youtube.com/tuapp')}
+                            onPress={() => Linking.openURL('https://www.youtube.com/nearyou')}
                         >
                             <Ionicons name="logo-youtube" size={28} color="#FF0000" />
                         </TouchableOpacity>

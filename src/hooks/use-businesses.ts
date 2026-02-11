@@ -92,7 +92,6 @@ export function useBusinesses(options: UseBusinessesOptions = {}) {
 
       setBusinesses(data as BusinessFull[] || []);
     } catch (err) {
-      console.error('Error in useBusinesses:', err);
       setError('Error al cargar los negocios');
     } finally {
       setLoading(false);
@@ -100,8 +99,6 @@ export function useBusinesses(options: UseBusinessesOptions = {}) {
   };
 
   const handleRealtimeChange = (payload: RealtimePostgresChangesPayload<Business>) => {
-    console.log('Cambio en negocios:', payload);
-
     switch (payload.eventType) {
       case 'INSERT':
         if (payload.new.is_active) {

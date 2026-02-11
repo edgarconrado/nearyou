@@ -3,13 +3,13 @@ import { StorageService } from '@/services/storage.service';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface ImagePickerButtonProps {
@@ -53,7 +53,6 @@ export function ImagePickerButton({
         await uploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
       Alert.alert('Error', 'No se pudo seleccionar la imagen');
     }
   };
@@ -82,7 +81,6 @@ export function ImagePickerButton({
         await uploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
       Alert.alert('Error', 'No se pudo tomar la foto');
     }
   };
@@ -101,7 +99,6 @@ export function ImagePickerButton({
         Alert.alert('Éxito', 'Imagen subida correctamente');
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
       Alert.alert('Error', 'No se pudo subir la imagen');
       setImageUri(currentImageUrl || null); // Revertir al preview anterior
       if (onError) {
