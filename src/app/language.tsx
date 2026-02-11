@@ -1,6 +1,7 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Alert,
   ScrollView,
@@ -12,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Language {
-  code: string;
+  code: 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt' | 'zh' | 'ja' | 'ko' | 'ru' | 'ar' | 'hi';
   name: string;
   nativeName: string;
   flag: string;
@@ -20,7 +21,7 @@ interface Language {
 }
 
 export default function LanguageScreen() {
-  const [selectedLanguage, setSelectedLanguage] = useState('es');
+  const { language: selectedLanguage, setLanguage, t } = useLanguage();
 
   const languages: Language[] = [
     {
@@ -104,29 +105,30 @@ export default function LanguageScreen() {
   const popularLanguages = languages.filter(lang => lang.isPopular);
   const otherLanguages = languages.filter(lang => !lang.isPopular);
 
-  const handleLanguageSelect = (languageCode: string) => {
+  const handleLanguageSelect = (languageCode: typeof languages[number]['code']) => {
+    const selectedLang = languages.find(l => l.code === languageCode);
+    
     Alert.alert(
-      'Cambiar idioma',
-      `¿Deseas cambiar el idioma de la aplicación a ${languages.find(l => l.code === languageCode)?.nativeName}?`,
+      t('language.changeLanguage'),
+      t('language.changeLanguageConfirm').replace('{{language}}', selectedLang?.nativeName || ''),
       [
         {
-          text: 'Cancelar',
+          text: t('language.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Cambiar',
-          onPress: () => {
-            setSelectedLanguage(languageCode);
-            // Aquí irá la lógica para cambiar el idioma real de la app
-
+          text: t('language.change'),
+          onPress: async () => {
+            await setLanguage(languageCode);
+            
             // Mostrar mensaje de éxito
             setTimeout(() => {
               Alert.alert(
-                'Idioma actualizado',
-                'El idioma de la aplicación ha sido actualizado. Algunos cambios se aplicarán al reiniciar la app.',
+                t('language.languageUpdated'),
+                t('language.languageUpdatedMessage'),
                 [
                   {
-                    text: 'Entendido',
+                    text: t('language.understood'),
                     onPress: () => router.back(),
                   },
                 ]
@@ -183,7 +185,7 @@ export default function LanguageScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Idioma</Text>
+          <Text style={styles.headerTitle}>{t('language.title')}</Text>
           <View style={styles.backButton} />
         </View>
 
@@ -192,9 +194,9 @@ export default function LanguageScreen() {
           {/* Info Card */}
           <View style={styles.infoCard}>
             <Ionicons name="language" size={40} color="#003D7A" />
-            <Text style={styles.infoTitle}>Elige tu idioma</Text>
+            <Text style={styles.infoTitle}>{t('language.chooseLanguage')}</Text>
             <Text style={styles.infoText}>
-              Selecciona el idioma en el que deseas ver la aplicación
+              {t('language.selectLanguageDescription')}
             </Text>
           </View>
 
@@ -202,7 +204,7 @@ export default function LanguageScreen() {
           <View style={styles.currentLanguageCard}>
             <View style={styles.currentLanguageHeader}>
               <Ionicons name="globe" size={20} color="#FFFFFF" />
-              <Text style={styles.currentLanguageLabel}>Idioma actual</Text>
+              <Text style={styles.currentLanguageLabel}>{t('language.currentLanguage')}</Text>
             </View>
             <View style={styles.currentLanguageContent}>
               <Text style={styles.currentFlag}>
@@ -218,7 +220,7 @@ export default function LanguageScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="star" size={18} color="#FF9800" />
-              <Text style={styles.sectionTitle}>Idiomas populares</Text>
+              <Text style={styles.sectionTitle}>{t('language.popularLanguages')}</Text>
             </View>
             {popularLanguages.map(renderLanguageItem)}
           </View>
@@ -227,7 +229,7 @@ export default function LanguageScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list" size={18} color="#999" />
-              <Text style={styles.sectionTitle}>Otros idiomas</Text>
+              <Text style={styles.sectionTitle}>{t('language.otherLanguages')}</Text>
             </View>
             {otherLanguages.map(renderLanguageItem)}
           </View>
@@ -236,19 +238,18 @@ export default function LanguageScreen() {
           <View style={styles.helpCard}>
             <Ionicons name="information-circle" size={20} color="#003D7A" />
             <Text style={styles.helpText}>
-              ¿No encuentras tu idioma? Envíanos una sugerencia a soporte@neeryou.com
+              {t('language.notFoundLanguage')}
             </Text>
           </View>
 
           {/* Language Coverage Info */}
           <View style={styles.coverageCard}>
-            <Text style={styles.coverageTitle}>Cobertura de traducción</Text>
+            <Text style={styles.coverageTitle}>{t('language.translationCoverage')}</Text>
             <View style={styles.coverageBar}>
               <View style={styles.coverageProgress} />
             </View>
             <Text style={styles.coverageText}>
-              La interfaz está traducida al 100% en español e inglés.
-              Otros idiomas están en progreso.
+              {t('language.translationCoverageDescription')}
             </Text>
           </View>
 

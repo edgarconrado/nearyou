@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/hooks/use-favorites';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -17,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyFavoritesScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
     // Ahora usa el contexto global - los cambios se sincronizan automáticamente
     const { favorites, loading, removeFavorite, refetch } = useFavorites();
     const [refreshing, setRefreshing] = React.useState(false);
@@ -29,19 +31,17 @@ export default function MyFavoritesScreen() {
 
     const handleRemoveFavorite = async (businessId: string, businessName: string) => {
         Alert.alert(
-            'Eliminar favorito',
-            `¿Quieres eliminar "${businessName}" de tus favoritos?`,
+            t('favorites.remove'),
+            t('favorites.removeConfirm').replace('{{name}}', businessName),
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Eliminar',
+                    text: t('favorites.removeButton'),
                     style: 'destructive',
                     onPress: async () => {
                         const success = await removeFavorite(businessId);
-                        if (success) {
-                            // No need to alert, the list updates automatically
-                        } else {
-                            Alert.alert('Error', 'No se pudo eliminar el favorito');
+                        if (!success) {
+                            Alert.alert(t('common.error'), t('favorites.error'));
                         }
                     }
                 }
@@ -56,15 +56,15 @@ export default function MyFavoritesScreen() {
                 <View style={styles.card}>
                     <View style={styles.errorCard}>
                         <Ionicons name="warning-outline" size={40} color="#FF9800" />
-                        <Text style={styles.errorTitle}>Negocio no disponible</Text>
+                        <Text style={styles.errorTitle}>{t('favorites.businessNotAvailable')}</Text>
                         <Text style={styles.errorText}>
                             ID: {item.business_id}
                         </Text>
                         <TouchableOpacity 
                             style={styles.removeButton}
-                            onPress={() => handleRemoveFavorite(item.business_id, 'este negocio')}
+                            onPress={() => handleRemoveFavorite(item.business_id, t('favorites.businessNotAvailable'))}
                         >
-                            <Text style={styles.removeButtonText}>Eliminar</Text>
+                            <Text style={styles.removeButtonText}>{t('favorites.removeButton')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -131,14 +131,14 @@ export default function MyFavoritesScreen() {
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
             <Ionicons name="heart-outline" size={80} color="#CCC" />
-            <Text style={styles.emptyTitle}>No tienes favoritos</Text>
+            <Text style={styles.emptyTitle}>{t('favorites.empty')}</Text>
             <Text style={styles.emptyText}>
-                Comienza a explorar y guarda tus lugares favoritos
+                {t('favorites.emptyDescription')}
             </Text>
 
             <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
                 <Ionicons name="refresh" size={20} color="#FFF" />
-                <Text style={styles.reloadText}>Recargar</Text>
+                <Text style={styles.reloadText}>{t('favorites.reload')}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -150,12 +150,12 @@ export default function MyFavoritesScreen() {
                     <TouchableOpacity onPress={() => router.back()}>
                         <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Mis favoritos</Text>
+                    <Text style={styles.headerTitle}>{t('favorites.title')}</Text>
                     <View style={{ width: 24 }} />
                 </View>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#003D7A" />
-                    <Text style={styles.loadingText}>Cargando favoritos...</Text>
+                    <Text style={styles.loadingText}>{t('favorites.loading')}</Text>
                 </View>
             </SafeAreaView>
         );
@@ -168,7 +168,7 @@ export default function MyFavoritesScreen() {
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>
-                    Mis favoritos ({favorites?.length || 0})
+                    {t('favorites.title')} ({favorites?.length || 0})
                 </Text>
                 <TouchableOpacity onPress={onRefresh}>
                     <Ionicons name="refresh" size={24} color="#FFFFFF" />

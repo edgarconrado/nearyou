@@ -1,5 +1,6 @@
 import { Header } from '@/components/home/Header';
 import { ZoneGrid } from '@/components/home/ZoneGrid';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useZones } from '@/hooks/use-zones';
 import type { Zone } from '@/services/zones.service';
 import { useRouter } from 'expo-router';
@@ -16,6 +17,7 @@ import {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { zones, loading, error, refetch } = useZones();
 
   const handleZonePress = (zone: Zone) => {
@@ -40,8 +42,8 @@ export default function HomeScreen() {
       {/* Sección de exploración */}
       <View style={styles.exploreBanner}>
         <Text style={styles.exploreEmoji}>🗺️</Text>
-        <Text style={styles.exploreTitle}>Explora por Zona</Text>
-        <Text style={styles.exploreSubtitle}>Descubre experiencias únicas en cada región</Text>
+        <Text style={styles.exploreTitle}>{t('home.exploreByZone')}</Text>
+        <Text style={styles.exploreSubtitle}>{t('home.discoverExperiences')}</Text>
       </View>
 
       <ScrollView 
@@ -51,21 +53,21 @@ export default function HomeScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#003D7A" />
-            <Text style={styles.loadingText}>Cargando zonas turísticas...</Text>
+            <Text style={styles.loadingText}>{t('home.loadingZones')}</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorEmoji}>😕</Text>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-              <Text style={styles.retryText}>🔄 Intentar nuevamente</Text>
+              <Text style={styles.retryText}>🔄 {t('home.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : zones.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyEmoji}>🏝️</Text>
-            <Text style={styles.emptyText}>No hay zonas disponibles</Text>
-            <Text style={styles.emptySubtext}>Pronto agregaremos nuevos destinos</Text>
+            <Text style={styles.emptyText}>{t('home.noZones')}</Text>
+            <Text style={styles.emptySubtext}>{t('home.noZonesDescription')}</Text>
           </View>
         ) : (
           <ZoneGrid zones={zones} onZonePress={handleZonePress} />

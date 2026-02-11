@@ -14,6 +14,7 @@ import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { ZoneInfoButton } from '@/components/explore/ZoneInfoButton';
 import { ZoneInfoModal } from '@/components/explore/ZoneInfoModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinesses } from '@/hooks/use-businesses';
 import { useZoneDetails } from '@/hooks/use-zone-details';
@@ -23,7 +24,8 @@ import { sortByDistance } from '@/utils/distance.utils';
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
-  const [selectedFilter, setSelectedFilter] = useState('Todos');
+  const { t } = useLanguage();
+  const [selectedFilter, setSelectedFilter] = useState(t('explore.all'));
   const [searchQuery, setSearchQuery] = useState('');
   const [showZoneInfoModal, setShowZoneInfoModal] = useState(false);
 
@@ -80,7 +82,7 @@ export default function ExploreScreen() {
   const filteredAndSortedBusinesses = useMemo(() => {
     // Primero filtrar por categoría
     const filtered = businesses.filter(business => {
-      const matchesFilter = selectedFilter === 'Todos' || business.category_name === selectedFilter;
+      const matchesFilter = selectedFilter === t('explore.all') || business.category_name === selectedFilter;
       return matchesFilter;
     });
 
@@ -90,11 +92,11 @@ export default function ExploreScreen() {
     }
 
     return filtered;
-  }, [businesses, selectedFilter, userLocation]);
+  }, [businesses, selectedFilter, userLocation, t]);
 
   const handleClearSearch = () => {
     setSearchQuery('');
-    setSelectedFilter('Todos');
+    setSelectedFilter(t('explore.all'));
   };
 
   const handleSeeAllOffers = () => {
@@ -111,6 +113,28 @@ export default function ExploreScreen() {
 
   const handleCloseZoneInfo = () => {
     setShowZoneInfoModal(false);
+  };
+
+  // Construir el texto de resultados
+  const getResultsText = () => {
+    const count = filteredAndSortedBusinesses.length;
+    const placeWord = count === 1 ? t('explore.place') : t('explore.places');
+    
+    let text = `${count} ${placeWord}`;
+    
+    if (searchQuery.length > 0) {
+      text += ` ${t('explore.foundFor')} "${searchQuery}"`;
+    }
+    
+    if (selectedFilter !== t('explore.all')) {
+      text += ` ${t('explore.in')} ${selectedFilter}`;
+    }
+    
+    if (userLocation && filteredAndSortedBusinesses.length > 0) {
+      text += ` • ${t('explore.sortedByDistance')}`;
+    }
+    
+    return text;
   };
 
   return (
@@ -150,10 +174,7 @@ export default function ExploreScreen() {
         />
 
         <Text style={styles.resultsCount}>
-          {filteredAndSortedBusinesses.length} {filteredAndSortedBusinesses.length === 1 ? 'lugar' : 'lugares'}
-          {searchQuery.length > 0 && ` encontrados para "${searchQuery}"`}
-          {selectedFilter !== 'Todos' && ` en ${selectedFilter}`}
-          {userLocation && filteredAndSortedBusinesses.length > 0 && ' • Ordenados por distancia'}
+          {getResultsText()}
         </Text>
 
         <View style={styles.businessesContainer}>

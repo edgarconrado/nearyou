@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyVisitsScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
 
     const visits = [
         {
@@ -75,30 +77,38 @@ export default function MyVisitsScreen() {
         </TouchableOpacity>
     );
 
+    const renderEmpty = () => (
+        <View style={styles.emptyContainer}>
+            <Ionicons name="location-outline" size={80} color="#CCC" />
+            <Text style={styles.emptyTitle}>{t('visits.noVisits')}</Text>
+            <Text style={styles.emptyText}>{t('visits.noVisitsDesc')}</Text>
+        </View>
+    );
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Lugares visitados</Text>
+                <Text style={styles.headerTitle}>{t('visits.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <View style={styles.statsBar}>
                 <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{visits.length}</Text>
-                    <Text style={styles.statLabel}>Total visitas</Text>
+                    <Text style={styles.statLabel}>{t('visits.totalVisits')}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
                     <Text style={styles.statNumber}>3</Text>
-                    <Text style={styles.statLabel}>Este mes</Text>
+                    <Text style={styles.statLabel}>{t('visits.thisMonth')}</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
                     <Text style={styles.statNumber}>12</Text>
-                    <Text style={styles.statLabel}>Este año</Text>
+                    <Text style={styles.statLabel}>{t('visits.thisYear')}</Text>
                 </View>
             </View>
 
@@ -106,8 +116,12 @@ export default function MyVisitsScreen() {
                 data={visits}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[
+                    styles.list,
+                    visits.length === 0 && styles.listEmpty
+                ]}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={renderEmpty}
             />
         </SafeAreaView>
     );
@@ -158,6 +172,9 @@ const styles = StyleSheet.create({
     },
     list: {
         padding: 16,
+    },
+    listEmpty: {
+        flexGrow: 1,
     },
     card: {
         flexDirection: 'row',
@@ -211,5 +228,24 @@ const styles = StyleSheet.create({
     location: {
         fontSize: 12,
         color: '#666',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+        paddingTop: 100,
+    },
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
     },
 });
