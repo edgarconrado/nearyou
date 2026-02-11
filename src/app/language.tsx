@@ -1,4 +1,3 @@
-import Colors from "@/constants/colors";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -119,7 +118,7 @@ export default function LanguageScreen() {
           onPress: () => {
             setSelectedLanguage(languageCode);
             // Aquí irá la lógica para cambiar el idioma real de la app
-            
+
             // Mostrar mensaje de éxito
             setTimeout(() => {
               Alert.alert(
@@ -166,7 +165,7 @@ export default function LanguageScreen() {
         </View>
         {isSelected && (
           <View style={styles.checkmark}>
-            <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+            <Ionicons name="checkmark-circle" size={24} color="#003D7A" />
           </View>
         )}
       </TouchableOpacity>
@@ -174,7 +173,7 @@ export default function LanguageScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -182,7 +181,7 @@ export default function LanguageScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Idioma</Text>
           <View style={styles.backButton} />
@@ -192,7 +191,7 @@ export default function LanguageScreen() {
         <View style={styles.content}>
           {/* Info Card */}
           <View style={styles.infoCard}>
-            <Ionicons name="language" size={40} color={Colors.primary} />
+            <Ionicons name="language" size={40} color="#003D7A" />
             <Text style={styles.infoTitle}>Elige tu idioma</Text>
             <Text style={styles.infoText}>
               Selecciona el idioma en el que deseas ver la aplicación
@@ -202,7 +201,7 @@ export default function LanguageScreen() {
           {/* Current Language */}
           <View style={styles.currentLanguageCard}>
             <View style={styles.currentLanguageHeader}>
-              <Ionicons name="globe" size={20} color={Colors.primary} />
+              <Ionicons name="globe" size={20} color="#FFFFFF" />
               <Text style={styles.currentLanguageLabel}>Idioma actual</Text>
             </View>
             <View style={styles.currentLanguageContent}>
@@ -218,7 +217,7 @@ export default function LanguageScreen() {
           {/* Popular Languages */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="star" size={18} color={Colors.accent} />
+              <Ionicons name="star" size={18} color="#FF9800" />
               <Text style={styles.sectionTitle}>Idiomas populares</Text>
             </View>
             {popularLanguages.map(renderLanguageItem)}
@@ -227,7 +226,7 @@ export default function LanguageScreen() {
           {/* Other Languages */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="list" size={18} color={Colors.textSecondary} />
+              <Ionicons name="list" size={18} color="#999" />
               <Text style={styles.sectionTitle}>Otros idiomas</Text>
             </View>
             {otherLanguages.map(renderLanguageItem)}
@@ -235,7 +234,7 @@ export default function LanguageScreen() {
 
           {/* Help Text */}
           <View style={styles.helpCard}>
-            <Ionicons name="information-circle" size={20} color={Colors.textSecondary} />
+            <Ionicons name="information-circle" size={20} color="#003D7A" />
             <Text style={styles.helpText}>
               ¿No encuentras tu idioma? Envíanos una sugerencia a soporte@neeryou.com
             </Text>
@@ -248,10 +247,12 @@ export default function LanguageScreen() {
               <View style={styles.coverageProgress} />
             </View>
             <Text style={styles.coverageText}>
-              La interfaz está traducida al 100% en español e inglés. 
+              La interfaz está traducida al 100% en español e inglés.
               Otros idiomas están en progreso.
             </Text>
           </View>
+
+          <View style={{ height: 40 }} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -261,15 +262,15 @@ export default function LanguageScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: Colors.darkBg,
+    backgroundColor: '#003D7A',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
   },
   backButton: {
     width: 40,
@@ -281,38 +282,46 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.white,
+    color: '#FFFFFF',
   },
   content: {
-    padding: 24,
+    padding: 16,
   },
   infoCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 24,
     alignItems: 'center',
-    marginBottom: 24,
-    ...Colors.shadow,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   infoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: '#333',
     marginTop: 12,
     marginBottom: 8,
   },
   infoText: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: '#999',
     textAlign: 'center',
     lineHeight: 20,
   },
   currentLanguageCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
+    backgroundColor: '#003D7A',
+    borderRadius: 12,
     padding: 20,
-    marginBottom: 24,
-    ...Colors.shadow,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   currentLanguageHeader: {
     flexDirection: 'row',
@@ -322,7 +331,7 @@ const styles = StyleSheet.create({
   },
   currentLanguageLabel: {
     fontSize: 12,
-    color: Colors.white,
+    color: '#FFFFFF',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -338,7 +347,7 @@ const styles = StyleSheet.create({
   currentLanguageName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.white,
+    color: '#FFFFFF',
   },
   section: {
     marginBottom: 24,
@@ -348,15 +357,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
+    paddingHorizontal: 4,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: '#333',
   },
   languageCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -364,11 +374,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 2,
     borderColor: 'transparent',
-    ...Colors.shadow,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   languageCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryVeryLight,
+    borderColor: '#003D7A',
+    backgroundColor: '#E3F2FD',
   },
   languageLeft: {
     flexDirection: 'row',
@@ -385,16 +399,16 @@ const styles = StyleSheet.create({
   languageName: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: '#333',
     marginBottom: 2,
   },
   languageNameSelected: {
-    color: Colors.primary,
+    color: '#003D7A',
     fontWeight: 'bold',
   },
   languageNameEn: {
     fontSize: 13,
-    color: Colors.textSecondary,
+    color: '#999',
   },
   checkmark: {
     marginLeft: 12,
@@ -402,33 +416,39 @@ const styles = StyleSheet.create({
   helpCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.grayLight,
+    backgroundColor: '#E3F2FD',
     borderRadius: 12,
     padding: 16,
     gap: 12,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
   },
   helpText: {
     flex: 1,
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: '#003D7A',
     lineHeight: 18,
   },
   coverageCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 20,
-    ...Colors.shadow,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   coverageTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: '#333',
     marginBottom: 12,
   },
   coverageBar: {
     height: 8,
-    backgroundColor: Colors.grayLight,
+    backgroundColor: '#F0F0F0',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 12,
@@ -436,11 +456,11 @@ const styles = StyleSheet.create({
   coverageProgress: {
     height: '100%',
     width: '100%',
-    backgroundColor: Colors.primary,
+    backgroundColor: '#003D7A',
   },
   coverageText: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: '#999',
     lineHeight: 18,
   },
 });

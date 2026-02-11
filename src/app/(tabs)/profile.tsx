@@ -234,7 +234,7 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    router.push('/edit-profile');
+    router.push('/../components/profile/edit-profile');
   };
 
   const handleFavorites = () => {
