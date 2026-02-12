@@ -25,7 +25,7 @@ export default function ExploreScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { t } = useLanguage();
-  const [selectedFilter, setSelectedFilter] = useState(t('explore.all'));
+  const [selectedFilter, setSelectedFilter] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [showZoneInfoModal, setShowZoneInfoModal] = useState(false);
 
@@ -82,7 +82,7 @@ export default function ExploreScreen() {
   const filteredAndSortedBusinesses = useMemo(() => {
     // Primero filtrar por categoría
     const filtered = businesses.filter(business => {
-      const matchesFilter = selectedFilter === t('explore.all') || business.category_name === selectedFilter;
+      const matchesFilter = selectedFilter === 'Todos' || business.category_name === selectedFilter;
       return matchesFilter;
     });
 
@@ -96,7 +96,7 @@ export default function ExploreScreen() {
 
   const handleClearSearch = () => {
     setSearchQuery('');
-    setSelectedFilter(t('explore.all'));
+    setSelectedFilter('Todos');
   };
 
   const handleSeeAllOffers = () => {
@@ -126,7 +126,7 @@ export default function ExploreScreen() {
       text += ` ${t('explore.foundFor')} "${searchQuery}"`;
     }
     
-    if (selectedFilter !== t('explore.all')) {
+    if (selectedFilter !== 'Todos') {
       text += ` ${t('explore.in')} ${selectedFilter}`;
     }
     

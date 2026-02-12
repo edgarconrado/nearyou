@@ -42,21 +42,17 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const loadSavedLanguage = async () => {
     try {
       const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-      console.log('📱 Idioma guardado:', savedLanguage);
       
       if (savedLanguage && savedLanguage in translationsMap) {
         setLanguageState(savedLanguage as LanguageCode);
         setTranslations(translationsMap[savedLanguage]);
-        console.log('✅ Idioma cargado:', savedLanguage);
       } else {
         // Si no hay idioma guardado, guardar español por defecto
         await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, 'es');
         setTranslations(esTranslations);
-        console.log('✅ Idioma por defecto: es');
       }
       setIsInitialized(true);
     } catch (error) {
-      console.error('❌ Error loading saved language:', error);
       setTranslations(esTranslations);
       setIsInitialized(true);
     }
@@ -64,7 +60,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   const setLanguage = async (lang: LanguageCode) => {
     try {
-      console.log('🔄 Cambiando idioma a:', lang);
       
       // Guardar en AsyncStorage
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
@@ -76,14 +71,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       const trans = translationsMap[lang];
       if (trans) {
         setTranslations(trans);
-        console.log('✅ Traducciones cargadas para:', lang);
-        console.log('📝 Ejemplo de traducción:', trans.privacy?.title);
       } else {
-        console.warn(`⚠️ Translations for ${lang} not available, falling back to Spanish`);
         setTranslations(esTranslations);
       }
     } catch (error) {
-      console.error('❌ Error saving language:', error);
     }
   };
 
@@ -101,7 +92,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
       } else {
-        console.warn(`⚠️ Translation key not found: ${key}`);
         return key; // Retorna la clave si no encuentra la traducción
       }
     }
@@ -134,8 +124,6 @@ export const useLanguageDebug = () => {
   const { language, t } = useLanguage();
   
   useEffect(() => {
-    console.log('🌍 Current language:', language);
-    console.log('🔍 Test translation (privacy.title):', t('privacy.title'));
   }, [language]);
   
   return { language, t };

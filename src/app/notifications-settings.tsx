@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ export default function NotificationsSettingsScreen() {
     const router = useRouter();
     const { userId } = useAuth();
     const { settings, loading, updateSetting, resetToDefaults } = useUserSettings(userId);
+    const { t } = useLanguage();
 
     const handleToggle = async (key: keyof typeof settings, value: boolean) => {
         if (!settings) return;
@@ -27,12 +29,12 @@ export default function NotificationsSettingsScreen() {
 
     const handleResetDefaults = () => {
         Alert.alert(
-            'Restaurar valores por defecto',
-            '¿Estás seguro de que deseas restaurar las notificaciones a sus valores por defecto?',
+            t('notifications.resetDefaultsTitle'),
+            t('notifications.resetDefaultsDesc'),
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Restaurar',
+                    text: t('notifications.restore'),
                     style: 'destructive',
                     onPress: resetToDefaults,
                 },
@@ -42,17 +44,17 @@ export default function NotificationsSettingsScreen() {
 
     const handleTestNotification = () => {
         Alert.alert(
-            'Notificación de prueba',
-            'Se enviará una notificación de prueba a tu dispositivo.',
+            t('notifications.testNotificationTitle'),
+            t('notifications.testNotificationDesc'),
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Enviar',
+                    text: t('common.send'),
                     onPress: () => {
                         // TODO: Implementar envío de notificación de prueba
                         Alert.alert(
-                            '📬 Notificación enviada',
-                            'Deberías recibir una notificación de prueba en unos segundos.'
+                            t('notifications.testNotificationSent'),
+                            t('notifications.testNotificationSentDesc')
                         );
                     },
                 },
@@ -67,12 +69,12 @@ export default function NotificationsSettingsScreen() {
                     <TouchableOpacity onPress={() => router.back()}>
                         <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Notificaciones</Text>
+                    <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
                     <View style={{ width: 24 }} />
                 </View>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#003D7A" />
-                    <Text style={styles.loadingText}>Cargando configuración...</Text>
+                    <Text style={styles.loadingText}>{t('notifications.loading')}</Text>
                 </View>
             </SafeAreaView>
         );
@@ -87,25 +89,25 @@ export default function NotificationsSettingsScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Notificaciones</Text>
+                <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Notificaciones Push */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Notificaciones push</Text>
+                    <Text style={styles.sectionTitle}>{t('notifications.pushTitle')}</Text>
                     <Text style={styles.sectionDescription}>
-                        Recibe alertas en tiempo real sobre actividades importantes
+                        {t('notifications.pushDesc')}
                     </Text>
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
                             <Ionicons name="notifications" size={22} color="#003D7A" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Activar notificaciones push</Text>
+                                <Text style={styles.settingText}>{t('notifications.enablePush')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Recibir notificaciones en tu dispositivo
+                                    {t('notifications.enablePushDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -123,22 +125,22 @@ export default function NotificationsSettingsScreen() {
                             onPress={handleTestNotification}
                         >
                             <Ionicons name="send-outline" size={18} color="#003D7A" />
-                            <Text style={styles.testButtonText}>Enviar notificación de prueba</Text>
+                            <Text style={styles.testButtonText}>{t('notifications.testNotification')}</Text>
                         </TouchableOpacity>
                     )}
                 </View>
 
                 {/* Notificaciones por Email */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Notificaciones por email</Text>
+                    <Text style={styles.sectionTitle}>{t('notifications.emailTitle')}</Text>
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
                             <Ionicons name="mail" size={22} color="#003D7A" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Recibir emails</Text>
+                                <Text style={styles.settingText}>{t('notifications.receiveEmails')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Recibir actualizaciones por correo electrónico
+                                    {t('notifications.receiveEmailsDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -157,10 +159,10 @@ export default function NotificationsSettingsScreen() {
                         <Ionicons name="warning-outline" size={24} color="#FF9800" />
                         <View style={styles.warningTextContainer}>
                             <Text style={styles.warningTitle}>
-                                Todas las notificaciones desactivadas
+                                {t('notifications.allDisabledTitle')}
                             </Text>
                             <Text style={styles.warningText}>
-                                No recibirás ninguna notificación. Activa al menos push o email para recibir actualizaciones.
+                                {t('notifications.allDisabledDesc')}
                             </Text>
                         </View>
                     </View>
@@ -168,18 +170,18 @@ export default function NotificationsSettingsScreen() {
 
                 {/* Preferencias de Contenido */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Preferencias de contenido</Text>
+                    <Text style={styles.sectionTitle}>{t('notifications.contentPreferences')}</Text>
                     <Text style={styles.sectionDescription}>
-                        Selecciona qué tipo de notificaciones deseas recibir
+                        {t('notifications.contentPreferencesDesc')}
                     </Text>
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
                             <Ionicons name="location" size={22} color="#34C759" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Nuevos lugares</Text>
+                                <Text style={styles.settingText}>{t('notifications.newPlaces')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Notificar sobre lugares nuevos cerca de ti
+                                    {t('notifications.newPlacesDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -196,9 +198,9 @@ export default function NotificationsSettingsScreen() {
                         <View style={styles.settingLeft}>
                             <Ionicons name="pricetag" size={22} color="#FF9500" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Ofertas y promociones</Text>
+                                <Text style={styles.settingText}>{t('notifications.offers')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Descuentos especiales y ofertas destacadas
+                                    {t('notifications.offersDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -215,9 +217,9 @@ export default function NotificationsSettingsScreen() {
                         <View style={styles.settingLeft}>
                             <Ionicons name="chatbox-ellipses" size={22} color="#007AFF" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Reseñas y comentarios</Text>
+                                <Text style={styles.settingText}>{t('notifications.reviews')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Cuando alguien responda a tus reseñas
+                                    {t('notifications.reviewsDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -234,9 +236,9 @@ export default function NotificationsSettingsScreen() {
                         <View style={styles.settingLeft}>
                             <Ionicons name="mail-open" size={22} color="#5856D6" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Mensajes</Text>
+                                <Text style={styles.settingText}>{t('notifications.messages')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Mensajes directos de otros usuarios
+                                    {t('notifications.messagesDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -253,9 +255,9 @@ export default function NotificationsSettingsScreen() {
                         <View style={styles.settingLeft}>
                             <Ionicons name="information-circle" size={22} color="#8E8E93" />
                             <View style={styles.settingTextContainer}>
-                                <Text style={styles.settingText}>Actualizaciones de la app</Text>
+                                <Text style={styles.settingText}>{t('notifications.updates')}</Text>
                                 <Text style={styles.settingDescription}>
-                                    Nuevas funciones y mejoras
+                                    {t('notifications.updatesDesc')}
                                 </Text>
                             </View>
                         </View>
@@ -275,19 +277,19 @@ export default function NotificationsSettingsScreen() {
                         <Ionicons name="checkmark-circle" size={24} color="#34C759" />
                         <View style={styles.summaryTextContainer}>
                             <Text style={styles.summaryTitle}>
-                                Notificaciones configuradas
+                                {t('notifications.notificationsSummary')}
                             </Text>
                             <Text style={styles.summaryText}>
-                                {settings.push_enabled && settings.email_enabled && 'Recibirás notificaciones por push y email'}
-                                {settings.push_enabled && !settings.email_enabled && 'Recibirás notificaciones push'}
-                                {!settings.push_enabled && settings.email_enabled && 'Recibirás notificaciones por email'}
+                                {settings.push_enabled && settings.email_enabled && t('notifications.receiveNotificationsPushEmail')}
+                                {settings.push_enabled && !settings.email_enabled && t('notifications.receiveNotificationsPush')}
+                                {!settings.push_enabled && settings.email_enabled && t('notifications.receiveNotificationsEmail')}
                                 {' • '}
                                 {[
-                                    settings.notify_new_places && 'Lugares',
-                                    settings.notify_offers && 'Ofertas',
-                                    settings.notify_reviews && 'Reseñas',
-                                    settings.notify_messages && 'Mensajes',
-                                    settings.notify_updates && 'Actualizaciones',
+                                    settings.notify_new_places && t('notifications.places'),
+                                    settings.notify_offers && t('notifications.offers'),
+                                    settings.notify_reviews && t('notifications.reviews'),
+                                    settings.notify_messages && t('notifications.messagesShort'),
+                                    settings.notify_updates && t('notifications.updatesShort'),
                                 ].filter(Boolean).join(', ')}
                             </Text>
                         </View>
@@ -298,7 +300,7 @@ export default function NotificationsSettingsScreen() {
                 <View style={styles.infoBox}>
                     <Ionicons name="information-circle-outline" size={20} color="#003D7A" />
                     <Text style={styles.infoText}>
-                        Todas las configuraciones se guardan automáticamente. Puedes cambiar estas preferencias en cualquier momento.
+                        {t('notifications.infoText')}
                     </Text>
                 </View>
 
@@ -310,7 +312,7 @@ export default function NotificationsSettingsScreen() {
                     >
                         <Ionicons name="refresh-outline" size={22} color="#003D7A" />
                         <Text style={styles.resetButtonText}>
-                            Restaurar valores por defecto
+                            {t('notifications.resetDefaults')}
                         </Text>
                     </TouchableOpacity>
                 </View>

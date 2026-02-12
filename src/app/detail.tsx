@@ -8,6 +8,7 @@ import { LocationSection } from '@/components/details/LocationSection';
 import { QuickActions } from '@/components/details/QuickActions';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
 import { useBusinessFavorite } from '@/hooks/use-favorites';
@@ -50,25 +51,25 @@ function formatTimeTo12Hour(time24: string): string {
   }
 }
 
-function getCurrentDayOfWeek(): string {
+function getCurrentDayOfWeek(t: (key: string) => string): string {
   const days = [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado'
+    t('days.sunday'),
+    t('days.monday'),
+    t('days.tuesday'),
+    t('days.wednesday'),
+    t('days.thursday'),
+    t('days.friday'),
+    t('days.saturday')
   ];
 
   const now = new Date();
   return days[now.getDay()];
 }
 
-function checkIfBusinessIsOpen(hours: any[]): boolean {
+function checkIfBusinessIsOpen(hours: any[], t: (key: string) => string): boolean {
   if (!hours || hours.length === 0) return false;
 
-  const currentDay = getCurrentDayOfWeek();
+  const currentDay = getCurrentDayOfWeek(t);
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
@@ -101,17 +102,17 @@ function checkIfBusinessIsOpen(hours: any[]): boolean {
   }
 }
 
-function getClosingTimeText(hours: any[]): string | null {
+function getClosingTimeText(hours: any[], t: (key: string) => string): string | null {
   if (!hours || hours.length === 0) return null;
 
-  const currentDay = getCurrentDayOfWeek();
+  const currentDay = getCurrentDayOfWeek(t);
   const todayHours = hours.find(h => h.day === currentDay);
 
   if (!todayHours || todayHours.isClosed) return null;
   if (!todayHours.closesAt) return null;
 
   const formattedTime = formatTimeTo12Hour(todayHours.closesAt);
-  return `Cierra a las ${formattedTime}`;
+  return `${t('detail.closesAt')} ${formattedTime}`;
 }
 
 // ========================================
@@ -122,6 +123,7 @@ export default function DetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { isSignedIn } = useAuth();
+  const { t } = useLanguage();
 
   const businessId = useMemo(() => {
     const raw = params.businessId;
@@ -163,7 +165,7 @@ export default function DetailScreen() {
         setBusiness(data);
         BusinessesService.incrementVisitCount(businessId).catch(() => { });
       } catch (err) {
-        setError('No se pudo cargar el negocio');
+        setError(t('detail.businessNotFound'));
       } finally {
         setLoading(false);
       }
@@ -176,11 +178,11 @@ export default function DetailScreen() {
   const handleToggleFavorite = async () => {
     if (!isSignedIn) {
       Alert.alert(
-        'Inicia sesión',
-        'Debes iniciar sesión para agregar favoritos',
+        t('detail.signInToFavorite'),
+        t('detail.signInToFavoriteDesc'),
         [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/sign-in') },
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('detail.signInButton'), onPress: () => router.push('/(auth)/sign-in') },
         ]
       );
       return;
@@ -188,7 +190,7 @@ export default function DetailScreen() {
 
     const ok = await toggle();
     if (!ok) {
-      Alert.alert('Error', 'No se pudo actualizar el favorito');
+      Alert.alert(t('common.error'), t('detail.favoriteError'));
     }
   };
 
@@ -215,29 +217,29 @@ export default function DetailScreen() {
     if (!rawHours || rawHours.length === 0) {
       return business?.is_open ?? false;
     }
-    return checkIfBusinessIsOpen(rawHours);
-  }, [rawHours, business?.is_open]);
+    return checkIfBusinessIsOpen(rawHours, t);
+  }, [rawHours, business?.is_open, t]);
 
   // Obtener texto de cierre
   const closingTimeText = useMemo(() => {
     if (!rawHours || rawHours.length === 0) return null;
-    return getClosingTimeText(rawHours);
-  }, [rawHours]);
+    return getClosingTimeText(rawHours, t);
+  }, [rawHours, t]);
 
   // Formatear horarios
   const businessHours = useMemo(() => {
     if (!rawHours || rawHours.length === 0) return [];
 
-    const currentDay = getCurrentDayOfWeek();
+    const currentDay = getCurrentDayOfWeek(t);
 
     return rawHours.map(hour => ({
       day: hour.day,
       hours: hour.isClosed
-        ? 'Cerrado'
+        ? t('detail.closed')
         : `${formatTimeTo12Hour(hour.opensAt || '')} - ${formatTimeTo12Hour(hour.closesAt || '')}`,
       isToday: hour.day === currentDay,
     }));
-  }, [rawHours]);
+  }, [rawHours, t]);
 
   // Función para compartir
   const handleShare = async () => {
@@ -256,7 +258,7 @@ export default function DetailScreen() {
       });
 
     } catch (err) {
-      Alert.alert('Error', 'No se pudo compartir la información');
+      Alert.alert(t('common.error'), t('detail.shareError'));
     }
   };
 
@@ -266,7 +268,7 @@ export default function DetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#003D7A" />
-          <Text style={styles.loadingText}>Cargando información...</Text>
+          <Text style={styles.loadingText}>{t('detail.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -277,12 +279,12 @@ export default function DetailScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
-          <Text style={styles.error}>{error ?? 'Negocio no encontrado'}</Text>
+          <Text style={styles.error}>{error ?? t('detail.businessNotFound')}</Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Volver</Text>
+            <Text style={styles.backButtonText}>{t('detail.back')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -293,7 +295,7 @@ export default function DetailScreen() {
   const businessData = {
     id: business.id,
     name: business.name,
-    category: business.category_name || 'Sin categoría', // ✅ AGREGADO
+    category: business.category_name || t('detail.noCategory'), // ✅ AGREGADO
     rating: business.average_rating ?? 0,
     reviews: business.total_reviews ?? 0,
     address: business.address ?? '',
@@ -435,15 +437,15 @@ export default function DetailScreen() {
             onWriteReview={() => {
               if (!isSignedIn) {
                 Alert.alert(
-                  'Inicia sesión',
-                  'Debes iniciar sesión para escribir una reseña',
+                  t('detail.signInToFavorite'),
+                  t('detail.signInToReview'),
                   [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/sign-in') },
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('detail.signInButton'), onPress: () => router.push('/(auth)/sign-in') },
                   ]
                 );
               } else {
-                Alert.alert('Escribir reseña', 'Función en desarrollo');
+                Alert.alert(t('detail.writeReview'), t('detail.featureInDevelopment'));
               }
             }}
             onFilterChange={() => { }}
@@ -455,7 +457,7 @@ export default function DetailScreen() {
       </ScrollView>
 
       <FloatingReserveButton
-        onPress={() => Alert.alert('Reservas', 'Función en desarrollo')}
+        onPress={() => Alert.alert(t('detail.reservations'), t('detail.featureInDevelopment'))}
       />
     </SafeAreaView>
   );

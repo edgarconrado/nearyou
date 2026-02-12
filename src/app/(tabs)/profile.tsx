@@ -236,7 +236,7 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    router.push('../components/profile/edit-profile');
+    router.push('/edit-profile');
   };
 
   const handleFavorites = () => {
@@ -555,7 +555,7 @@ export default function ProfileScreen() {
 
         {/* Versión de la app */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>{t('profile.version')} 1.0.9r20</Text>
+          <Text style={styles.versionText}>{t('profile.version')} 1.0.9r21</Text>
           <Text style={styles.versionSubtext}>
             Última actualización: {new Date().toLocaleDateString('es-ES')}
           </Text>

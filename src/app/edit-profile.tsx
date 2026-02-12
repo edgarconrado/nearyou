@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useProfile } from '@/hooks/use-profile';
 import { supabase } from '@/lib/supabase';
 import { useAuth, useUser } from '@clerk/clerk-expo';
@@ -23,6 +24,7 @@ export default function EditProfileScreen() {
   const { userId } = useAuth();
   const { user } = useUser();
   const { profile, loading, updateProfile } = useProfile(userId ?? null);
+  const { t } = useLanguage();
 
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -56,7 +58,7 @@ export default function EditProfileScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Se necesita acceso a la galería');
+      Alert.alert(t('editProfile.permissionDenied'), t('editProfile.permissionDeniedDesc'));
       return;
     }
 
@@ -159,12 +161,12 @@ export default function EditProfileScreen() {
       setSaving(true);
 
       if (!fullName.trim()) {
-        Alert.alert('Error', 'El nombre es requerido');
+        Alert.alert(t('common.error'), t('editProfile.nameRequired'));
         return;
       }
 
       if (!email.trim()) {
-        Alert.alert('Error', 'El correo es requerido');
+        Alert.alert(t('common.error'), t('editProfile.emailRequired'));
         return;
       }
 
@@ -183,11 +185,11 @@ export default function EditProfileScreen() {
             // 2. Intentar actualizar Clerk (no bloquear si falla)
             await updateClerkAvatar(localImageUri);
           } else {
-            Alert.alert('Error', 'No se pudo subir la imagen');
+            Alert.alert(t('common.error'), t('editProfile.uploadError'));
             return;
           }
         } catch (error) {
-          Alert.alert('Error', 'No se pudo procesar la imagen');
+          Alert.alert(t('common.error'), t('editProfile.processError'));
           return;
         } finally {
           setUploadingImage(false);
@@ -209,8 +211,8 @@ export default function EditProfileScreen() {
       if (result.success) {
         setLocalImageUri(null);
         Alert.alert(
-          'Perfil actualizado',
-          'Tu información ha sido actualizada exitosamente',
+          t('editProfile.updateSuccess'),
+          t('editProfile.updateSuccessDesc'),
           [
             {
               text: 'OK',
@@ -222,7 +224,7 @@ export default function EditProfileScreen() {
         throw result.error;
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar el perfil');
+      Alert.alert(t('common.error'), t('editProfile.updateError'));
     } finally {
       setSaving(false);
       setUploadingImage(false);
@@ -236,12 +238,12 @@ export default function EditProfileScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Editar perfil</Text>
+          <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
           <View style={{ width: 60 }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#003D7A" />
-          <Text style={styles.loadingText}>Cargando perfil...</Text>
+          <Text style={styles.loadingText}>{t('editProfile.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -255,12 +257,12 @@ export default function EditProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} disabled={saving}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editar perfil</Text>
+        <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving || uploadingImage}>
           {saving ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={styles.saveText}>Guardar</Text>
+            <Text style={styles.saveText}>{t('editProfile.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -275,7 +277,7 @@ export default function EditProfileScreen() {
           {uploadingImage && (
             <View style={styles.uploadingOverlay}>
               <ActivityIndicator size="large" color="#003D7A" />
-              <Text style={styles.uploadingText}>Subiendo...</Text>
+              <Text style={styles.uploadingText}>{t('editProfile.uploading')}</Text>
             </View>
           )}
           <TouchableOpacity
@@ -285,7 +287,7 @@ export default function EditProfileScreen() {
           >
             <Ionicons name="camera" size={20} color="#003D7A" />
             <Text style={styles.changePhotoText}>
-              {uploadingImage ? 'Subiendo...' : localImageUri ? 'Cambiar de nuevo' : 'Cambiar foto'}
+              {uploadingImage ? t('editProfile.uploading') : localImageUri ? t('editProfile.changePhotoAgain') : t('editProfile.changePhoto')}
             </Text>
           </TouchableOpacity>
           
@@ -293,7 +295,7 @@ export default function EditProfileScreen() {
             <View style={styles.pendingBadge}>
               <Ionicons name="alert-circle" size={16} color="#FF9800" />
               <Text style={styles.pendingText}>
-                Presiona "Guardar" para aplicar cambios
+                {t('editProfile.pendingSave')}
               </Text>
             </View>
           )}
@@ -301,33 +303,33 @@ export default function EditProfileScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre completo *</Text>
+            <Text style={styles.label}>{t('editProfile.fullName')} *</Text>
             <TextInput
               style={styles.input}
               value={fullName}
               onChangeText={setFullName}
-              placeholder="Tu nombre"
+              placeholder={t('editProfile.fullName')}
               editable={!saving}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo electrónico *</Text>
+            <Text style={styles.label}>{t('editProfile.email')} *</Text>
             <TextInput
               style={[styles.input, styles.disabledInput]}
               value={email}
               editable={false}
-              placeholder="tu@email.com"
+              placeholder={t('editProfile.email')}
               keyboardType="email-address"
               autoCapitalize="none"
             />
             <Text style={styles.helperText}>
-              El correo no se puede modificar
+              {t('editProfile.emailCannotChange')}
             </Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Teléfono</Text>
+            <Text style={styles.label}>{t('editProfile.phone')}</Text>
             <TextInput
               style={styles.input}
               value={phone}
@@ -339,45 +341,45 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Ciudad</Text>
+            <Text style={styles.label}>{t('editProfile.city')}</Text>
             <TextInput
               style={styles.input}
               value={city}
               onChangeText={setCity}
-              placeholder="Tu ciudad"
+              placeholder={t('editProfile.city')}
               editable={!saving}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Estado</Text>
+            <Text style={styles.label}>{t('editProfile.state')}</Text>
             <TextInput
               style={styles.input}
               value={state}
               onChangeText={setState}
-              placeholder="Tu estado"
+              placeholder={t('editProfile.state')}
               editable={!saving}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>País</Text>
+            <Text style={styles.label}>{t('editProfile.country')}</Text>
             <TextInput
               style={styles.input}
               value={country}
               onChangeText={setCountry}
-              placeholder="Tu país"
+              placeholder={t('editProfile.country')}
               editable={!saving}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Biografía</Text>
+            <Text style={styles.label}>{t('editProfile.bio')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={bio}
               onChangeText={setBio}
-              placeholder="Cuéntanos algo sobre ti..."
+              placeholder={t('editProfile.bioPlaceholder')}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
