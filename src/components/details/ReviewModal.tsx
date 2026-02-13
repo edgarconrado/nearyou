@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
@@ -39,10 +40,23 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
     onAddPhoto,
     onRemovePhoto,
 }) => {
+    const { t } = useLanguage();
+
+    const getRatingLabel = (rating: number): string => {
+        switch (rating) {
+            case 1: return t('reviewModal.ratingBad');
+            case 2: return t('reviewModal.ratingRegular');
+            case 3: return t('reviewModal.ratingGood');
+            case 4: return t('reviewModal.ratingVeryGood');
+            case 5: return t('reviewModal.ratingExcellent');
+            default: return '';
+        }
+    };
+
     const renderRatingSelector = () => {
         return (
             <View style={styles.ratingSelector}>
-                <Text style={styles.modalLabel}>Calificación *</Text>
+                <Text style={styles.modalLabel}>{t('reviewModal.rating')}</Text>
                 <View style={styles.starsSelector}>
                     {[1, 2, 3, 4, 5].map((star) => (
                         <TouchableOpacity key={star} onPress={() => onRatingChange(star)}>
@@ -56,11 +70,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 </View>
                 {review.rating > 0 && (
                     <Text style={styles.ratingLabel}>
-                        {review.rating === 1 && 'Malo'}
-                        {review.rating === 2 && 'Regular'}
-                        {review.rating === 3 && 'Bueno'}
-                        {review.rating === 4 && 'Muy bueno'}
-                        {review.rating === 5 && 'Excelente'}
+                        {getRatingLabel(review.rating)}
                     </Text>
                 )}
             </View>
@@ -81,7 +91,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>
-                            {isEditing ? 'Editar opinión' : 'Escribir opinión'}
+                            {isEditing ? t('reviewModal.editReview') : t('reviewModal.writeReview')}
                         </Text>
                         <TouchableOpacity onPress={onClose}>
                             <Ionicons name="close" size={28} color="#333" />
@@ -94,10 +104,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         {renderRatingSelector()}
 
                         <View style={styles.commentSection}>
-                            <Text style={styles.modalLabel}>Tu opinión *</Text>
+                            <Text style={styles.modalLabel}>{t('reviewModal.yourOpinion')}</Text>
                             <TextInput
                                 style={styles.commentInput}
-                                placeholder="Comparte tu experiencia sobre este lugar..."
+                                placeholder={t('reviewModal.commentPlaceholder')}
                                 placeholderTextColor="#999"
                                 multiline
                                 numberOfLines={6}
@@ -107,13 +117,13 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                 maxLength={500}
                             />
                             <Text style={styles.charCount}>
-                                {review.comment.length} / 500 caracteres
+                                {review.comment.length} / 500 {t('reviewModal.characters')}
                             </Text>
                         </View>
 
                         <View style={styles.photosSection}>
-                            <Text style={styles.modalLabel}>Agregar fotos (opcional)</Text>
-                            <Text style={styles.photosHint}>Máximo 5 fotos</Text>
+                            <Text style={styles.modalLabel}>{t('reviewModal.addPhotos')}</Text>
+                            <Text style={styles.photosHint}>{t('reviewModal.maxPhotos')}</Text>
 
                             <ScrollView
                                 horizontal
@@ -135,7 +145,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                 {review.images.length < 5 && (
                                     <TouchableOpacity style={styles.addPhotoButton} onPress={onAddPhoto}>
                                         <Ionicons name="camera" size={32} color="#003D7A" />
-                                        <Text style={styles.addPhotoText}>Agregar foto</Text>
+                                        <Text style={styles.addPhotoText}>{t('reviewModal.addPhoto')}</Text>
                                     </TouchableOpacity>
                                 )}
                             </ScrollView>
@@ -143,11 +153,11 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                                <Text style={styles.cancelButtonText}>{t('reviewModal.cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.submitButton} onPress={onSubmit}>
                                 <Text style={styles.submitButtonText}>
-                                    {isEditing ? 'Actualizar' : 'Publicar opinión'}
+                                    {isEditing ? t('reviewModal.update') : t('reviewModal.publish')}
                                 </Text>
                             </TouchableOpacity>
                         </View>

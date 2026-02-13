@@ -156,7 +156,15 @@
     "reservations": "Reservas",
     "noCategory": "Sin categoría",
     "about": "Acerca de",
-    "reviews": "Reseñas"
+    "reviews": "Reseñas",
+    "noReviewsWithStars": "No hay opiniones con",
+    "stars": "estrellas",
+    "schedules": "Horarios",
+    "getDirections": "Obtener direcciones",
+    "location": "Ubicación",
+    "filterBy": "Filtrar por",
+    "all": "Todas",
+    "aboutThisPlace": "Sobre este Lugar"
   },
   "reviews": {
     "title": "Mis reseñas",
@@ -326,6 +334,46 @@
     "resetDefaultsTitle": "Restaurar valores por defecto",
     "resetDefaultsDesc": "¿Estás seguro de que deseas restaurar las notificaciones a sus valores por defecto?",
     "restore": "Restaurar"
+  },
+  "reviewModal": {
+    "editReview": "Editar opinión",
+    "writeReview": "Escribir opinión",
+    "rating": "Calificación *",
+    "ratingBad": "Malo",
+    "ratingRegular": "Regular",
+    "ratingGood": "Bueno",
+    "ratingVeryGood": "Muy bueno",
+    "ratingExcellent": "Excelente",
+    "yourOpinion": "Tu opinión *",
+    "commentPlaceholder": "Comparte tu experiencia sobre este lugar...",
+    "characters": "caracteres",
+    "addPhotos": "Agregar fotos (opcional)",
+    "maxPhotos": "Máximo 5 fotos",
+    "addPhoto": "Agregar foto",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "publish": "Publicar opinión"
+  },
+  "quickActions": {
+    "call": "Llamar",
+    "website": "Sitio web",
+    "directions": "Cómo llegar",
+    "share": "Compartir"
+  },
+  "reviewsList": {
+    "noReviewsWithStars": "No hay opiniones con {{stars}} estrellas",
+    "viewAllReviews": "Ver todas las opiniones"
+  },
+  "locationPermission": {
+    "title": "Encuentra negocios cerca de ti",
+    "description": "Activa tu ubicación para que podamos mostrarte:",
+    "feature1": "Negocios más cercanos ordenados por distancia",
+    "feature2": "Distancias exactas a cada lugar",
+    "feature3": "Direcciones precisas para llegar",
+    "feature4": "Recomendaciones personalizadas",
+    "privacyNote": "Tu ubicación solo se usa para mejorar tu experiencia. Nunca compartimos tus datos.",
+    "enableLocation": "Activar ubicación",
+    "continueWithout": "Continuar sin ubicación"
   },
   "common": {
     "back": "Atrás",

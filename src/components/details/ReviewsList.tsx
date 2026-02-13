@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -17,15 +18,17 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
     onFilterChange,
     onReviewOptions,
 }) => {
+    const { t } = useLanguage();
+
     if (filteredReviews.length === 0) {
         return (
             <View style={styles.emptyReviews}>
                 <Ionicons name="chatbubbles-outline" size={64} color="#CCC" />
                 <Text style={styles.emptyReviewsText}>
-                    No hay opiniones con {reviewFilter} estrellas
+                    {t('detail.noReviewsWithStars')} {reviewFilter} {t('detail.stars')}
                 </Text>
                 <TouchableOpacity onPress={() => onFilterChange('all')}>
-                    <Text style={styles.showAllLink}>Ver todas las opiniones</Text>
+                    <Text style={styles.showAllLink}>{t('reviewsList.viewAllReviews')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -42,7 +45,7 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
             ))}
 
             <TouchableOpacity style={styles.viewAllReviewsButton}>
-                <Text style={styles.viewAllReviewsText}>Ver todas las opiniones</Text>
+                <Text style={styles.viewAllReviewsText}>{t('reviewsList.viewAllReviews')}</Text>
                 <Ionicons name="chevron-forward" size={20} color="#003D7A" />
             </TouchableOpacity>
         </View>

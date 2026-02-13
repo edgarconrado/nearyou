@@ -156,7 +156,15 @@
     "reservations": "Reservations",
     "noCategory": "No category",
     "about": "About",
-    "reviews": "Reviews"
+    "reviews": "Reviews",
+    "noReviewsWithStars": "No reviews with",
+    "stars": "stars",
+    "schedules": "Opening hours",
+    "getDirections": "Get Directions",
+    "location": "Location",
+    "filterBy": "Filter by",
+    "all": "All",
+    "aboutThisPlace": "About this place"
   },
   "reviews": {
     "title": "My reviews",
@@ -326,6 +334,46 @@
     "resetDefaultsTitle": "Restore default values",
     "resetDefaultsDesc": "Are you sure you want to restore notifications to their default values?",
     "restore": "Restore"
+  },
+  "reviewModal": {
+    "editReview": "Edit review",
+    "writeReview": "Write review",
+    "rating": "Rating *",
+    "ratingBad": "Bad",
+    "ratingRegular": "Fair",
+    "ratingGood": "Good",
+    "ratingVeryGood": "Very good",
+    "ratingExcellent": "Excellent",
+    "yourOpinion": "Your review *",
+    "commentPlaceholder": "Share your experience about this place...",
+    "characters": "characters",
+    "addPhotos": "Add photos (optional)",
+    "maxPhotos": "Maximum 5 photos",
+    "addPhoto": "Add photo",
+    "cancel": "Cancel",
+    "update": "Update",
+    "publish": "Publish review"
+  },
+  "quickActions": {
+    "call": "Call",
+    "website": "Website",
+    "directions": "Directions",
+    "share": "Share"
+  },
+  "reviewsList": {
+    "noReviewsWithStars": "No reviews with {{stars}} stars",
+    "viewAllReviews": "View all reviews"
+  },
+  "locationPermission": {
+    "title": "Find businesses near you",
+    "description": "Enable your location so we can show you:",
+    "feature1": "Nearest businesses sorted by distance",
+    "feature2": "Exact distances to each place",
+    "feature3": "Precise directions to get there",
+    "feature4": "Personalized recommendations",
+    "privacyNote": "Your location is only used to improve your experience. We never share your data.",
+    "enableLocation": "Enable location",
+    "continueWithout": "Continue without location"
   },
   "common": {
     "back": "Back",

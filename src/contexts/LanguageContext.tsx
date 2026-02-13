@@ -2,9 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 // Importar traducciones estáticamente
+import arTranslations from '../translations/ar.json';
+import deTranslations from '../translations/de.json';
 import enTranslations from '../translations/en.json';
 import esTranslations from '../translations/es.json';
 import frTranslations from '../translations/fr.json';
+import hiTranslations from '../translations/hi.json';
+import itTranslations from '../translations/it.json';
+import jaTranslations from '../translations/ja.json';
+import ptTranslations from '../translations/pt.json';
+import ruTranslations from '../translations/ru.json';
+import zhTranslations from '../translations/zh.json';
 
 type LanguageCode = 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt' | 'zh' | 'ja' | 'ko' | 'ru' | 'ar' | 'hi';
 
@@ -23,6 +31,15 @@ const translationsMap: Record<string, any> = {
   es: esTranslations,
   en: enTranslations,
   fr: frTranslations,
+  pt: ptTranslations,
+  de: deTranslations,
+  it: itTranslations,
+  zh: zhTranslations,
+  ja: jaTranslations,
+  ru: ruTranslations,
+  ar: arTranslations,
+  hi: hiTranslations,
+  
 };
 
 interface LanguageProviderProps {

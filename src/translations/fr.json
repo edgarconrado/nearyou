@@ -156,7 +156,15 @@
     "reservations": "Réservations",
     "noCategory": "Aucune catégorie",
     "about": "À propos",
-    "reviews": "Avis"
+    "reviews": "Avis",
+    "noReviewsWithStars": "Aucun avis avec",
+    "stars": "étoiles",
+    "schedules": "Sont vos horaires",
+    "getDirections": "Obtenir l’itinéraire",
+    "location": "Emplacement",
+    "filterBy": "Filtrer pa",
+    "all": "Toutes",
+    "aboutThisPlace": "À propos de ce lieu"
   },
   "reviews": {
     "title": "Mes avis",
@@ -326,6 +334,46 @@
     "resetDefaultsTitle": "Restaurer les valeurs par défaut",
     "resetDefaultsDesc": "Êtes-vous sûr de vouloir restaurer les notifications à leurs valeurs par défaut?",
     "restore": "Restaurer"
+  },
+  "reviewModal": {
+    "editReview": "Modifier l'avis",
+    "writeReview": "Écrire un avis",
+    "rating": "Note *",
+    "ratingBad": "Mauvais",
+    "ratingRegular": "Moyen",
+    "ratingGood": "Bon",
+    "ratingVeryGood": "Très bon",
+    "ratingExcellent": "Excellent",
+    "yourOpinion": "Votre avis *",
+    "commentPlaceholder": "Partagez votre expérience sur cet endroit...",
+    "characters": "caractères",
+    "addPhotos": "Ajouter des photos (facultatif)",
+    "maxPhotos": "Maximum 5 photos",
+    "addPhoto": "Ajouter une photo",
+    "cancel": "Annuler",
+    "update": "Mettre à jour",
+    "publish": "Publier l'avis"
+  },
+  "quickActions": {
+    "call": "Appeler",
+    "website": "Site web",
+    "directions": "Itinéraire",
+    "share": "Partager"
+  },
+  "reviewsList": {
+    "noReviewsWithStars": "Aucun avis avec {{stars}} étoiles",
+    "viewAllReviews": "Voir tous les avis"
+  },
+  "locationPermission": {
+    "title": "Trouvez des entreprises près de chez vous",
+    "description": "Activez votre localisation pour que nous puissions vous montrer:",
+    "feature1": "Les entreprises les plus proches triées par distance",
+    "feature2": "Distances exactes à chaque endroit",
+    "feature3": "Itinéraires précis pour y arriver",
+    "feature4": "Recommandations personnalisées",
+    "privacyNote": "Votre localisation n'est utilisée que pour améliorer votre expérience. Nous ne partageons jamais vos données.",
+    "enableLocation": "Activer la localisation",
+    "continueWithout": "Continuer sans localisation"
   },
   "common": {
     "back": "Retour",

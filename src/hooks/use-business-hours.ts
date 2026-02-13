@@ -1,72 +1,83 @@
-// hooks/useBusinessHours.ts
-import type { FormattedBusinessHours } from '@/services/business-hours.service';
+// hooks/use-business-hours.ts
+import { useLanguage } from '@/contexts/LanguageContext';
 import { BusinessHoursService } from '@/services/business-hours.service';
 import { useEffect, useState } from 'react';
 
+export interface FormattedHour {
+  day: string;
+  opensAt: string | null;
+  closesAt: string | null;
+  isClosed: boolean;
+  isToday: boolean;
+  dayOfWeek: number;
+}
+
 export function useBusinessHours(businessId: string | undefined) {
-  const [hours, setHours] = useState<FormattedBusinessHours[]>([]);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [closingTime, setClosingTime] = useState<string | null>(null);
+  const { t, language } = useLanguage(); // <-- Obtener idioma actual
+  const [hours, setHours] = useState<FormattedHour[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [closingTimeFormatted, setClosingTimeFormatted] = useState<string | null>(null);
 
   useEffect(() => {
     if (!businessId) {
+      setHours([]);
       setLoading(false);
       return;
     }
 
     loadBusinessHours();
-  }, [businessId]);
+  }, [businessId, language]); // <-- IMPORTANTE: Agregar language como dependencia
 
   const loadBusinessHours = async () => {
     if (!businessId) return;
 
     try {
       setLoading(true);
-      setError(null);
 
-      // Cargar horarios formateados
-      const { data: hoursData, error: hoursError } =
-        await BusinessHoursService.getFormattedBusinessHours(businessId);
-      setHours(hoursData || []);
+      // Obtener horarios formateados con traducción
+      const { data, error } = await BusinessHoursService.getFormattedBusinessHours(
+        businessId,
+        t // <-- Pasar la función de traducción
+      );
 
-      // Verificar si está abierto (solo si hay horarios)
-      if (hoursData && hoursData.length > 0) {
-        const { isOpen: openStatus, error: openError } =
-          await BusinessHoursService.isBusinessOpen(businessId);
-
-        if (!openError) {
-          setIsOpen(openStatus);
-        }
-
-        // Obtener hora de cierre de hoy
-        const { closingTime: closeTime, error: closeError } =
-          await BusinessHoursService.getTodayClosingTime(businessId);
-
-        if (!closeError && closeTime) {
-          setClosingTime(closeTime);
-        }
+      if (error || !data) {
+        setHours([]);
+        setIsOpen(false);
+        setClosingTimeFormatted(null);
+        return;
       }
-    } catch (err) {
-      // No establecer error - solo loguearlo
-      // setError('Error al cargar horarios');
+
+      setHours(data);
+
+      // Verificar si está abierto
+      const { isOpen: businessIsOpen } = await BusinessHoursService.isBusinessOpen(businessId);
+      setIsOpen(businessIsOpen);
+
+      // Obtener hora de cierre
+      const { closingTime } = await BusinessHoursService.getTodayClosingTime(businessId);
+      if (closingTime) {
+        const formatted = BusinessHoursService.formatTime(closingTime, t);
+        setClosingTimeFormatted(formatted);
+      } else {
+        setClosingTimeFormatted(null);
+      }
+
+    } catch (error) {
+      console.error('Error loading business hours:', error);
+      setHours([]);
+      setIsOpen(false);
+      setClosingTimeFormatted(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const refetch = () => {
-    loadBusinessHours();
-  };
-
   return {
     hours,
-    isOpen,
-    closingTime,
-    closingTimeFormatted: closingTime ? BusinessHoursService.formatTime(closingTime) : null,
     loading,
-    error,
-    refetch,
+    isOpen,
+    closingTimeFormatted,
+    refresh: loadBusinessHours,
   };
 }

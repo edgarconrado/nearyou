@@ -16,15 +16,21 @@ export interface FormattedBusinessHours {
 }
 
 export class BusinessHoursService {
-  private static readonly DAY_NAMES = [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-  ];
+  /**
+   * Obtener nombres de días traducidos
+   * @param t - Función de traducción del contexto useLanguage
+   */
+  private static getDayNames(t: (key: string) => string): string[] {
+    return [
+      t('days.sunday'),    // 0
+      t('days.monday'),    // 1
+      t('days.tuesday'),   // 2
+      t('days.wednesday'), // 3
+      t('days.thursday'),  // 4
+      t('days.friday'),    // 5
+      t('days.saturday'),  // 6
+    ];
+  }
 
   /**
    * Obtener horarios de un negocio
@@ -50,8 +56,12 @@ export class BusinessHoursService {
 
   /**
    * Obtener horarios formateados para mostrar en UI
+   * AHORA RECIBE LA FUNCIÓN DE TRADUCCIÓN
    */
-  static async getFormattedBusinessHours(businessId: string): Promise<{ 
+  static async getFormattedBusinessHours(
+    businessId: string,
+    t: (key: string) => string // <-- NUEVO PARÁMETRO
+  ): Promise<{ 
     data: FormattedBusinessHours[] | null; 
     error: Error | null 
   }> {
@@ -65,9 +75,10 @@ export class BusinessHoursService {
       }
 
       const today = new Date().getDay(); // 0 = Domingo, 1 = Lunes, etc.
+      const dayNames = this.getDayNames(t); // <-- USAR DÍAS TRADUCIDOS
 
       const formatted = hours.map(hour => ({
-        day: this.DAY_NAMES[hour.day_of_week],
+        day: dayNames[hour.day_of_week], // <-- NOMBRE TRADUCIDO
         dayOfWeek: hour.day_of_week,
         opensAt: hour.opens_at,
         closesAt: hour.closes_at,
@@ -98,7 +109,7 @@ export class BusinessHoursService {
         .select('*')
         .eq('business_id', businessId)
         .eq('day_of_week', dayOfWeek)
-        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
+        .maybeSingle();
 
       if (error) {
         return { isOpen: false, error: error as Error };
@@ -143,7 +154,7 @@ export class BusinessHoursService {
         .select('*')
         .eq('business_id', businessId)
         .eq('day_of_week', dayOfWeek)
-        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
+        .maybeSingle();
 
       if (error) {
         return { data: null, error: error as Error };
@@ -181,9 +192,10 @@ export class BusinessHoursService {
 
   /**
    * Formatear hora de 24h a 12h con AM/PM
+   * AHORA RECIBE LA FUNCIÓN DE TRADUCCIÓN
    */
-  static formatTime(time: string | null): string {
-    if (!time) return 'Cerrado';
+  static formatTime(time: string | null, t: (key: string) => string): string {
+    if (!time) return t('common.closed'); // <-- TRADUCIDO
 
     try {
       const [hours, minutes] = time.split(':').map(Number);
@@ -198,12 +210,18 @@ export class BusinessHoursService {
 
   /**
    * Formatear rango de horas para mostrar
+   * AHORA RECIBE LA FUNCIÓN DE TRADUCCIÓN
    */
-  static formatHoursRange(opensAt: string | null, closesAt: string | null, isClosed: boolean): string {
-    if (isClosed) return 'Cerrado';
-    if (!opensAt || !closesAt) return 'No disponible';
+  static formatHoursRange(
+    opensAt: string | null, 
+    closesAt: string | null, 
+    isClosed: boolean,
+    t: (key: string) => string // <-- NUEVO PARÁMETRO
+  ): string {
+    if (isClosed) return t('common.closed'); // <-- TRADUCIDO
+    if (!opensAt || !closesAt) return t('detail.noSchedule'); // <-- TRADUCIDO
     
-    return `${this.formatTime(opensAt)} - ${this.formatTime(closesAt)}`;
+    return `${this.formatTime(opensAt, t)} - ${this.formatTime(closesAt, t)}`;
   }
 
   /**
@@ -245,7 +263,7 @@ export class BusinessHoursService {
         .update(updates)
         .eq('id', id)
         .select()
-        .maybeSingle(); // Cambiado de .single() a .maybeSingle()
+        .maybeSingle();
 
       if (error) throw error;
 

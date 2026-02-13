@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -11,9 +12,12 @@ export const ReviewFilters: React.FC<ReviewFiltersProps> = ({
     reviewFilter,
     onFilterChange,
 }) => {
+
+    const { t } = useLanguage();
+
     return (
         <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Filtrar por:</Text>
+            <Text style={styles.filterLabel}>{t('detail.filterBy')}:</Text>
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -32,7 +36,7 @@ export const ReviewFilters: React.FC<ReviewFiltersProps> = ({
                             reviewFilter === 'all' && styles.filterChipTextActive,
                         ]}
                     >
-                        Todas
+                        {t('detail.all')}
                     </Text>
                 </TouchableOpacity>
                 {[5, 4, 3, 2, 1].map((star) => (
