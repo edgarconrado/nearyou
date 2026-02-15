@@ -2,7 +2,7 @@
   "expo": {
     "name": "nearyou",
     "slug": "nearyou",
-    "version": "1.0.9r21",
+    "version": "1.0.10r1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "nearyou",

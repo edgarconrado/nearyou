@@ -30,7 +30,7 @@ export default function AboutScreen() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Logo y nombre de la app */}
                 <Logo
-                    version={`${t('about.version')} 1.0.9r21`}
+                    version={`${t('about.version')} 1.0.10r1`}
                     slogan={t('about.slogan')}
                 />
 
