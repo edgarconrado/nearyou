@@ -22,13 +22,13 @@ export class BusinessHoursService {
    */
   private static getDayNames(t: (key: string) => string): string[] {
     return [
-      t('days.sunday'),    // 0
-      t('days.monday'),    // 1
-      t('days.tuesday'),   // 2
-      t('days.wednesday'), // 3
-      t('days.thursday'),  // 4
-      t('days.friday'),    // 5
-      t('days.saturday'),  // 6
+      t('detail.sunday'),    // 0
+      t('detail.monday'),    // 1
+      t('detail.tuesday'),   // 2
+      t('detail.wednesday'), // 3
+      t('detail.thursday'),  // 4
+      t('detail.friday'),    // 5
+      t('detail.saturday'),  // 6
     ];
   }
 

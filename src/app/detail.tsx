@@ -59,13 +59,13 @@ function formatTimeTo12Hour(time24: string): string {
 
 function getCurrentDayOfWeek(t: (key: string) => string): string {
   const days = [
-    t('days.sunday'),
-    t('days.monday'),
-    t('days.tuesday'),
-    t('days.wednesday'),
-    t('days.thursday'),
-    t('days.friday'),
-    t('days.saturday')
+    t('detail.sunday'),
+    t('detail.monday'),
+    t('detail.tuesday'),
+    t('detail.wednesday'),
+    t('detail.thursday'),
+    t('detail.friday'),
+    t('detail.saturday')
   ];
 
   const now = new Date();

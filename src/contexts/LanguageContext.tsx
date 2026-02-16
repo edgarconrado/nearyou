@@ -10,6 +10,7 @@ import frTranslations from '../translations/fr.json';
 import hiTranslations from '../translations/hi.json';
 import itTranslations from '../translations/it.json';
 import jaTranslations from '../translations/ja.json';
+import koTranslations from '../translations/ko.json';
 import ptTranslations from '../translations/pt.json';
 import ruTranslations from '../translations/ru.json';
 import zhTranslations from '../translations/zh.json';
@@ -39,7 +40,7 @@ const translationsMap: Record<string, any> = {
   ru: ruTranslations,
   ar: arTranslations,
   hi: hiTranslations,
-  
+  ko: koTranslations,
 };
 
 interface LanguageProviderProps {
