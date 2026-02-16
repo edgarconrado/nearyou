@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 interface FloatingReserveButtonProps {
     onPress: () => void;
@@ -11,10 +10,10 @@ export const FloatingReserveButton: React.FC<FloatingReserveButtonProps> = ({
 }) => {
     return (
         <View style={styles.floatingButton}>
-            <TouchableOpacity style={styles.reserveButton} onPress={onPress}>
+            {/* <TouchableOpacity style={styles.reserveButton} onPress={onPress}>
                 <Ionicons name="calendar" size={20} color="#FFFFFF" />
                 <Text style={styles.reserveButtonText}>Hacer reservación</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </View>
     );
 };

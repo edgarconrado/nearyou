@@ -1,4 +1,5 @@
 import { Logo } from '@/components/shared/logo';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -14,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -21,46 +23,41 @@ export default function AboutScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Acerca de</Text>
+                <Text style={styles.headerTitle}>{t('about.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Logo y nombre de la app */}
                 <Logo
-                    version='Versión 1.0.9r20'
-                    slogan='Descubre, explora y comparte experiencias'
+                    version={`${t('about.version')} 1.0.10r1`}
+                    slogan={t('about.slogan')}
                 />
 
 
                 {/* Acerca de nosotros */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Nuestra misión</Text>
+                    <Text style={styles.sectionTitle}>{t('about.ourMission')}</Text>
                     <Text style={styles.paragraph}>
-                        Conectamos a viajeros y locales con los mejores lugares de México.
-                        Nuestra misión es facilitar el descubrimiento de experiencias únicas
-                        y ayudar a pequeños negocios a crecer mediante reseñas auténticas y
-                        recomendaciones personalizadas.
+                        {t('about.missionText1')}
                     </Text>
                     <Text style={styles.paragraph}>
-                        Creemos en el poder de la comunidad para transformar el turismo local,
-                        promoviendo lugares auténticos y experiencias memorables que reflejan
-                        la riqueza cultural de cada región.
+                        {t('about.missionText2')}
                     </Text>
                 </View>
 
                 {/* Características principales */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Características principales</Text>
+                    <Text style={styles.sectionTitle}>{t('about.mainFeatures')}</Text>
 
                     <View style={styles.featureItem}>
                         <View style={[styles.featureIcon, { backgroundColor: '#E3F2FD' }]}>
                             <Ionicons name="search" size={24} color="#2196F3" />
                         </View>
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>Búsqueda avanzada</Text>
+                            <Text style={styles.featureTitle}>{t('about.advancedSearch')}</Text>
                             <Text style={styles.featureDescription}>
-                                Encuentra lugares por categoría, ubicación o calificación
+                                {t('about.advancedSearchDesc')}
                             </Text>
                         </View>
                     </View>
@@ -70,9 +67,9 @@ export default function AboutScreen() {
                             <Ionicons name="star" size={24} color="#FF9800" />
                         </View>
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>Reseñas verificadas</Text>
+                            <Text style={styles.featureTitle}>{t('about.verifiedReviews')}</Text>
                             <Text style={styles.featureDescription}>
-                                Lee opiniones reales de otros usuarios
+                                {t('about.verifiedReviewsDesc')}
                             </Text>
                         </View>
                     </View>
@@ -82,9 +79,9 @@ export default function AboutScreen() {
                             <Ionicons name="map" size={24} color="#4CAF50" />
                         </View>
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>Mapas interactivos</Text>
+                            <Text style={styles.featureTitle}>{t('about.interactiveMaps')}</Text>
                             <Text style={styles.featureDescription}>
-                                Visualiza lugares cercanos y obtén direcciones
+                                {t('about.interactiveMapsDesc')}
                             </Text>
                         </View>
                     </View>
@@ -94,9 +91,9 @@ export default function AboutScreen() {
                             <Ionicons name="heart" size={24} color="#E91E63" />
                         </View>
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>Listas personalizadas</Text>
+                            <Text style={styles.featureTitle}>{t('about.customLists')}</Text>
                             <Text style={styles.featureDescription}>
-                                Guarda tus lugares favoritos y crea colecciones
+                                {t('about.customListsDesc')}
                             </Text>
                         </View>
                     </View>
@@ -104,17 +101,15 @@ export default function AboutScreen() {
 
                 {/* Equipo */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Nuestro equipo</Text>
+                    <Text style={styles.sectionTitle}>{t('about.ourTeam')}</Text>
                     <Text style={styles.paragraph}>
-                        Somos un equipo apasionado de desarrolladores, diseñadores y entusiastas
-                        del turismo trabajando para crear la mejor experiencia de descubrimiento
-                        de lugares en México.
+                        {t('about.teamDescription')}
                     </Text>
                 </View>
 
                 {/* Redes sociales */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Síguenos</Text>
+                    <Text style={styles.sectionTitle}>{t('about.followUs')}</Text>
 
                     <View style={styles.socialLinks}>
                         <TouchableOpacity
@@ -149,7 +144,7 @@ export default function AboutScreen() {
 
                 {/* Contacto */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Contacto</Text>
+                    <Text style={styles.sectionTitle}>{t('about.contact')}</Text>
 
                     <TouchableOpacity
                         style={styles.contactItem}
@@ -178,20 +173,20 @@ export default function AboutScreen() {
 
                 {/* Legal */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Legal</Text>
+                    <Text style={styles.sectionTitle}>{t('about.legal')}</Text>
 
                     <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>Términos y condiciones</Text>
+                        <Text style={styles.legalText}>{t('about.termsConditions')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>Política de privacidad</Text>
+                        <Text style={styles.legalText}>{t('about.privacyPolicy')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>Licencias de código abierto</Text>
+                        <Text style={styles.legalText}>{t('about.openSourceLicenses')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
                 </View>
@@ -199,10 +194,10 @@ export default function AboutScreen() {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        © 2026 NearYou. Todos los derechos reservados.
+                        {t('about.copyright')}
                     </Text>
                     <Text style={styles.footerText}>
-                        Hecho con ❤️ en Jiquilpan Michoacán México
+                        {t('about.madeWith')}
                     </Text>
                 </View>
 

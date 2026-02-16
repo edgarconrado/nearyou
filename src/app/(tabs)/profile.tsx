@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/hooks/use-favorites';
 import { useProfile } from '@/hooks/use-profile';
 import { useUserSettings } from '@/hooks/use-user-settings';
@@ -40,25 +41,25 @@ function StatsSection({
   }, [visible]);
 
   if (!visible) return null;
-
+  const { t } = useLanguage();
   return (
     <View style={styles.statsSection}>
       <TouchableOpacity style={styles.statCard} onPress={onFavorites}>
         <Ionicons name="heart" size={28} color="#FF3B30" />
         <Text style={styles.statNumber}>{favoritesCount}</Text>
-        <Text style={styles.statLabel}>Favoritos</Text>
+        <Text style={styles.statLabel}>{t('profile.favorites')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.statCard} onPress={onReviews}>
         <Ionicons name="star" size={28} color="#FFB800" />
         <Text style={styles.statNumber}>{stats.reviews}</Text>
-        <Text style={styles.statLabel}>Reseñas</Text>
+        <Text style={styles.statLabel}>{t('profile.reviews')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.statCard} onPress={onVisits}>
         <Ionicons name="location" size={28} color="#003D7A" />
         <Text style={styles.statNumber}>{stats.visits}</Text>
-        <Text style={styles.statLabel}>Visitas</Text>
+        <Text style={styles.statLabel}>{t('profile.visits')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -84,19 +85,19 @@ function ActivitySection({
     if (visible) {
     }
   }, [visible]);
-
+  const { t } = useLanguage();
   if (!visible) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Mi actividad</Text>
+      <Text style={styles.sectionTitle}>{t('profile.myActivity')}</Text>
 
       <TouchableOpacity style={styles.menuItem} onPress={onFavorites}>
         <View style={styles.menuItemLeft}>
           <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
             <Ionicons name="heart" size={22} color="#FF3B30" />
           </View>
-          <Text style={styles.menuItemText}>Lugares favoritos</Text>
+          <Text style={styles.menuItemText}>{t('profile.favoritePlaces')}</Text>
         </View>
         <View style={styles.menuItemRight}>
           <Text style={styles.menuItemCount}>{favoritesCount}</Text>
@@ -109,7 +110,7 @@ function ActivitySection({
           <View style={[styles.iconContainer, { backgroundColor: '#FFF8E1' }]}>
             <Ionicons name="chatbox-ellipses" size={22} color="#FFB800" />
           </View>
-          <Text style={styles.menuItemText}>Mis reseñas</Text>
+          <Text style={styles.menuItemText}>{t('profile.myReviews')}</Text>
         </View>
         <View style={styles.menuItemRight}>
           <Text style={styles.menuItemCount}>{stats.reviews}</Text>
@@ -122,7 +123,7 @@ function ActivitySection({
           <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
             <Ionicons name="location" size={22} color="#003D7A" />
           </View>
-          <Text style={styles.menuItemText}>Lugares visitados</Text>
+          <Text style={styles.menuItemText}>{t('profile.placesVisited')}</Text>
         </View>
         <View style={styles.menuItemRight}>
           <Text style={styles.menuItemCount}>{stats.visits}</Text>
@@ -135,6 +136,7 @@ function ActivitySection({
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { signOut, userId } = useAuth();
 
   // Hooks personalizados
@@ -185,10 +187,10 @@ export default function ProfileScreen() {
 
   // Formatear fecha de miembro
   const formatMemberSince = (date: string | null) => {
-    if (!date) return 'Miembro desde 2025';
+    if (!date) return `${t('profile.memberSince')} 2025`;
     const memberDate = new Date(date);
     const year = memberDate.getFullYear();
-    return `Miembro desde ${year}`;
+    return `${t('profile.memberSince')} ${year}`;
   };
 
   // Formatear ubicación
@@ -219,7 +221,7 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Alert.alert(
       'Cerrar sesión',
-      '¿Estás seguro de que deseas cerrar sesión?',
+      t('profile.logoutConfirm'),
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -275,7 +277,7 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#003D7A" />
-          <Text style={styles.loadingText}>Cargando perfil...</Text>
+          <Text style={styles.loadingText}>{t('profile.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -379,7 +381,7 @@ export default function ProfileScreen() {
             onPress={handleEditProfile}
           >
             <Ionicons name="create-outline" size={18} color="#003D7A" />
-            <Text style={styles.editProfileText}>Editar perfil</Text>
+            <Text style={styles.editProfileText}>{t('profile.editProfile')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -409,16 +411,15 @@ export default function ProfileScreen() {
             <Ionicons name="eye-off-outline" size={24} color="#9C27B0" />
             <View style={styles.privacyInfoTextContainer}>
               <Text style={styles.privacyInfoTitle}>
-                Actividad oculta
+                {t('profile.activityHidden')}
               </Text>
               <Text style={styles.privacyInfoText}>
-                Has ocultado tu actividad (favoritos, reseñas y visitas).
-                Puedes cambiar esto en{' '}
+                {t('profile.activityHiddenDesc')}{' '}
                 <Text
                   style={styles.privacyInfoLink}
                   onPress={handlePrivacy}
                 >
-                  Configuración de privacidad
+                  {t('profile.privacySettings')}
                 </Text>
               </Text>
             </View>
@@ -427,7 +428,7 @@ export default function ProfileScreen() {
 
         {/* Configuración */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Configuración</Text>
+          <Text style={styles.sectionTitle}>{t('profile.configuration')}</Text>
 
           <TouchableOpacity
             style={styles.menuItem}
@@ -437,7 +438,7 @@ export default function ProfileScreen() {
               <View style={[styles.iconContainer, { backgroundColor: '#E8F5E9' }]}>
                 <Ionicons name="notifications" size={22} color="#4CAF50" />
               </View>
-              <Text style={styles.menuItemText}>Notificaciones</Text>
+              <Text style={styles.menuItemText}>{t('profile.notifications')}</Text>
             </View>
             <View style={styles.menuItemRight}>
               {settings && (
@@ -445,12 +446,12 @@ export default function ProfileScreen() {
                   {settings.push_enabled || settings.email_enabled ? (
                     <>
                       <View style={[styles.statusDot, { backgroundColor: '#34C759' }]} />
-                      <Text style={styles.settingStatusText}>Activas</Text>
+                      <Text style={styles.settingStatusText}>{t('profile.active')}</Text>
                     </>
                   ) : (
                     <>
                       <View style={[styles.statusDot, { backgroundColor: '#999' }]} />
-                      <Text style={styles.settingStatusText}>Desactivadas</Text>
+                      <Text style={styles.settingStatusText}>{t('profile.disabled')}</Text>
                     </>
                   )}
                 </View>
@@ -467,7 +468,7 @@ export default function ProfileScreen() {
               <View style={[styles.iconContainer, { backgroundColor: '#F3E5F5' }]}>
                 <Ionicons name="shield-checkmark" size={22} color="#9C27B0" />
               </View>
-              <Text style={styles.menuItemText}>Privacidad</Text>
+              <Text style={styles.menuItemText}>{t('profile.privacy')}</Text>
             </View>
             <View style={styles.menuItemRight}>
               {settings && (
@@ -475,12 +476,12 @@ export default function ProfileScreen() {
                   {settings.profile_public ? (
                     <>
                       <Ionicons name="eye" size={16} color="#666" />
-                      <Text style={styles.settingStatusText}>Público</Text>
+                      <Text style={styles.settingStatusText}>{t('profile.public')}</Text>
                     </>
                   ) : (
                     <>
                       <Ionicons name="eye-off" size={16} color="#666" />
-                      <Text style={styles.settingStatusText}>Privado</Text>
+                      <Text style={styles.settingStatusText}>{t('profile.private')}</Text>
                     </>
                   )}
                 </View>
@@ -497,7 +498,7 @@ export default function ProfileScreen() {
               <View style={[styles.iconContainer, { backgroundColor: '#E1F5FE' }]}>
                 <Ionicons name="language" size={22} color="#03A9F4" />
               </View>
-              <Text style={styles.menuItemText}>Idioma</Text>
+              <Text style={styles.menuItemText}>{t('profile.language')}</Text>
             </View>
             <View style={styles.menuItemRight}>
               <Text style={styles.languageText}>
@@ -512,7 +513,7 @@ export default function ProfileScreen() {
 
         {/* Soporte */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Soporte</Text>
+          <Text style={styles.sectionTitle}>{t('profile.support')}</Text>
 
           <TouchableOpacity
             style={styles.menuItem}
@@ -522,7 +523,7 @@ export default function ProfileScreen() {
               <View style={[styles.iconContainer, { backgroundColor: '#FCE4EC' }]}>
                 <Ionicons name="help-circle" size={22} color="#E91E63" />
               </View>
-              <Text style={styles.menuItemText}>Ayuda y soporte</Text>
+              <Text style={styles.menuItemText}>{t('profile.helpSupport')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
@@ -535,7 +536,7 @@ export default function ProfileScreen() {
               <View style={[styles.iconContainer, { backgroundColor: '#F1F8E9' }]}>
                 <Ionicons name="information-circle" size={22} color="#8BC34A" />
               </View>
-              <Text style={styles.menuItemText}>Acerca de</Text>
+              <Text style={styles.menuItemText}>{t('profile.about')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#CCC" />
           </TouchableOpacity>
@@ -548,13 +549,13 @@ export default function ProfileScreen() {
             onPress={handleLogout}
           >
             <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
-            <Text style={styles.logoutText}>Cerrar sesión</Text>
+            <Text style={styles.logoutText}>{t('profile.logout')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Versión de la app */}
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Versión 1.0.9r20</Text>
+          <Text style={styles.versionText}>{t('profile.version')} 1.0.10r1</Text>
           <Text style={styles.versionSubtext}>
             Última actualización: {new Date().toLocaleDateString('es-ES')}
           </Text>

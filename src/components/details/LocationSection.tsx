@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -23,11 +24,14 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
     postalCode,
     onDirections,
 }) => {
+
+    const { t } = useLanguage();
+
     return (
         <View style={styles.section}>
             <View style={styles.sectionHeader}>
                 <Ionicons name="location" size={24} color="#003D7A" />
-                <Text style={styles.sectionTitle}>Ubicación</Text>
+                <Text style={styles.sectionTitle}>{t('detail.location')}</Text>
             </View>
 
             <View style={styles.mapContainer}>
@@ -54,7 +58,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
                 <Text style={styles.addressText}>C.P. {postalCode}</Text>
                 <TouchableOpacity style={styles.directionsButton} onPress={onDirections}>
                     <Ionicons name="navigate" size={20} color="#FFFFFF" />
-                    <Text style={styles.directionsButtonText}>Obtener direcciones</Text>
+                    <Text style={styles.directionsButtonText}>{t('detail.getDirections')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

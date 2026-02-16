@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -8,11 +9,14 @@ interface HoursSectionProps {
 }
 
 export const HoursSection: React.FC<HoursSectionProps> = ({ businessHours }) => {
+
+    const { t } = useLanguage();
+
     return (
         <View style={styles.section}>
             <View style={styles.sectionHeader}>
                 <Ionicons name="time" size={24} color="#003D7A" />
-                <Text style={styles.sectionTitle}>Horarios</Text>
+                <Text style={styles.sectionTitle}>{t('detail.schedules')}</Text>
             </View>
 
             <View style={styles.hoursContainer}>

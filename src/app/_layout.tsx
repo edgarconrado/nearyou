@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 
 import SplashScreen from '@/components/SplashScreen';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import { useAuthSync } from '@/hooks/use-auth-sync';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -41,7 +42,7 @@ function InitialLayout() {
   const segments = useSegments();
   const router = useRouter();
   const colorScheme = useColorScheme();
-  
+
   const [appReady, setAppReady] = useState(false);
   const [splashFinished, setSplashFinished] = useState(false);
 
@@ -71,7 +72,7 @@ function InitialLayout() {
   // Mostrar splash hasta que termine la animación Y la app esté lista
   if (!splashFinished || !appReady) {
     return (
-      <SplashScreen 
+      <SplashScreen
         onFinish={() => {
           // Solo cerrar el splash si la app ya está lista
           if (appReady) {
@@ -81,7 +82,7 @@ function InitialLayout() {
             // esperar un poco y volver a verificar
             setTimeout(() => setSplashFinished(true), 500);
           }
-        }} 
+        }}
       />
     );
   }
@@ -97,6 +98,8 @@ function InitialLayout() {
           <Stack.Screen name="my-visits" options={{ headerShown: false }} />
           <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
           <Stack.Screen name="privacy-settings" options={{ headerShown: false }} />
+          <Stack.Screen name="notifications-settings" options={{ headerShown: false }} />
+          <Stack.Screen name="language" options={{ headerShown: false }} />
           <Stack.Screen name="help-support" options={{ headerShown: false }} />
           <Stack.Screen name="about" options={{ headerShown: false }} />
         </Stack>
@@ -108,12 +111,15 @@ function InitialLayout() {
 
 export default function RootLayout() {
   return (
-    <ClerkProvider
-      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      tokenCache={tokenCache}>
-      <FavoritesProvider>
-        <InitialLayout />
-      </FavoritesProvider>
-    </ClerkProvider>
+    <LanguageProvider>
+      <ClerkProvider
+        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+        tokenCache={tokenCache}>
+        <FavoritesProvider>
+          <InitialLayout />
+        </FavoritesProvider>
+      </ClerkProvider>
+    </LanguageProvider>
+
   );
 }

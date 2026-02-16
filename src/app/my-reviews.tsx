@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MyReviewsScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
 
     const reviews = [
         {
@@ -58,13 +60,21 @@ export default function MyReviewsScreen() {
             <View style={styles.actions}>
                 <TouchableOpacity style={styles.actionButton}>
                     <Ionicons name="create-outline" size={18} color="#003D7A" />
-                    <Text style={styles.actionText}>Editar</Text>
+                    <Text style={styles.actionText}>{t('reviews.edit')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
                     <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-                    <Text style={[styles.actionText, { color: '#FF3B30' }]}>Eliminar</Text>
+                    <Text style={[styles.actionText, { color: '#FF3B30' }]}>{t('reviews.delete')}</Text>
                 </TouchableOpacity>
             </View>
+        </View>
+    );
+
+    const renderEmpty = () => (
+        <View style={styles.emptyContainer}>
+            <Ionicons name="star-outline" size={80} color="#CCC" />
+            <Text style={styles.emptyTitle}>{t('reviews.noReviews')}</Text>
+            <Text style={styles.emptyText}>{t('reviews.noReviewsDesc')}</Text>
         </View>
     );
 
@@ -74,7 +84,7 @@ export default function MyReviewsScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mis reseñas</Text>
+                <Text style={styles.headerTitle}>{t('reviews.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -82,8 +92,12 @@ export default function MyReviewsScreen() {
                 data={reviews}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[
+                    styles.list,
+                    reviews.length === 0 && styles.listEmpty
+                ]}
                 showsVerticalScrollIndicator={false}
+                ListEmptyComponent={renderEmpty}
             />
         </SafeAreaView>
     );
@@ -109,6 +123,9 @@ const styles = StyleSheet.create({
     },
     list: {
         padding: 16,
+    },
+    listEmpty: {
+        flexGrow: 1,
     },
     card: {
         backgroundColor: '#FFFFFF',
@@ -172,5 +189,24 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#003D7A',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+        paddingTop: 100,
+    },
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
     },
 });

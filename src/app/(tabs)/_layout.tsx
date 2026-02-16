@@ -2,11 +2,13 @@ import { Tabs } from "expo-router";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { Colors } from "@/constants/theme";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { t } = useLanguage();
 
   return (
     <Tabs
@@ -19,7 +21,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t('tabs.home'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={28} color={color} />
           ),
@@ -29,7 +31,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: "Explorar",
+          title: t('tabs.explore'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="paper-plane" size={28} color={color} />
           ),
@@ -39,7 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="my-favorites"
         options={{
-          title: "Favoritos",
+          title: t('tabs.favorites'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="heart" size={28} color={color} />
           ),
@@ -49,12 +51,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Perfil",
+          title: t('tabs.profile'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="person" size={28} color={color} />
           ),
         }}
       />
+
+
     </Tabs>
   );
 }

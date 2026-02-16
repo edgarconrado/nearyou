@@ -6,19 +6,25 @@ import { HoursSection } from '@/components/details/HoursSection';
 import { ImageGallery } from '@/components/details/ImageGallery';
 import { LocationSection } from '@/components/details/LocationSection';
 import { QuickActions } from '@/components/details/QuickActions';
+import { ReviewModal } from '@/components/details/ReviewModal';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
 import { useBusinessFavorite } from '@/hooks/use-favorites';
 import { BusinessesService, type BusinessFull } from '@/services/businesses.service';
-import { useAuth } from '@clerk/clerk-expo';
+import { ReviewsService } from '@/services/reviews.service';
+import { useAuth, useUser } from '@clerk/clerk-expo';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
   ScrollView,
   Share,
   StatusBar,
@@ -28,6 +34,7 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { NewReview, RatingDistribution, Review } from '../../types/types';
 
 // ========================================
 // UTILIDADES PARA FORMATEO DE HORARIOS
@@ -50,25 +57,25 @@ function formatTimeTo12Hour(time24: string): string {
   }
 }
 
-function getCurrentDayOfWeek(): string {
+function getCurrentDayOfWeek(t: (key: string) => string): string {
   const days = [
-    'Domingo',
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado'
+    t('detail.sunday'),
+    t('detail.monday'),
+    t('detail.tuesday'),
+    t('detail.wednesday'),
+    t('detail.thursday'),
+    t('detail.friday'),
+    t('detail.saturday')
   ];
 
   const now = new Date();
   return days[now.getDay()];
 }
 
-function checkIfBusinessIsOpen(hours: any[]): boolean {
+function checkIfBusinessIsOpen(hours: any[], t: (key: string) => string): boolean {
   if (!hours || hours.length === 0) return false;
 
-  const currentDay = getCurrentDayOfWeek();
+  const currentDay = getCurrentDayOfWeek(t);
   const now = new Date();
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
@@ -101,17 +108,17 @@ function checkIfBusinessIsOpen(hours: any[]): boolean {
   }
 }
 
-function getClosingTimeText(hours: any[]): string | null {
+function getClosingTimeText(hours: any[], t: (key: string) => string): string | null {
   if (!hours || hours.length === 0) return null;
 
-  const currentDay = getCurrentDayOfWeek();
+  const currentDay = getCurrentDayOfWeek(t);
   const todayHours = hours.find(h => h.day === currentDay);
 
   if (!todayHours || todayHours.isClosed) return null;
   if (!todayHours.closesAt) return null;
 
   const formattedTime = formatTimeTo12Hour(todayHours.closesAt);
-  return `Cierra a las ${formattedTime}`;
+  return `${t('detail.closesAt')} ${formattedTime}`;
 }
 
 // ========================================
@@ -122,6 +129,8 @@ export default function DetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { t } = useLanguage();
 
   const businessId = useMemo(() => {
     const raw = params.businessId;
@@ -132,6 +141,20 @@ export default function DetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState<'about' | 'reviews'>('about');
+
+  // Estados para Reviews
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState<number | 'all'>('all');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [isEditingReview, setIsEditingReview] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false); // 🆕 Estado para el spinner
+  const [newReview, setNewReview] = useState<NewReview>({
+    rating: 0,
+    comment: '',
+    images: [],
+  });
 
   const {
     isFavorite,
@@ -163,7 +186,7 @@ export default function DetailScreen() {
         setBusiness(data);
         BusinessesService.incrementVisitCount(businessId).catch(() => { });
       } catch (err) {
-        setError('No se pudo cargar el negocio');
+        setError(t('detail.businessNotFound'));
       } finally {
         setLoading(false);
       }
@@ -172,15 +195,81 @@ export default function DetailScreen() {
     load();
   }, [businessId]);
 
+  // Cargar reseñas
+  useEffect(() => {
+    if (!businessId) return;
+
+    const loadReviews = async () => {
+      try {
+        setReviewsLoading(true);
+
+        const { data, error } = await ReviewsService.getReviewsByBusinessWithUser(businessId);
+
+        if (error) throw error;
+
+        // Transformar los datos al formato esperado por los componentes
+        const formattedReviews: Review[] = (data || []).map((review) => {
+          const reviewDate = review.created_at ? new Date(review.created_at) : new Date();
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - reviewDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          let dateText = '';
+          if (diffDays === 0) {
+            dateText = t('detail.today');
+          } else if (diffDays === 1) {
+            dateText = t('detail.yesterday');
+          } else if (diffDays < 7) {
+            dateText = `${t('detail.daysAgo').replace('{days}', diffDays.toString())}`;
+          } else if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            dateText = weeks === 1 
+              ? t('detail.weekAgo') 
+              : `${t('detail.weeksAgo').replace('{weeks}', weeks.toString())}`;
+          } else if (diffDays < 365) {
+            const months = Math.floor(diffDays / 30);
+            dateText = months === 1 
+              ? t('detail.monthAgo') 
+              : `${t('detail.monthsAgo').replace('{months}', months.toString())}`;
+          } else {
+            const years = Math.floor(diffDays / 365);
+            dateText = years === 1 
+              ? t('detail.yearAgo') 
+              : `${t('detail.yearsAgo').replace('{years}', years.toString())}`;
+          }
+
+          return {
+            id: review.id,
+            userName: review.user?.full_name || t('detail.anonymousUser'),
+            userAvatar: review.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user?.full_name || 'U')}&background=003D7A&color=fff`,
+            rating: review.rating,
+            date: dateText,
+            comment: review.comment,
+            images: review.image_urls || [],
+            isOwn: review.user_id === user?.id,
+          };
+        });
+
+        setReviews(formattedReviews);
+      } catch (err) {
+        console.error('Error loading reviews:', err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    loadReviews();
+  }, [businessId, user?.id]);
+
   // Toggle favorito
   const handleToggleFavorite = async () => {
     if (!isSignedIn) {
       Alert.alert(
-        'Inicia sesión',
-        'Debes iniciar sesión para agregar favoritos',
+        t('detail.signInToFavorite'),
+        t('detail.signInToFavoriteDesc'),
         [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/sign-in') },
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('detail.signInButton'), onPress: () => router.push('/(auth)/sign-in') },
         ]
       );
       return;
@@ -188,9 +277,327 @@ export default function DetailScreen() {
 
     const ok = await toggle();
     if (!ok) {
-      Alert.alert('Error', 'No se pudo actualizar el favorito');
+      Alert.alert(t('common.error'), t('detail.favoriteError'));
     }
   };
+
+  // ======================================
+  // FUNCIONES PARA MANEJAR REVIEWS
+  // ======================================
+
+  const filteredReviews = useMemo(() => {
+    if (reviewFilter === 'all') return reviews;
+    return reviews.filter((review) => review.rating === reviewFilter);
+  }, [reviews, reviewFilter]);
+
+  const ratingDistribution: RatingDistribution[] = useMemo(() => {
+    const distribution = [
+      { stars: 5, count: 0, percentage: 0 },
+      { stars: 4, count: 0, percentage: 0 },
+      { stars: 3, count: 0, percentage: 0 },
+      { stars: 2, count: 0, percentage: 0 },
+      { stars: 1, count: 0, percentage: 0 },
+    ];
+
+    reviews.forEach((review) => {
+      const index = 5 - review.rating;
+      distribution[index].count++;
+    });
+
+    const total = reviews.length || 1;
+    distribution.forEach((item) => {
+      item.percentage = Math.round((item.count / total) * 100);
+    });
+
+    return distribution;
+  }, [reviews]);
+
+  const handleWriteReview = useCallback(async () => {
+    if (!isSignedIn) {
+      Alert.alert(
+        t('detail.signInToReview'),
+        t('detail.signInToReviewDesc'),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('detail.signInButton'), onPress: () => router.push('/(auth)/sign-in') },
+        ]
+      );
+      return;
+    }
+
+    // Verificar si el usuario ya tiene una reseña
+    if (!businessId || !user?.id) return;
+
+    const { hasReviewed, review } = await ReviewsService.hasUserReviewedBusiness(
+      user.id,
+      businessId
+    );
+
+    if (hasReviewed && review) {
+      // Si ya tiene reseña, abrir modal en modo edición
+      setIsEditingReview(true);
+      setEditingReviewId(review.id);
+      setNewReview({
+        rating: review.rating,
+        comment: review.comment,
+        images: review.image_urls || [],
+      });
+      setShowReviewModal(true);
+    } else {
+      // Si no tiene reseña, abrir modal para crear nueva
+      setIsEditingReview(false);
+      setEditingReviewId(null);
+      setNewReview({
+        rating: 0,
+        comment: '',
+        images: [],
+      });
+      setShowReviewModal(true);
+    }
+  }, [isSignedIn, businessId, user?.id, t, router]);
+
+  const handleSubmitReview = useCallback(async () => {
+    if (!businessId || !user?.id) return;
+
+    if (newReview.rating === 0) {
+      Alert.alert(t('reviewModal.error'), t('reviewModal.ratingRequired'));
+      return;
+    }
+
+    if (newReview.comment.trim().length === 0) {
+      Alert.alert(t('reviewModal.error'), t('reviewModal.commentRequired'));
+      return;
+    }
+
+    // 🆕 Activar estado de loading
+    setIsSubmittingReview(true);
+
+    try {
+      if (isEditingReview && editingReviewId) {
+        // Actualizar reseña existente
+        const { data, error } = await ReviewsService.updateReview(editingReviewId, {
+          rating: newReview.rating,
+          comment: newReview.comment,
+          image_urls: newReview.images.length > 0 ? newReview.images : null,
+        });
+
+        if (error) throw error;
+
+        Alert.alert(t('reviewModal.success'), t('reviewModal.reviewUpdated'));
+      } else {
+        // Crear nueva reseña
+        const { data, error } = await ReviewsService.createReview({
+          business_id: businessId,
+          user_id: user.id,
+          rating: newReview.rating,
+          comment: newReview.comment,
+          image_urls: newReview.images.length > 0 ? newReview.images : null,
+        });
+
+        if (error) throw error;
+
+        Alert.alert(t('reviewModal.success'), t('reviewModal.reviewPublished'));
+      }
+
+      // Cerrar modal y resetear estado
+      setShowReviewModal(false);
+      setNewReview({ rating: 0, comment: '', images: [] });
+      setIsEditingReview(false);
+      setEditingReviewId(null);
+
+      // Recargar reseñas
+      const { data: updatedReviews } = await ReviewsService.getReviewsByBusinessWithUser(businessId);
+      if (updatedReviews) {
+        const formattedReviews: Review[] = updatedReviews.map((review) => ({
+          id: review.id,
+          userName: review.user?.full_name || t('detail.anonymousUser'),
+          userAvatar: review.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user?.full_name || 'U')}&background=003D7A&color=fff`,
+          rating: review.rating,
+          date: new Date(review.created_at || '').toLocaleDateString(),
+          comment: review.comment,
+          images: review.image_urls || [],
+          isOwn: review.user_id === user?.id,
+        }));
+        setReviews(formattedReviews);
+      }
+
+      // Recargar el negocio para actualizar estadísticas
+      const { data: updatedBusiness } = await BusinessesService.getBusinessFullById(businessId);
+      if (updatedBusiness) {
+        setBusiness(updatedBusiness);
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      Alert.alert(t('common.error'), t('reviewModal.errorSubmitting'));
+    } finally {
+      // 🆕 Desactivar estado de loading siempre (incluso si hay error)
+      setIsSubmittingReview(false);
+    }
+  }, [businessId, user?.id, newReview, isEditingReview, editingReviewId, t]);
+
+  const handleAddPhoto = useCallback(async () => {
+    if (newReview.images.length >= 5) {
+      Alert.alert(t('reviewModal.maxPhotosReached'), t('reviewModal.maxPhotosReachedDesc'));
+      return;
+    }
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(t('reviewModal.permissionDenied'), t('reviewModal.permissionDeniedDesc'));
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setNewReview((prev) => ({
+        ...prev,
+        images: [...prev.images, result.assets[0].uri],
+      }));
+    }
+  }, [newReview.images.length, t]);
+
+  const handleRemovePhoto = useCallback((index: number) => {
+    setNewReview((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  const handleReviewOptions = useCallback((review: Review) => {
+    if (!review.isOwn) return;
+
+    const options = [t('reviewModal.edit'), t('reviewModal.delete'), t('common.cancel')];
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 2,
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 0) {
+            // Editar
+            setIsEditingReview(true);
+            setEditingReviewId(review.id);
+            setNewReview({
+              rating: review.rating,
+              comment: review.comment,
+              images: review.images || [],
+            });
+            setShowReviewModal(true);
+          } else if (buttonIndex === 1) {
+            // Eliminar
+            Alert.alert(
+              t('reviewModal.deleteReview'),
+              t('reviewModal.deleteReviewConfirm'),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('reviewModal.delete'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    if (!businessId) return;
+                    const { success, error } = await ReviewsService.deleteReview(review.id, businessId);
+                    if (success) {
+                      Alert.alert(t('reviewModal.success'), t('reviewModal.reviewDeleted'));
+                      // Recargar reseñas
+                      const { data } = await ReviewsService.getReviewsByBusinessWithUser(businessId);
+                      if (data) {
+                        const formattedReviews: Review[] = data.map((r) => ({
+                          id: r.id,
+                          userName: r.user?.full_name || t('detail.anonymousUser'),
+                          userAvatar: r.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.user?.full_name || 'U')}&background=003D7A&color=fff`,
+                          rating: r.rating,
+                          date: new Date(r.created_at || '').toLocaleDateString(),
+                          comment: r.comment,
+                          images: r.image_urls || [],
+                          isOwn: r.user_id === user?.id,
+                        }));
+                        setReviews(formattedReviews);
+                      }
+                    } else {
+                      Alert.alert(t('common.error'), t('reviewModal.errorDeleting'));
+                    }
+                  },
+                },
+              ]
+            );
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        t('reviewModal.options'),
+        '',
+        [
+          {
+            text: t('reviewModal.edit'),
+            onPress: () => {
+              setIsEditingReview(true);
+              setEditingReviewId(review.id);
+              setNewReview({
+                rating: review.rating,
+                comment: review.comment,
+                images: review.images || [],
+              });
+              setShowReviewModal(true);
+            },
+          },
+          {
+            text: t('reviewModal.delete'),
+            style: 'destructive',
+            onPress: () => {
+              Alert.alert(
+                t('reviewModal.deleteReview'),
+                t('reviewModal.deleteReviewConfirm'),
+                [
+                  { text: t('common.cancel'), style: 'cancel' },
+                  {
+                    text: t('reviewModal.delete'),
+                    style: 'destructive',
+                    onPress: async () => {
+                      if (!businessId) return;
+                      const { success } = await ReviewsService.deleteReview(review.id, businessId);
+                      if (success) {
+                        Alert.alert(t('reviewModal.success'), t('reviewModal.reviewDeleted'));
+                        const { data } = await ReviewsService.getReviewsByBusinessWithUser(businessId);
+                        if (data) {
+                          const formattedReviews: Review[] = data.map((r) => ({
+                            id: r.id,
+                            userName: r.user?.full_name || t('detail.anonymousUser'),
+                            userAvatar: r.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.user?.full_name || 'U')}&background=003D7A&color=fff`,
+                            rating: r.rating,
+                            date: new Date(r.created_at || '').toLocaleDateString(),
+                            comment: r.comment,
+                            images: r.image_urls || [],
+                            isOwn: r.user_id === user?.id,
+                          }));
+                          setReviews(formattedReviews);
+                        }
+                      } else {
+                        Alert.alert(t('common.error'), t('reviewModal.errorDeleting'));
+                      }
+                    },
+                  },
+                ]
+              );
+            },
+          },
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+        ]
+      );
+    }
+  }, [businessId, user?.id, t]);
 
   // Galería
   const gallery = useMemo(() => {
@@ -215,29 +622,29 @@ export default function DetailScreen() {
     if (!rawHours || rawHours.length === 0) {
       return business?.is_open ?? false;
     }
-    return checkIfBusinessIsOpen(rawHours);
-  }, [rawHours, business?.is_open]);
+    return checkIfBusinessIsOpen(rawHours, t);
+  }, [rawHours, business?.is_open, t]);
 
   // Obtener texto de cierre
   const closingTimeText = useMemo(() => {
     if (!rawHours || rawHours.length === 0) return null;
-    return getClosingTimeText(rawHours);
-  }, [rawHours]);
+    return getClosingTimeText(rawHours, t);
+  }, [rawHours, t]);
 
   // Formatear horarios
   const businessHours = useMemo(() => {
     if (!rawHours || rawHours.length === 0) return [];
 
-    const currentDay = getCurrentDayOfWeek();
+    const currentDay = getCurrentDayOfWeek(t);
 
     return rawHours.map(hour => ({
       day: hour.day,
       hours: hour.isClosed
-        ? 'Cerrado'
+        ? t('detail.closed')
         : `${formatTimeTo12Hour(hour.opensAt || '')} - ${formatTimeTo12Hour(hour.closesAt || '')}`,
       isToday: hour.day === currentDay,
     }));
-  }, [rawHours]);
+  }, [rawHours, t]);
 
   // Función para compartir
   const handleShare = async () => {
@@ -256,7 +663,7 @@ export default function DetailScreen() {
       });
 
     } catch (err) {
-      Alert.alert('Error', 'No se pudo compartir la información');
+      Alert.alert(t('common.error'), t('detail.shareError'));
     }
   };
 
@@ -266,7 +673,7 @@ export default function DetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#003D7A" />
-          <Text style={styles.loadingText}>Cargando información...</Text>
+          <Text style={styles.loadingText}>{t('detail.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -277,12 +684,12 @@ export default function DetailScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.center}>
-          <Text style={styles.error}>{error ?? 'Negocio no encontrado'}</Text>
+          <Text style={styles.error}>{error ?? t('detail.businessNotFound')}</Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Volver</Text>
+            <Text style={styles.backButtonText}>{t('detail.back')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -293,7 +700,7 @@ export default function DetailScreen() {
   const businessData = {
     id: business.id,
     name: business.name,
-    category: business.category_name || 'Sin categoría', // ✅ AGREGADO
+    category: business.category_name || t('detail.noCategory'), // ✅ AGREGADO
     rating: business.average_rating ?? 0,
     reviews: business.total_reviews ?? 0,
     address: business.address ?? '',
@@ -315,27 +722,10 @@ export default function DetailScreen() {
     postalCode: business.postal_code ?? '',
   };
 
-  // Reviews de ejemplo
-  const reviews = [
-    {
-      id: 1,
-      userName: 'Usuario Demo',
-      userAvatar: 'https://i.pravatar.cc/150?img=1',
-      rating: 5,
-      date: 'Hace 1 semana',
-      comment: 'Excelente lugar, muy recomendado.',
-      images: [],
-      isOwn: false,
-    },
-  ];
-
-  const ratingDistribution = [
-    { stars: 5, count: 10, percentage: 80 },
-    { stars: 4, count: 2, percentage: 15 },
-    { stars: 3, count: 1, percentage: 5 },
-    { stars: 2, count: 0, percentage: 0 },
-    { stars: 1, count: 0, percentage: 0 },
-  ];
+  // Calcular rating promedio basado en las reseñas reales
+  const actualRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : businessData.rating;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -427,27 +817,14 @@ export default function DetailScreen() {
           />
         ) : (
           <ReviewsTab
-            rating={businessData.rating}
+            rating={actualRating}
             reviews={reviews}
-            filteredReviews={reviews}
-            reviewFilter="all"
+            filteredReviews={filteredReviews}
+            reviewFilter={reviewFilter}
             ratingDistribution={ratingDistribution}
-            onWriteReview={() => {
-              if (!isSignedIn) {
-                Alert.alert(
-                  'Inicia sesión',
-                  'Debes iniciar sesión para escribir una reseña',
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/sign-in') },
-                  ]
-                );
-              } else {
-                Alert.alert('Escribir reseña', 'Función en desarrollo');
-              }
-            }}
-            onFilterChange={() => { }}
-            onReviewOptions={() => { }}
+            onWriteReview={handleWriteReview}
+            onFilterChange={setReviewFilter}
+            onReviewOptions={handleReviewOptions}
           />
         )}
 
@@ -455,7 +832,26 @@ export default function DetailScreen() {
       </ScrollView>
 
       <FloatingReserveButton
-        onPress={() => Alert.alert('Reservas', 'Función en desarrollo')}
+        onPress={() => Alert.alert(t('detail.reservations'), t('detail.featureInDevelopment'))}
+      />
+
+      <ReviewModal
+        visible={showReviewModal}
+        businessName={businessData.name ?? ''}
+        review={newReview}
+        isEditing={isEditingReview}
+        isSubmitting={isSubmittingReview} // 🆕 Agregar prop de loading
+        onClose={() => {
+          setShowReviewModal(false);
+          setNewReview({ rating: 0, comment: '', images: [] });
+          setIsEditingReview(false);
+          setEditingReviewId(null);
+        }}
+        onSubmit={handleSubmitReview}
+        onRatingChange={(rating) => setNewReview((prev) => ({ ...prev, rating }))}
+        onCommentChange={(comment) => setNewReview((prev) => ({ ...prev, comment }))}
+        onAddPhoto={handleAddPhoto}
+        onRemovePhoto={handleRemovePhoto}
       />
     </SafeAreaView>
   );

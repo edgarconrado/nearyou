@@ -1,4 +1,5 @@
 // components/explore/ZoneInfoButton.tsx
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
@@ -8,6 +9,9 @@ interface ZoneInfoButtonProps {
 }
 
 export function ZoneInfoButton({ onPress }: ZoneInfoButtonProps) {
+
+  const { t } = useLanguage();
+
   return (
     <Pressable 
       style={({ pressed }) => [
@@ -17,7 +21,7 @@ export function ZoneInfoButton({ onPress }: ZoneInfoButtonProps) {
       onPress={onPress}
     >
       <Ionicons name="information-circle" size={20} color="#FFF" />
-      <Text style={styles.buttonText}>Sobre este lugar</Text>
+      <Text style={styles.buttonText}>{t('detail.aboutThisPlace')}</Text>
     </Pressable>
   );
 }

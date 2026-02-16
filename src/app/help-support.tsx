@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -15,49 +16,50 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HelpSupportScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
     const [message, setMessage] = useState('');
 
     const faqs = [
         {
             id: 1,
-            question: '¿Cómo puedo agregar un lugar a favoritos?',
-            answer: 'Para agregar un lugar a favoritos, simplemente toca el ícono de corazón en la parte superior derecha de la página del negocio. El lugar aparecerá en tu sección "Mis favoritos".',
+            question: t('helpSupport.faq1q'),
+            answer: t('helpSupport.faq1a'),
         },
         {
             id: 2,
-            question: '¿Cómo escribo una reseña?',
-            answer: 'Ve a la página del negocio, baja hasta la sección de opiniones y presiona el botón "Escribir una opinión". Selecciona tu calificación, escribe tu comentario y opcionalmente agrega fotos.',
+            question: t('helpSupport.faq2q'),
+            answer: t('helpSupport.faq2a'),
         },
         {
             id: 3,
-            question: '¿Puedo editar o eliminar mi reseña?',
-            answer: 'Sí, ve a tu perfil > Mis reseñas. Toca los tres puntos en tu reseña y selecciona "Editar" o "Eliminar".',
+            question: t('helpSupport.faq3q'),
+            answer: t('helpSupport.faq3a'),
         },
         {
             id: 4,
-            question: '¿Cómo cambio mi foto de perfil?',
-            answer: 'Ve a tu perfil, toca tu foto actual y selecciona "Cambiar foto". Puedes tomar una foto nueva o elegir una de tu galería.',
+            question: t('helpSupport.faq4q'),
+            answer: t('helpSupport.faq4a'),
         },
         {
             id: 5,
-            question: '¿Cómo desactivo las notificaciones?',
-            answer: 'Ve a tu perfil > Configuración > Notificaciones. Desde ahí puedes personalizar qué tipo de notificaciones deseas recibir.',
+            question: t('helpSupport.faq5q'),
+            answer: t('helpSupport.faq5a'),
         },
         {
             id: 6,
-            question: '¿Los negocios pueden responder a mis reseñas?',
-            answer: 'Sí, los propietarios de negocios pueden responder a las reseñas. Recibirás una notificación cuando respondan a tu reseña.',
+            question: t('helpSupport.faq6q'),
+            answer: t('helpSupport.faq6a'),
         },
         {
             id: 7,
-            question: '¿Cómo reporto contenido inapropiado?',
-            answer: 'Puedes reportar reseñas o contenido inapropiado tocando el ícono de tres puntos y seleccionando "Reportar". Nuestro equipo revisará el reporte.',
+            question: t('helpSupport.faq7q'),
+            answer: t('helpSupport.faq7a'),
         },
         {
             id: 8,
-            question: '¿Puedo eliminar mi cuenta?',
-            answer: 'Sí, ve a Perfil > Configuración > Privacidad y seguridad > Eliminar mi cuenta. Ten en cuenta que esta acción es permanente.',
+            question: t('helpSupport.faq8q'),
+            answer: t('helpSupport.faq8a'),
         },
     ];
 
@@ -79,16 +81,16 @@ export default function HelpSupportScreen() {
 
     const handleSubmitMessage = () => {
         if (message.trim().length < 10) {
-            Alert.alert('Mensaje muy corto', 'Por favor escribe al menos 10 caracteres');
+            Alert.alert(t('common.error'), t('helpSupport.messageTooShort'));
             return;
         }
 
         Alert.alert(
-            'Mensaje enviado',
-            'Gracias por contactarnos. Responderemos a la brevedad.',
+            t('helpSupport.messageSent'),
+            t('helpSupport.messageSentDesc'),
             [
                 {
-                    text: 'OK',
+                    text: t('common.ok'),
                     onPress: () => {
                         setMessage('');
                     },
@@ -103,14 +105,14 @@ export default function HelpSupportScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Ayuda y soporte</Text>
+                <Text style={styles.headerTitle}>{t('helpSupport.title')}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Contacto rápido */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Contacto rápido</Text>
+                    <Text style={styles.sectionTitle}>{t('helpSupport.quickContact')}</Text>
 
                     <View style={styles.quickContactGrid}>
                         <TouchableOpacity
@@ -120,7 +122,7 @@ export default function HelpSupportScreen() {
                             <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
                                 <Ionicons name="call" size={28} color="#2196F3" />
                             </View>
-                            <Text style={styles.quickContactLabel}>Llamar</Text>
+                            <Text style={styles.quickContactLabel}>{t('helpSupport.call')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -130,7 +132,7 @@ export default function HelpSupportScreen() {
                             <View style={[styles.iconCircle, { backgroundColor: '#FFF3E0' }]}>
                                 <Ionicons name="mail" size={28} color="#FF9800" />
                             </View>
-                            <Text style={styles.quickContactLabel}>Email</Text>
+                            <Text style={styles.quickContactLabel}>{t('helpSupport.email')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -140,7 +142,7 @@ export default function HelpSupportScreen() {
                             <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
                                 <Ionicons name="logo-whatsapp" size={28} color="#4CAF50" />
                             </View>
-                            <Text style={styles.quickContactLabel}>WhatsApp</Text>
+                            <Text style={styles.quickContactLabel}>{t('helpSupport.whatsapp')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -150,7 +152,7 @@ export default function HelpSupportScreen() {
                             <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
                                 <Ionicons name="logo-facebook" size={28} color="#1877F2" />
                             </View>
-                            <Text style={styles.quickContactLabel}>Facebook</Text>
+                            <Text style={styles.quickContactLabel}>{t('helpSupport.facebook')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -159,17 +161,18 @@ export default function HelpSupportScreen() {
                 <View style={styles.infoBox}>
                     <Ionicons name="time-outline" size={20} color="#003D7A" />
                     <View style={styles.infoTextContainer}>
-                        <Text style={styles.infoTitle}>Horario de atención</Text>
+                        <Text style={styles.infoTitle}>{t('helpSupport.scheduleTitle')}</Text>
                         <Text style={styles.infoText}>
-                            Lunes a Viernes: 9:00 AM - 6:00 PM{'\n'}
-                            Sábados: 10:00 AM - 2:00 PM
+                            {t('helpSupport.scheduleWeekdays')}{'\n'}
+                            {t('helpSupport.scheduleWeekend')}{'\n'}
+                            {t('helpSupport.scheduleSunday')}
                         </Text>
                     </View>
                 </View>
 
                 {/* Preguntas frecuentes */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Preguntas frecuentes</Text>
+                    <Text style={styles.sectionTitle}>{t('helpSupport.commonQuestions')}</Text>
 
                     <View style={styles.faqContainer}>
                         {faqs.map((faq) => (
@@ -198,15 +201,15 @@ export default function HelpSupportScreen() {
 
                 {/* Formulario de contacto */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Envíanos un mensaje</Text>
+                    <Text style={styles.sectionTitle}>{t('helpSupport.sendMessage')}</Text>
                     <Text style={styles.sectionDescription}>
-                        ¿No encontraste respuesta a tu pregunta? Escríbenos y te responderemos pronto.
+                        {t('helpSupport.sendMessageDesc')}
                     </Text>
 
                     <View style={styles.messageForm}>
                         <TextInput
                             style={styles.messageInput}
-                            placeholder="Describe tu problema o pregunta..."
+                            placeholder={t('helpSupport.messagePlaceholder')}
                             placeholderTextColor="#999"
                             multiline
                             numberOfLines={6}
@@ -215,7 +218,7 @@ export default function HelpSupportScreen() {
                             textAlignVertical="top"
                         />
                         <Text style={styles.charCount}>
-                            {message.length} / 500 caracteres
+                            {message.length} / 500
                         </Text>
 
                         <TouchableOpacity
@@ -223,36 +226,36 @@ export default function HelpSupportScreen() {
                             onPress={handleSubmitMessage}
                         >
                             <Ionicons name="send" size={20} color="#FFFFFF" />
-                            <Text style={styles.sendButtonText}>Enviar mensaje</Text>
+                            <Text style={styles.sendButtonText}>{t('helpSupport.sendButton')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Enlaces útiles */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Enlaces útiles</Text>
+                    <Text style={styles.sectionTitle}>{t('helpSupport.usefulLinks')}</Text>
 
                     <TouchableOpacity style={styles.linkButton}>
                         <Ionicons name="document-text-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>Centro de ayuda completo</Text>
+                        <Text style={styles.linkText}>{t('helpSupport.helpCenter')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.linkButton}>
                         <Ionicons name="book-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>Guía de usuario</Text>
+                        <Text style={styles.linkText}>{t('helpSupport.userGuide')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.linkButton}>
                         <Ionicons name="videocam-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>Tutoriales en video</Text>
+                        <Text style={styles.linkText}>{t('helpSupport.videoTutorials')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.linkButton}>
                         <Ionicons name="chatbubbles-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>Comunidad y foros</Text>
+                        <Text style={styles.linkText}>{t('helpSupport.community')}</Text>
                         <Ionicons name="chevron-forward" size={20} color="#CCC" />
                     </TouchableOpacity>
                 </View>
