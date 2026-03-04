@@ -176,7 +176,14 @@
     "schedules": "Horarios",
     "getDirections": "Obtener direcciones",
     "location": "Ubicación",
-    "aboutThisPlace": "Sobre este Lugar"
+    "aboutThisPlace": "Sobre este Lugar",
+    "sunday": "Domingo",
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado"
   },
   "reviews": {
     "title": "Mis reseñas",
@@ -207,15 +214,6 @@
     "messagesDesc": "Notificaciones de mensajes",
     "reviews": "Reseñas",
     "reviewsDesc": "Cuando alguien responde a tus reseñas"
-  },
-  "days": {
-    "sunday": "Domingo",
-    "monday": "Lunes",
-    "tuesday": "Martes",
-    "wednesday": "Miércoles",
-    "thursday": "Jueves",
-    "friday": "Viernes",
-    "saturday": "Sábado"
   },
   "editProfile": {
     "title": "Editar perfil",
