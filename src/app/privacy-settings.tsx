@@ -1,6 +1,7 @@
+import { hairline, palette, spacing } from '@/constants/design';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserSettings } from '@/hooks/use-user-settings';
-import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -104,13 +105,13 @@ export default function PrivacySettingsScreen() {
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                        <Ionicons name="chevron-back" size={24} color={palette.ink} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>{t('privacy.title')}</Text>
                     <View style={{ width: 24 }} />
                 </View>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#003D7A" />
+                    <ActivityIndicator size="large" color={palette.ink} />
                     <Text style={styles.loadingText}>{t('privacy.loadingSettings')}</Text>
                 </View>
             </SafeAreaView>
@@ -122,7 +123,7 @@ export default function PrivacySettingsScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('privacy.title')}</Text>
 
@@ -149,7 +150,7 @@ export default function PrivacySettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
-                            <Ionicons name="eye" size={22} color="#003D7A" />
+                            <Ionicons name="eye" size={22} color={palette.ink} />
                             <View style={styles.settingTextContainer}>
                                 <Text style={styles.settingText}>{t('privacy.publicProfile')}</Text>
                                 <Text style={styles.settingDescription}>
@@ -161,7 +162,7 @@ export default function PrivacySettingsScreen() {
                             <Switch
                                 value={settings.profile_public ?? true}
                                 onValueChange={(value) => handleToggle('profile_public', value)}
-                                trackColor={{ false: '#D0D0D0', true: '#003D7A' }}
+                                trackColor={{ false: palette.border, true: palette.ink }}
                                 thumbColor="#FFFFFF"
                             />
                             {/* ✨ Indicador de campo actualizado */}
@@ -201,7 +202,7 @@ export default function PrivacySettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
-                            <Ionicons name="call" size={22} color="#4CAF50" />
+                            <Ionicons name="call" size={22} color={palette.success} />
                             <View style={styles.settingTextContainer}>
                                 <Text style={styles.settingText}>{t('privacy.showPhone')}</Text>
                                 <Text style={styles.settingDescription}>
@@ -288,7 +289,7 @@ export default function PrivacySettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
-                            <Ionicons name="location" size={22} color="#FF3B30" />
+                            <Ionicons name="location" size={22} color={palette.danger} />
                             <View style={styles.settingTextContainer}>
                                 <Text style={styles.settingText}>{t('privacy.shareLocation')}</Text>
                                 <Text style={styles.settingDescription}>
@@ -314,7 +315,7 @@ export default function PrivacySettingsScreen() {
 
                 {/* ✨ Información de tiempo real */}
                 <View style={styles.realtimeInfoBox}>
-                    <Ionicons name="sync-circle" size={24} color="#003D7A" />
+                    <Ionicons name="sync-circle" size={24} color={palette.ink} />
                     <View style={styles.realtimeInfoTextContainer}>
                         <Text style={styles.realtimeInfoTitle}>
                             {t('privacy.realtimeSync')}
@@ -331,7 +332,7 @@ export default function PrivacySettingsScreen() {
                         style={styles.resetButton}
                         onPress={handleResetDefaults}
                     >
-                        <Ionicons name="refresh-outline" size={22} color="#003D7A" />
+                        <Ionicons name="refresh-outline" size={22} color={palette.ink} />
                         <Text style={styles.resetButtonText}>
                             {t('privacy.restoreDefaults')}
                         </Text>
@@ -347,7 +348,7 @@ export default function PrivacySettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
     },
     loadingContainer: {
         flex: 1,
@@ -357,20 +358,22 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 16,
         fontSize: 16,
-        color: '#666',
+        color: palette.muted,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: palette.white,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.ink,
     },
     // ✨ Estilos para indicador de tiempo real
     realtimeIndicator: {
@@ -399,14 +402,14 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     section: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         padding: 20,
         marginTop: 8,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 16,
     },
     settingItem: {
@@ -428,12 +431,12 @@ const styles = StyleSheet.create({
     },
     settingText: {
         fontSize: 15,
-        color: '#333',
+        color: palette.ink,
         marginBottom: 2,
     },
     settingDescription: {
         fontSize: 12,
-        color: '#999',
+        color: palette.muted,
         lineHeight: 16,
     },
     // ✨ Contenedor para switch + badge
@@ -465,12 +468,12 @@ const styles = StyleSheet.create({
     realtimeInfoTitle: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#003D7A',
+        color: palette.ink,
         marginBottom: 4,
     },
     realtimeInfoText: {
         fontSize: 13,
-        color: '#003D7A',
+        color: palette.ink,
         lineHeight: 18,
     },
     resetButton: {
@@ -482,11 +485,11 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         backgroundColor: '#E3F2FD',
         borderWidth: 1,
-        borderColor: '#003D7A',
+        borderColor: palette.ink,
     },
     resetButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#003D7A',
+        color: palette.ink,
     },
 });

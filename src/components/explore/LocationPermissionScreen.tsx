@@ -1,16 +1,17 @@
 // screens/LocationPermissionScreen.tsx
+import { palette } from '@/constants/design';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface LocationPermissionScreenProps {
@@ -42,18 +43,18 @@ export default function LocationPermissionScreen({ onClose }: LocationPermission
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+      <StatusBar barStyle="dark-content" backgroundColor={palette.white} />
+
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.imageContainer}>
           <View style={styles.iconCircle}>
-            <Ionicons name="location" size={80} color="#003D7A" />
+            <Ionicons name="location" size={80} color={palette.ink} />
           </View>
         </View>
 
         <View style={styles.textContainer}>
           <Text style={styles.title}>Encuentra negocios cerca de ti</Text>
-          
+
           <Text style={styles.description}>
             Activa tu ubicación para que podamos mostrarte:
           </Text>
@@ -89,24 +90,24 @@ export default function LocationPermissionScreen({ onClose }: LocationPermission
           </View>
 
           <View style={styles.privacyNote}>
-            <Ionicons name="shield-checkmark" size={20} color="#666" />
+            <Ionicons name="shield-checkmark" size={20} color={palette.muted} />
             <Text style={styles.privacyText}>
-              Tu ubicación solo se usa para mejorar tu experiencia. 
+              Tu ubicación solo se usa para mejorar tu experiencia.
               Nunca compartimos tus datos.
             </Text>
           </View>
         </View>
 
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.enableButton}
             onPress={handleEnableLocation}
           >
-            <Ionicons name="location" size={20} color="#FFFFFF" />
+            <Ionicons name="location" size={20} color={palette.white} />
             <Text style={styles.enableButtonText}>Activar ubicación</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.skipButton}
             onPress={handleSkip}
           >
@@ -121,7 +122,7 @@ export default function LocationPermissionScreen({ onClose }: LocationPermission
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
   },
   content: {
     flexGrow: 1,
@@ -147,13 +148,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: palette.ink,
     textAlign: 'center',
     lineHeight: 36,
   },
   description: {
     fontSize: 16,
-    color: '#666',
+    color: palette.muted,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   featureText: {
     flex: 1,
     fontSize: 15,
-    color: '#333',
+    color: palette.ink,
     lineHeight: 22,
   },
   privacyNote: {
@@ -177,14 +178,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: palette.surface,
     borderRadius: 12,
     marginTop: 8,
   },
   privacyText: {
     flex: 1,
     fontSize: 13,
-    color: '#666',
+    color: palette.muted,
     lineHeight: 20,
   },
   buttonsContainer: {
@@ -196,12 +197,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#003D7A',
+    backgroundColor: palette.ink,
     paddingVertical: 16,
     borderRadius: 12,
   },
   enableButtonText: {
-    color: '#FFFFFF',
+    color: palette.white,
     fontSize: 18,
     fontWeight: '600',
   },
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   skipButtonText: {
-    color: '#666',
+    color: palette.muted,
     fontSize: 16,
     fontWeight: '500',
   },

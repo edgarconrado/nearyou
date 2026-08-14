@@ -1,247 +1,167 @@
-import type { Database } from '@/types/database.types';
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-// Extraer tipos de la base de datos
-type Business = Database['public']['Tables']['businesses']['Row'];
-
-// Tipo para los datos del negocio que se muestran en la UI
-// NO extendemos de Partial<Business> para evitar conflictos de tipos
+/** Datos del negocio ya normalizados para la UI. */
 export interface BusinessData {
-    id: string | null;
-    name: string | null;
-    category?: string; // Nombre de la categoría (calculado)
-    rating?: number; // average_rating renombrado
-    reviews?: number; // total_reviews renombrado
-    isOpen?: boolean; // is_open renombrado
-    description?: string | null;
-    priceRange?: string; // price_range renombrado
-    features?: string[];
-    closingTime?: string | null;
-    // Campos adicionales de Business que pueden ser necesarios
-    average_rating?: number | null;
-    total_reviews?: number | null;
-    is_open?: boolean | null;
-    price_range?: string | null;
+  id: string | null;
+  name: string | null;
+  category?: string;
+  rating?: number;
+  reviews?: number;
+  isOpen?: boolean;
+  description?: string | null;
+  priceRange?: string;
+  features?: string[];
+  closingTime?: string | null;
+  average_rating?: number | null;
+  total_reviews?: number | null;
+  is_open?: boolean | null;
+  price_range?: string | null;
 }
 
 interface BusinessInfoProps {
-    business: BusinessData;
-    isFavorite: boolean;
-    onToggleFavorite: () => void;
-    favoriteLoading?: boolean;
+  business: BusinessData;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+  favoriteLoading?: boolean;
 }
 
+/**
+ * Bloque principal del detalle: nombre grande, una línea de metadatos y la
+ * descripción. La calificación se muestra como número + estrella única, no
+ * como cinco estrellas de colores — es más legible y más sobrio.
+ */
 export const BusinessInfo: React.FC<BusinessInfoProps> = ({
-    business,
-    isFavorite,
-    onToggleFavorite,
-    favoriteLoading = false,
+  business,
+  isFavorite,
+  onToggleFavorite,
+  favoriteLoading = false,
 }) => {
-    const renderStars = (rating: number, size: number = 16) => {
-        const stars = [];
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 !== 0;
+  const name = business.name || 'Sin nombre';
+  const category = business.category || 'Sin categoría';
+  const priceRange = business.priceRange || business.price_range || '';
+  const rating = business.rating ?? business.average_rating ?? 0;
+  const reviews = business.reviews ?? business.total_reviews ?? 0;
+  const isOpen = business.isOpen ?? business.is_open ?? false;
+  const features = business.features || [];
 
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<Ionicons key={`star-${i}`} name="star" size={size} color="#FFB800" />);
-        }
-        if (hasHalfStar) {
-            stars.push(<Ionicons key="half-star" name="star-half" size={size} color="#FFB800" />);
-        }
-        const emptyStars = 5 - Math.ceil(rating);
-        for (let i = 0; i < emptyStars; i++) {
-            stars.push(<Ionicons key={`empty-${i}`} name="star-outline" size={size} color="#FFB800" />);
-        }
-        return stars;
-    };
+  return (
+    <View style={styles.container}>
+      <View style={styles.titleRow}>
+        <Text style={styles.name}>{name}</Text>
 
-    // Extraer valores con fallbacks seguros
-    const displayName = business.name || 'Sin nombre';
-    const displayCategory = business.category || 'Sin categoría';
-    const displayPriceRange = business.priceRange || business.price_range || '$';
-    const displayRating = business.rating ?? business.average_rating ?? 0;
-    const displayReviews = business.reviews ?? business.total_reviews ?? 0;
-    const displayIsOpen = business.isOpen ?? business.is_open ?? false;
-    const displayDescription = business.description;
-    const displayFeatures = business.features || [];
+        <Pressable
+          onPress={onToggleFavorite}
+          disabled={favoriteLoading}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Guardar'}
+          style={({ pressed }) => [styles.favorite, pressed && styles.pressed]}
+        >
+          {favoriteLoading ? (
+            <ActivityIndicator size="small" color={palette.accent} />
+          ) : (
+            <Ionicons
+              name={isFavorite ? 'heart' : 'heart-outline'}
+              size={26}
+              color={isFavorite ? palette.accent : palette.ink}
+            />
+          )}
+        </Pressable>
+      </View>
 
-    return (
-        <View style={styles.mainInfo}>
-            <View style={styles.nameRow}>
-                <Text style={styles.businessName}>{displayName}</Text>
-                <TouchableOpacity 
-                    style={styles.favoriteButton} 
-                    onPress={onToggleFavorite}
-                    disabled={favoriteLoading}
-                >
-                    {favoriteLoading ? (
-                        <ActivityIndicator size="small" color="#FF3B30" />
-                    ) : (
-                        <Ionicons
-                            name={isFavorite ? 'heart' : 'heart-outline'}
-                            size={28}
-                            color="#FF3B30"
-                        />
-                    )}
-                </TouchableOpacity>
-            </View>
-
-            <Text style={styles.category}>
-                {displayCategory} • {displayPriceRange}
-            </Text>
-
-            <View style={styles.ratingRow}>
-                {displayRating > 0 ? (
-                    <>
-                        <View style={styles.starsRow}>{renderStars(displayRating, 20)}</View>
-                        <Text style={styles.ratingText}>{displayRating.toFixed(1)}</Text>
-                        <Text style={styles.reviewsCount}>
-                            ({displayReviews} {displayReviews === 1 ? 'opinión' : 'opiniones'})
-                        </Text>
-                    </>
-                ) : (
-                    <Text style={styles.noRatingText}>Sin calificaciones aún</Text>
-                )}
-            </View>
-
-            <View style={styles.statusRow}>
-                <View style={[styles.statusDot, displayIsOpen && styles.statusDotOpen]} />
-                <Text style={[styles.statusText, displayIsOpen && styles.statusTextOpen]}>
-                    {displayIsOpen ? 'Abierto ahora' : 'Cerrado'}
+      <View style={styles.metaRow}>
+        {rating > 0 && (
+          <>
+            <Ionicons name="star" size={13} color={palette.ink} />
+            <Text style={styles.ratingText}>
+              {rating.toFixed(1)}
+              {reviews > 0 && (
+                <Text style={styles.meta}>
+                  {` (${reviews} ${reviews === 1 ? 'opinión' : 'opiniones'})`}
                 </Text>
-                {displayIsOpen && business.closingTime && (
-                    <Text style={styles.statusHours}> • {business.closingTime}</Text>
-                )}
+              )}
+            </Text>
+            <Text style={styles.dot}>·</Text>
+          </>
+        )}
+        <Text style={styles.meta}>{category}</Text>
+        {!!priceRange && (
+          <>
+            <Text style={styles.dot}>·</Text>
+            <Text style={styles.meta}>{priceRange}</Text>
+          </>
+        )}
+      </View>
+
+      <Text style={[styles.status, isOpen ? styles.open : styles.closed]}>
+        {isOpen ? 'Abierto ahora' : 'Cerrado'}
+        {isOpen && business.closingTime ? ` · Cierra a las ${business.closingTime}` : ''}
+      </Text>
+
+      {!!business.description && (
+        <Text style={styles.description}>{business.description}</Text>
+      )}
+
+      {features.length > 0 && (
+        <View style={styles.features}>
+          {features.map((feature) => (
+            <View key={feature} style={styles.chip}>
+              <Text style={styles.chipText}>{feature}</Text>
             </View>
-
-            {displayDescription && (
-                <Text style={styles.description}>{displayDescription}</Text>
-            )}
-
-            {displayFeatures.length > 0 && (
-                <View style={styles.featuresContainer}>
-                    {displayFeatures.map((feature, index) => (
-                        <View key={index} style={styles.featureChip}>
-                            <Ionicons name="checkmark-circle" size={16} color="#2E7D32" />
-                            <Text style={styles.featureText}>{feature}</Text>
-                        </View>
-                    ))}
-                </View>
-            )}
+          ))}
         </View>
-    );
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    mainInfo: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-    },
-    nameRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
-    },
-    businessName: {
-        flex: 1,
-        fontSize: 26,
-        fontWeight: 'bold',
-        color: '#333',
-        marginRight: 12,
-    },
-    favoriteButton: {
-        padding: 4,
-        minWidth: 36,
-        minHeight: 36,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    category: {
-        fontSize: 16,
-        color: '#666',
-        marginBottom: 12,
-    },
-    ratingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-        minHeight: 24,
-    },
-    starsRow: {
-        flexDirection: 'row',
-        gap: 2,
-    },
-    ratingText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginLeft: 8,
-    },
-    reviewsCount: {
-        fontSize: 15,
-        color: '#666',
-        marginLeft: 4,
-    },
-    noRatingText: {
-        fontSize: 15,
-        color: '#999',
-        fontStyle: 'italic',
-    },
-    statusRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    statusDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: '#C62828',
-        marginRight: 8,
-    },
-    statusDotOpen: {
-        backgroundColor: '#2E7D32',
-    },
-    statusText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#C62828',
-    },
-    statusTextOpen: {
-        color: '#2E7D32',
-    },
-    statusHours: {
-        fontSize: 15,
-        color: '#666',
-    },
-    description: {
-        fontSize: 15,
-        color: '#666',
-        lineHeight: 22,
-        marginBottom: 16,
-    },
-    featuresContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    featureChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: '#E8F5E9',
-        borderRadius: 16,
-    },
-    featureText: {
-        fontSize: 13,
-        color: '#2E7D32',
-        fontWeight: '500',
-    },
+  container: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  name: { ...type.title, flex: 1 },
+  favorite: { paddingTop: 2 },
+  pressed: { opacity: 0.6 },
+
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: spacing.sm,
+  },
+  ratingText: { ...type.smallStrong },
+  meta: { ...type.small },
+  dot: { ...type.small, marginHorizontal: 2 },
+
+  status: { ...type.small, fontWeight: '600', marginTop: spacing.xs },
+  open: { color: palette.success },
+  closed: { color: palette.muted },
+
+  description: { ...type.body, color: palette.ink, marginTop: spacing.lg },
+
+  features: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: hairline,
+    borderColor: palette.border,
+  },
+  chipText: { ...type.caption, color: palette.ink },
 });

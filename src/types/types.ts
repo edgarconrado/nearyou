@@ -34,7 +34,8 @@ export interface Offer {
 }
 
 export interface Review {
-  id: number;
+  // UUID de Supabase, no autoincremental
+  id: string;
   userName: string;
   userAvatar: string;
   rating: number;

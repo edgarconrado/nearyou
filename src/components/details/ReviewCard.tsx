@@ -1,6 +1,8 @@
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Review } from '../../types/types';
 
 interface ReviewCardProps {
@@ -8,49 +10,55 @@ interface ReviewCardProps {
     onOptions: () => void;
 }
 
+/** Reseña separada por hairline, sin tarjeta ni sombra. */
 export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOptions }) => {
-    const renderStars = (rating: number) => {
-        const stars = [];
-        for (let i = 0; i < rating; i++) {
-            stars.push(<Ionicons key={i} name="star" size={14} color="#FFB800" />);
-        }
-        for (let i = rating; i < 5; i++) {
-            stars.push(<Ionicons key={i} name="star-outline" size={14} color="#FFB800" />);
-        }
-        return stars;
-    };
+    const initials = (review.userName || '?')
+        .split(' ')
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase();
 
     return (
-        <View style={styles.reviewCard}>
-            <View style={styles.reviewHeader}>
-                <Image source={{ uri: review.userAvatar }} style={styles.userAvatar} />
-                <View style={styles.reviewHeaderInfo}>
-                    <Text style={styles.userName}>{review.userName}</Text>
-                    <View style={styles.reviewMeta}>
-                        <View style={styles.starsRow}>{renderStars(review.rating)}</View>
-                        <Text style={styles.reviewDate}> • {review.date}</Text>
+        <View style={styles.card}>
+            <View style={styles.header}>
+                {review.userAvatar ? (
+                    <Image source={{ uri: review.userAvatar }} style={styles.avatar} contentFit="cover" />
+                ) : (
+                    <View style={[styles.avatar, styles.avatarFallback]}>
+                        <Text style={styles.initials}>{initials}</Text>
+                    </View>
+                )}
+
+                <View style={styles.headerInfo}>
+                    <Text style={styles.userName} numberOfLines={1}>
+                        {review.userName}
+                    </Text>
+                    <View style={styles.meta}>
+                        <Ionicons name="star" size={12} color={palette.ink} />
+                        <Text style={styles.metaText}>
+                            {review.rating} · {review.date}
+                        </Text>
                     </View>
                 </View>
+
                 {review.isOwn && (
-                    <TouchableOpacity style={styles.moreButton} onPress={onOptions}>
-                        <Ionicons name="ellipsis-vertical" size={20} color="#666" />
-                    </TouchableOpacity>
+                    <Pressable onPress={onOptions} hitSlop={10} accessibilityLabel="Opciones">
+                        <Ionicons name="ellipsis-horizontal" size={20} color={palette.muted} />
+                    </Pressable>
                 )}
             </View>
-            <Text style={styles.reviewComment}>{review.comment}</Text>
+
+            <Text style={styles.comment}>{review.comment}</Text>
 
             {review.images && review.images.length > 0 && (
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.reviewImages}
-                >
-                    {review.images.map((image, index) => (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.gallery}>
+                    {review.images.map((image, i) => (
                         <Image
-                            key={index}
+                            key={`${image}-${i}`}
                             source={{ uri: image }}
-                            style={styles.reviewImage}
-                            resizeMode="cover"
+                            style={styles.photo}
+                            contentFit="cover"
                         />
                     ))}
                 </ScrollView>
@@ -60,59 +68,30 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOptions }) => 
 };
 
 const styles = StyleSheet.create({
-    reviewCard: {
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+    card: {
+        paddingVertical: spacing.lg,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.borderSoft,
     },
-    reviewHeader: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 12,
-        marginBottom: 12,
-    },
-    userAvatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-    },
-    reviewHeaderInfo: {
-        flex: 1,
-    },
-    userName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 4,
-    },
-    reviewMeta: {
-        flexDirection: 'row',
+    header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: palette.skeleton },
+    avatarFallback: {
         alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: palette.ink,
     },
-    starsRow: {
-        flexDirection: 'row',
-        gap: 2,
-    },
-    reviewDate: {
-        fontSize: 13,
-        color: '#999',
-    },
-    moreButton: {
-        padding: 4,
-    },
-    reviewComment: {
-        fontSize: 15,
-        color: '#666',
-        lineHeight: 22,
-        marginBottom: 12,
-    },
-    reviewImages: {
-        marginTop: 8,
-    },
-    reviewImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 8,
-        marginRight: 8,
+    initials: { ...type.captionStrong, color: palette.white },
+    headerInfo: { flex: 1 },
+    userName: { ...type.smallStrong, fontSize: 15 },
+    meta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+    metaText: { ...type.caption },
+    comment: { ...type.body, marginTop: spacing.md },
+    gallery: { marginTop: spacing.md },
+    photo: {
+        width: 100,
+        height: 100,
+        borderRadius: radius.sm,
+        marginRight: spacing.sm,
+        backgroundColor: palette.skeleton,
     },
 });

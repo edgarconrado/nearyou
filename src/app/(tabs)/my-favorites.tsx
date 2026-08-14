@@ -1,25 +1,26 @@
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/hooks/use-favorites';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     ActivityIndicator,
     Alert,
     FlatList,
-    Image,
+    Pressable,
     RefreshControl,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MyFavoritesScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { t } = useLanguage();
-    // Ahora usa el contexto global - los cambios se sincronizan automáticamente
     const { favorites, loading, removeFavorite, refetch } = useFavorites();
     const [refreshing, setRefreshing] = React.useState(false);
 
@@ -29,7 +30,7 @@ export default function MyFavoritesScreen() {
         setRefreshing(false);
     };
 
-    const handleRemoveFavorite = async (businessId: string, businessName: string) => {
+    const handleRemove = (businessId: string, businessName: string) => {
         Alert.alert(
             t('favorites.remove'),
             t('favorites.removeConfirm').replace('{{name}}', businessName),
@@ -39,313 +40,237 @@ export default function MyFavoritesScreen() {
                     text: t('favorites.removeButton'),
                     style: 'destructive',
                     onPress: async () => {
-                        const success = await removeFavorite(businessId);
-                        if (!success) {
-                            Alert.alert(t('common.error'), t('favorites.error'));
-                        }
-                    }
-                }
+                        const ok = await removeFavorite(businessId);
+                        if (!ok) Alert.alert(t('common.error'), t('favorites.error'));
+                    },
+                },
             ]
         );
     };
 
-    const renderItem = ({ item, index }: any) => {
-        // Si no hay datos del negocio
+    const renderItem = ({ item }: any) => {
+        // El negocio pudo haber sido eliminado: el favorito queda huérfano
         if (!item.business) {
             return (
-                <View style={styles.card}>
-                    <View style={styles.errorCard}>
-                        <Ionicons name="warning-outline" size={40} color="#FF9800" />
-                        <Text style={styles.errorTitle}>{t('favorites.businessNotAvailable')}</Text>
-                        <Text style={styles.errorText}>
-                            ID: {item.business_id}
-                        </Text>
-                        <TouchableOpacity 
-                            style={styles.removeButton}
-                            onPress={() => handleRemoveFavorite(item.business_id, t('favorites.businessNotAvailable'))}
-                        >
-                            <Text style={styles.removeButtonText}>{t('favorites.removeButton')}</Text>
-                        </TouchableOpacity>
-                    </View>
+                <View style={styles.orphan}>
+                    <Text style={styles.orphanTitle}>
+                        {t('favorites.businessNotAvailable')}
+                    </Text>
+                    <Pressable
+                        onPress={() =>
+                            handleRemove(item.business_id, t('favorites.businessNotAvailable'))
+                        }
+                        style={({ pressed }) => [styles.orphanButton, pressed && styles.pressedSoft]}
+                    >
+                        <Text style={styles.orphanButtonText}>{t('favorites.removeButton')}</Text>
+                    </Pressable>
                 </View>
             );
         }
 
         const business = item.business;
-        const businessName = business.name || 'Sin nombre';
-        const businessImage = business.main_image_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop';
+        const name = business.name || 'Sin nombre';
         const rating = business.average_rating;
-        const city = business.city;
 
         return (
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => {
+            <Pressable
+                onPress={() =>
                     router.push({
                         pathname: '/detail',
-                        params: { 
-                            businessId: business.id, 
-                            businessName: businessName 
-                        }
-                    });
-                }}
+                        params: { businessId: business.id, businessName: name },
+                    })
+                }
+                style={({ pressed }) => [styles.card, pressed && styles.pressed]}
             >
-                <Image 
-                    source={{ uri: businessImage }} 
-                    style={styles.image}
-                />
-                <View style={styles.cardContent}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.name} numberOfLines={2}>
-                            {businessName}
-                        </Text>
-                        <TouchableOpacity 
-                            onPress={() => handleRemoveFavorite(item.business_id, businessName)}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        >
-                            <Ionicons name="heart" size={24} color="#FF3B30" />
-                        </TouchableOpacity>
-                    </View>
-                    
-                    <View style={styles.footer}>
-                        {rating !== null && rating !== undefined && typeof rating === 'number' && (
-                            <View style={styles.ratingContainer}>
-                                <Ionicons name="star" size={16} color="#FFB800" />
-                                <Text style={styles.rating}>
-                                    {rating.toFixed(1)}
-                                </Text>
-                            </View>
-                        )}
-                        {city && (
-                            <View style={styles.locationContainer}>
-                                <Ionicons name="location-outline" size={14} color="#666" />
-                                <Text style={styles.location}>{city}</Text>
-                            </View>
-                        )}
-                    </View>
+                <View style={styles.imageWrap}>
+                    {business.main_image_url ? (
+                        <Image
+                            source={{ uri: business.main_image_url }}
+                            style={styles.image}
+                            contentFit="cover"
+                            transition={180}
+                        />
+                    ) : (
+                        <View style={styles.placeholder}>
+                            <Ionicons name="image-outline" size={28} color={palette.faint} />
+                        </View>
+                    )}
+
+                    <Pressable
+                        onPress={() => handleRemove(item.business_id, name)}
+                        hitSlop={10}
+                        accessibilityLabel={t('favorites.remove')}
+                        style={styles.heart}
+                    >
+                        <Ionicons
+                            name="heart"
+                            size={24}
+                            color={palette.accent}
+                            style={styles.heartIcon}
+                        />
+                    </Pressable>
                 </View>
-            </TouchableOpacity>
+
+                <View style={styles.body}>
+                    <View style={styles.titleRow}>
+                        <Text style={styles.name} numberOfLines={1}>
+                            {name}
+                        </Text>
+                        {typeof rating === 'number' && (
+                            <View style={styles.rating}>
+                                <Ionicons name="star" size={12} color={palette.ink} />
+                                <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <Text style={styles.meta} numberOfLines={1}>
+                        {[business.category_name, business.city].filter(Boolean).join(' · ')}
+                    </Text>
+                </View>
+            </Pressable>
         );
     };
 
     const renderEmpty = () => (
-        <View style={styles.emptyContainer}>
-            <Ionicons name="heart-outline" size={80} color="#CCC" />
+        <View style={styles.empty}>
+            <Ionicons name="heart-outline" size={48} color={palette.faint} />
             <Text style={styles.emptyTitle}>{t('favorites.empty')}</Text>
-            <Text style={styles.emptyText}>
-                {t('favorites.emptyDescription')}
-            </Text>
-
-            <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
-                <Ionicons name="refresh" size={20} color="#FFF" />
-                <Text style={styles.reloadText}>{t('favorites.reload')}</Text>
-            </TouchableOpacity>
+            <Text style={styles.emptyText}>{t('favorites.emptyDescription')}</Text>
+            <Pressable
+                onPress={() => router.push('/explore')}
+                style={({ pressed }) => [styles.exploreButton, pressed && styles.pressedSoft]}
+            >
+                <Text style={styles.exploreText}>Explorar lugares</Text>
+            </Pressable>
         </View>
     );
 
-    if (loading) {
-        return (
-            <SafeAreaView style={styles.container} edges={['top']}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{t('favorites.title')}</Text>
-                    <View style={{ width: 24 }} />
-                </View>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#003D7A" />
-                    <Text style={styles.loadingText}>{t('favorites.loading')}</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>
-                    {t('favorites.title')} ({favorites?.length || 0})
-                </Text>
-                <TouchableOpacity onPress={onRefresh}>
-                    <Ionicons name="refresh" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
+        <View style={styles.screen}>
+            <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+                <Text style={styles.title}>{t('favorites.title')}</Text>
+                {favorites.length > 0 && (
+                    <Text style={styles.count}>
+                        {favorites.length === 1
+                            ? '1 lugar guardado'
+                            : `${favorites.length} lugares guardados`}
+                    </Text>
+                )}
             </View>
 
-            <FlatList
-                data={favorites}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => item?.id || `fav-${index}`}
-                contentContainerStyle={[
-                    styles.list,
-                    favorites.length === 0 && styles.listEmpty
-                ]}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={renderEmpty}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={['#003D7A']}
-                        tintColor="#003D7A"
-                    />
-                }
-            />
-        </SafeAreaView>
+            {loading && favorites.length === 0 ? (
+                <View style={styles.center}>
+                    <ActivityIndicator color={palette.ink} />
+                </View>
+            ) : (
+                <FlatList
+                    data={favorites}
+                    renderItem={renderItem}
+                    keyExtractor={(item, index) => item?.id || `fav-${index}`}
+                    contentContainerStyle={[
+                        styles.list,
+                        favorites.length === 0 && styles.listEmpty,
+                    ]}
+                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                    showsVerticalScrollIndicator={false}
+                    ListEmptyComponent={renderEmpty}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={palette.muted}
+                        />
+                    }
+                />
+            )}
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
+    screen: { flex: 1, backgroundColor: palette.white },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.lg,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-    },
-    list: {
-        padding: 16,
-    },
-    listEmpty: {
-        flexGrow: 1,
-    },
-    card: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        marginBottom: 16,
-        overflow: 'hidden',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    errorCard: {
-        padding: 24,
-        alignItems: 'center',
-    },
-    errorTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#FF9800',
-        marginTop: 12,
-        marginBottom: 8,
-    },
-    errorText: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 16,
-    },
-    removeButton: {
-        backgroundColor: '#FF3B30',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 6,
-    },
-    removeButtonText: {
-        color: '#FFF',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    image: {
+    title: { ...type.title },
+    count: { ...type.small, marginTop: 2 },
+
+    list: { padding: spacing.lg },
+    listEmpty: { flexGrow: 1 },
+    separator: { height: spacing.xl },
+
+    card: { width: '100%' },
+    pressed: { opacity: 0.8 },
+    pressedSoft: { backgroundColor: palette.surface },
+
+    imageWrap: {
         width: '100%',
-        height: 180,
-        backgroundColor: '#E0E0E0',
+        aspectRatio: 4 / 3,
+        borderRadius: radius.md,
+        overflow: 'hidden',
+        backgroundColor: palette.skeleton,
     },
-    cardContent: {
-        padding: 16,
+    image: { width: '100%', height: '100%' },
+    placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
+    heart: { position: 'absolute', top: spacing.sm, right: spacing.sm, padding: spacing.xs },
+    heartIcon: {
+        textShadowColor: 'rgba(0, 0, 0, 0.35)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
     },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
-    },
-    name: {
-        flex: 1,
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginRight: 8,
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+
+    body: { paddingTop: spacing.md, gap: 2 },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    name: { ...type.bodyStrong, flex: 1 },
+    rating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    ratingText: { ...type.smallStrong },
+    meta: { ...type.small },
+
+    orphan: {
+        padding: spacing.lg,
+        borderWidth: hairline,
+        borderColor: palette.border,
+        borderRadius: radius.md,
         alignItems: 'center',
+        gap: spacing.md,
     },
-    ratingContainer: {
-        flexDirection: 'row',
+    orphanTitle: { ...type.small, textAlign: 'center' },
+    orphanButton: {
+        height: 40,
+        paddingHorizontal: spacing.lg,
+        borderRadius: radius.sm,
+        borderWidth: 1,
+        borderColor: palette.border,
         alignItems: 'center',
-        gap: 4,
-    },
-    rating: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-    },
-    locationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    location: {
-        fontSize: 13,
-        color: '#666',
-    },
-    loadingContainer: {
-        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
     },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: '#666',
-    },
-    emptyContainer: {
+    orphanButtonText: { ...type.captionStrong, color: palette.danger },
+
+    empty: {
         flex: 1,
+        alignItems: 'center',
         justifyContent: 'center',
+        paddingHorizontal: spacing.xl,
+        gap: spacing.sm,
+    },
+    emptyTitle: { ...type.subheading, textAlign: 'center', marginTop: spacing.md },
+    emptyText: { ...type.small, textAlign: 'center' },
+    exploreButton: {
+        marginTop: spacing.lg,
+        height: 48,
+        paddingHorizontal: spacing.xl,
+        borderRadius: radius.sm,
+        borderWidth: 1,
+        borderColor: palette.ink,
         alignItems: 'center',
-        paddingHorizontal: 40,
+        justifyContent: 'center',
     },
-    emptyTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    emptyText: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginBottom: 24,
-    },
-    reloadButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        backgroundColor: '#003D7A',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 8,
-    },
-    reloadText: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
+    exploreText: { ...type.smallStrong, fontSize: 15 },
 });

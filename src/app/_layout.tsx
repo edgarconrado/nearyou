@@ -1,64 +1,47 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import SplashScreen from '@/components/SplashScreen';
+import { palette } from '@/constants/design';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LocationProvider } from '@/contexts/LocationContext';
-import { useAuthSync } from '@/hooks/use-auth-sync';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
-import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from 'react';
-
-const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
-
-// Token cache para Clerk
-const tokenCache = {
-  async getToken(key: string) {
-    try {
-      return SecureStore.getItemAsync(key);
-    } catch (err) {
-      return null;
-    }
-  },
-  async saveToken(key: string, value: string) {
-    try {
-      return SecureStore.setItemAsync(key, value);
-    } catch (err) {
-      return;
-    }
-  },
-};
+import { SelectedZoneProvider } from '@/contexts/SelectedZoneContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
+};
+
+/**
+ * Tema claro fijo. La dirección visual es fondo blanco siempre:
+ * un modo oscuro a medias rompería el sistema de hairlines.
+ */
+const NearYouTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: palette.ink,
+    background: palette.white,
+    card: palette.white,
+    text: palette.ink,
+    border: palette.border,
+  },
 };
 
 function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const colorScheme = useColorScheme();
 
-  const [appReady, setAppReady] = useState(false);
   const [splashFinished, setSplashFinished] = useState(false);
 
-  // Sincronizar usuario con Supabase cuando inicie sesión
-  useAuthSync();
-
-  // Marcar la app como lista cuando Clerk termine de cargar
   useEffect(() => {
-    if (isLoaded) {
-      setAppReady(true);
-    }
-  }, [isLoaded]);
-
-  // Redirección automática según el estado de autenticación
-  useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !splashFinished) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
@@ -67,43 +50,34 @@ function InitialLayout() {
     } else if (!isSignedIn && !inAuthGroup) {
       router.replace('/(auth)/sign-in');
     }
-  }, [isSignedIn, segments, isLoaded]);
+  }, [isSignedIn, isLoaded, splashFinished, segments]);
 
-  // Mostrar splash hasta que termine la animación Y la app esté lista
-  if (!splashFinished || !appReady) {
-    return (
-      <SplashScreen
-        onFinish={() => {
-          // Solo cerrar el splash si la app ya está lista
-          if (appReady) {
-            setSplashFinished(true);
-          } else {
-            // Si la animación terminó pero la app no está lista,
-            // esperar un poco y volver a verificar
-            setTimeout(() => setSplashFinished(true), 500);
-          }
-        }}
-      />
-    );
+  if (!splashFinished || !isLoaded) {
+    return <SplashScreen onFinish={() => setSplashFinished(true)} />;
   }
 
   return (
     <LocationProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="detail" options={{ headerShown: false }} />
-          <Stack.Screen name="my-reviews" options={{ headerShown: false }} />
-          <Stack.Screen name="my-visits" options={{ headerShown: false }} />
-          <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
-          <Stack.Screen name="privacy-settings" options={{ headerShown: false }} />
-          <Stack.Screen name="notifications-settings" options={{ headerShown: false }} />
-          <Stack.Screen name="language" options={{ headerShown: false }} />
-          <Stack.Screen name="help-support" options={{ headerShown: false }} />
-          <Stack.Screen name="about" options={{ headerShown: false }} />
+      <ThemeProvider value={NearYouTheme}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: palette.white },
+          }}
+        >
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="detail" />
+          <Stack.Screen name="my-reviews" />
+          <Stack.Screen name="my-visits" />
+          <Stack.Screen name="edit-profile" />
+          <Stack.Screen name="privacy-settings" />
+          <Stack.Screen name="notifications-settings" />
+          <Stack.Screen name="language" />
+          <Stack.Screen name="help-support" />
+          <Stack.Screen name="about" />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
       </ThemeProvider>
     </LocationProvider>
   );
@@ -111,15 +85,16 @@ function InitialLayout() {
 
 export default function RootLayout() {
   return (
-    <LanguageProvider>
-      <ClerkProvider
-        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-        tokenCache={tokenCache}>
-        <FavoritesProvider>
-          <InitialLayout />
-        </FavoritesProvider>
-      </ClerkProvider>
-    </LanguageProvider>
-
+    <SafeAreaProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <SelectedZoneProvider>
+            <FavoritesProvider>
+              <InitialLayout />
+            </FavoritesProvider>
+          </SelectedZoneProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </SafeAreaProvider>
   );
 }

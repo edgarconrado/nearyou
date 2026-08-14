@@ -1,7 +1,8 @@
+import { palette, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Review } from '../../types/types';
 import { ReviewCard } from './ReviewCard';
 
@@ -22,20 +23,20 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
 
     if (filteredReviews.length === 0) {
         return (
-            <View style={styles.emptyReviews}>
-                <Ionicons name="chatbubbles-outline" size={64} color="#CCC" />
-                <Text style={styles.emptyReviewsText}>
+            <View style={styles.empty}>
+                <Ionicons name="chatbubble-outline" size={40} color={palette.faint} />
+                <Text style={styles.emptyText}>
                     {t('detail.noReviewsWithStars')} {reviewFilter} {t('detail.stars')}
                 </Text>
-                <TouchableOpacity onPress={() => onFilterChange('all')}>
-                    <Text style={styles.showAllLink}>{t('reviewsList.viewAllReviews')}</Text>
-                </TouchableOpacity>
+                <Pressable onPress={() => onFilterChange('all')} hitSlop={8}>
+                    <Text style={styles.link}>{t('reviewsList.viewAllReviews')}</Text>
+                </Pressable>
             </View>
         );
     }
 
     return (
-        <View style={styles.reviewsList}>
+        <View>
             {filteredReviews.map((review) => (
                 <ReviewCard
                     key={review.id}
@@ -43,44 +44,20 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
                     onOptions={() => onReviewOptions(review)}
                 />
             ))}
-
-            <TouchableOpacity style={styles.viewAllReviewsButton}>
-                <Text style={styles.viewAllReviewsText}>{t('reviewsList.viewAllReviews')}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#003D7A" />
-            </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    reviewsList: {
-        gap: 16,
-    },
-    emptyReviews: {
+    empty: {
         alignItems: 'center',
-        paddingVertical: 40,
+        paddingVertical: spacing.xxxl,
+        gap: spacing.sm,
     },
-    emptyReviewsText: {
-        fontSize: 16,
-        color: '#666',
-        marginTop: 16,
-        marginBottom: 12,
-    },
-    showAllLink: {
-        fontSize: 15,
-        color: '#003D7A',
-        fontWeight: '600',
-    },
-    viewAllReviewsButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        gap: 4,
-    },
-    viewAllReviewsText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#003D7A',
+    emptyText: { ...type.small, textAlign: 'center' },
+    link: {
+        ...type.smallStrong,
+        textDecorationLine: 'underline',
+        marginTop: spacing.xs,
     },
 });

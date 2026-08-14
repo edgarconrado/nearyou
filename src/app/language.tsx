@@ -1,3 +1,4 @@
+import { hairline, palette, spacing } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -107,7 +108,7 @@ export default function LanguageScreen() {
 
   const handleLanguageSelect = (languageCode: typeof languages[number]['code']) => {
     const selectedLang = languages.find(l => l.code === languageCode);
-    
+
     Alert.alert(
       t('language.changeLanguage'),
       t('language.changeLanguageConfirm').replace('{{language}}', selectedLang?.nativeName || ''),
@@ -120,7 +121,7 @@ export default function LanguageScreen() {
           text: t('language.change'),
           onPress: async () => {
             await setLanguage(languageCode);
-            
+
             // Mostrar mensaje de éxito
             setTimeout(() => {
               Alert.alert(
@@ -167,7 +168,7 @@ export default function LanguageScreen() {
         </View>
         {isSelected && (
           <View style={styles.checkmark}>
-            <Ionicons name="checkmark-circle" size={24} color="#003D7A" />
+            <Ionicons name="checkmark-circle" size={24} color={palette.ink} />
           </View>
         )}
       </TouchableOpacity>
@@ -183,7 +184,7 @@ export default function LanguageScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="chevron-back" size={24} color={palette.ink} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('language.title')}</Text>
           <View style={styles.backButton} />
@@ -193,7 +194,7 @@ export default function LanguageScreen() {
         <View style={styles.content}>
           {/* Info Card */}
           <View style={styles.infoCard}>
-            <Ionicons name="language" size={40} color="#003D7A" />
+            <Ionicons name="language" size={40} color={palette.ink} />
             <Text style={styles.infoTitle}>{t('language.chooseLanguage')}</Text>
             <Text style={styles.infoText}>
               {t('language.selectLanguageDescription')}
@@ -203,7 +204,7 @@ export default function LanguageScreen() {
           {/* Current Language */}
           <View style={styles.currentLanguageCard}>
             <View style={styles.currentLanguageHeader}>
-              <Ionicons name="globe" size={20} color="#FFFFFF" />
+              <Ionicons name="globe" size={20} color={palette.white} />
               <Text style={styles.currentLanguageLabel}>{t('language.currentLanguage')}</Text>
             </View>
             <View style={styles.currentLanguageContent}>
@@ -228,7 +229,7 @@ export default function LanguageScreen() {
           {/* Other Languages */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="list" size={18} color="#999" />
+              <Ionicons name="list" size={18} color={palette.muted} />
               <Text style={styles.sectionTitle}>{t('language.otherLanguages')}</Text>
             </View>
             {otherLanguages.map(renderLanguageItem)}
@@ -236,7 +237,7 @@ export default function LanguageScreen() {
 
           {/* Help Text */}
           <View style={styles.helpCard}>
-            <Ionicons name="information-circle" size={20} color="#003D7A" />
+            <Ionicons name="information-circle" size={20} color={palette.ink} />
             <Text style={styles.helpText}>
               {t('language.notFoundLanguage')}
             </Text>
@@ -263,15 +264,17 @@ export default function LanguageScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: palette.white,
   },
   header: {
-    backgroundColor: '#003D7A',
+    backgroundColor: palette.white,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: hairline,
+    borderBottomColor: palette.border,
   },
   backButton: {
     width: 40,
@@ -283,13 +286,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: palette.ink,
   },
   content: {
     padding: 16,
   },
   infoCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
@@ -303,18 +306,18 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: palette.ink,
     marginTop: 12,
     marginBottom: 8,
   },
   infoText: {
     fontSize: 14,
-    color: '#999',
+    color: palette.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
   currentLanguageCard: {
-    backgroundColor: '#003D7A',
+    backgroundColor: palette.ink,
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
   },
   currentLanguageLabel: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -348,7 +351,7 @@ const styles = StyleSheet.create({
   currentLanguageName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   section: {
     marginBottom: 24,
@@ -363,10 +366,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: palette.ink,
   },
   languageCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -382,7 +385,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   languageCardSelected: {
-    borderColor: '#003D7A',
+    borderColor: palette.ink,
     backgroundColor: '#E3F2FD',
   },
   languageLeft: {
@@ -400,16 +403,16 @@ const styles = StyleSheet.create({
   languageName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: palette.ink,
     marginBottom: 2,
   },
   languageNameSelected: {
-    color: '#003D7A',
+    color: palette.ink,
     fontWeight: 'bold',
   },
   languageNameEn: {
     fontSize: 13,
-    color: '#999',
+    color: palette.muted,
   },
   checkmark: {
     marginLeft: 12,
@@ -428,11 +431,11 @@ const styles = StyleSheet.create({
   helpText: {
     flex: 1,
     fontSize: 12,
-    color: '#003D7A',
+    color: palette.ink,
     lineHeight: 18,
   },
   coverageCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',
@@ -444,7 +447,7 @@ const styles = StyleSheet.create({
   coverageTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: palette.ink,
     marginBottom: 12,
   },
   coverageBar: {
@@ -457,11 +460,11 @@ const styles = StyleSheet.create({
   coverageProgress: {
     height: '100%',
     width: '100%',
-    backgroundColor: '#003D7A',
+    backgroundColor: palette.ink,
   },
   coverageText: {
     fontSize: 12,
-    color: '#999',
+    color: palette.muted,
     lineHeight: 18,
   },
 });

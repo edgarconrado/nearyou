@@ -1,6 +1,7 @@
+import { hairline, palette, spacing } from '@/constants/design';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserSettings } from '@/hooks/use-user-settings';
-import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -67,13 +68,13 @@ export default function NotificationsSettingsScreen() {
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                        <Ionicons name="chevron-back" size={24} color={palette.ink} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
                     <View style={{ width: 24 }} />
                 </View>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#003D7A" />
+                    <ActivityIndicator size="large" color={palette.ink} />
                     <Text style={styles.loadingText}>{t('notifications.loading')}</Text>
                 </View>
             </SafeAreaView>
@@ -87,7 +88,7 @@ export default function NotificationsSettingsScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
                 <View style={{ width: 24 }} />
@@ -103,7 +104,7 @@ export default function NotificationsSettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
-                            <Ionicons name="notifications" size={22} color="#003D7A" />
+                            <Ionicons name="notifications" size={22} color={palette.ink} />
                             <View style={styles.settingTextContainer}>
                                 <Text style={styles.settingText}>{t('notifications.enablePush')}</Text>
                                 <Text style={styles.settingDescription}>
@@ -114,7 +115,7 @@ export default function NotificationsSettingsScreen() {
                         <Switch
                             value={settings.push_enabled ?? true}
                             onValueChange={(value) => handleToggle('push_enabled', value)}
-                            trackColor={{ false: '#D0D0D0', true: '#003D7A' }}
+                            trackColor={{ false: palette.border, true: palette.ink }}
                             thumbColor="#FFFFFF"
                         />
                     </View>
@@ -124,7 +125,7 @@ export default function NotificationsSettingsScreen() {
                             style={styles.testButton}
                             onPress={handleTestNotification}
                         >
-                            <Ionicons name="send-outline" size={18} color="#003D7A" />
+                            <Ionicons name="send-outline" size={18} color={palette.ink} />
                             <Text style={styles.testButtonText}>{t('notifications.testNotification')}</Text>
                         </TouchableOpacity>
                     )}
@@ -136,7 +137,7 @@ export default function NotificationsSettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <View style={styles.settingLeft}>
-                            <Ionicons name="mail" size={22} color="#003D7A" />
+                            <Ionicons name="mail" size={22} color={palette.ink} />
                             <View style={styles.settingTextContainer}>
                                 <Text style={styles.settingText}>{t('notifications.receiveEmails')}</Text>
                                 <Text style={styles.settingDescription}>
@@ -147,7 +148,7 @@ export default function NotificationsSettingsScreen() {
                         <Switch
                             value={settings.email_enabled ?? true}
                             onValueChange={(value) => handleToggle('email_enabled', value)}
-                            trackColor={{ false: '#D0D0D0', true: '#003D7A' }}
+                            trackColor={{ false: palette.border, true: palette.ink }}
                             thumbColor="#FFFFFF"
                         />
                     </View>
@@ -298,7 +299,7 @@ export default function NotificationsSettingsScreen() {
 
                 {/* Información */}
                 <View style={styles.infoBox}>
-                    <Ionicons name="information-circle-outline" size={20} color="#003D7A" />
+                    <Ionicons name="information-circle-outline" size={20} color={palette.ink} />
                     <Text style={styles.infoText}>
                         {t('notifications.infoText')}
                     </Text>
@@ -310,7 +311,7 @@ export default function NotificationsSettingsScreen() {
                         style={styles.resetButton}
                         onPress={handleResetDefaults}
                     >
-                        <Ionicons name="refresh-outline" size={22} color="#003D7A" />
+                        <Ionicons name="refresh-outline" size={22} color={palette.ink} />
                         <Text style={styles.resetButtonText}>
                             {t('notifications.resetDefaults')}
                         </Text>
@@ -326,7 +327,7 @@ export default function NotificationsSettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
     },
     loadingContainer: {
         flex: 1,
@@ -336,38 +337,40 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 16,
         fontSize: 16,
-        color: '#666',
+        color: palette.muted,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: palette.white,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.ink,
     },
     content: {
         flex: 1,
     },
     section: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         padding: 20,
         marginTop: 8,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 4,
     },
     sectionDescription: {
         fontSize: 13,
-        color: '#666',
+        color: palette.muted,
         marginBottom: 16,
         lineHeight: 18,
     },
@@ -390,12 +393,12 @@ const styles = StyleSheet.create({
     },
     settingText: {
         fontSize: 15,
-        color: '#333',
+        color: palette.ink,
         marginBottom: 2,
     },
     settingDescription: {
         fontSize: 12,
-        color: '#999',
+        color: palette.muted,
         lineHeight: 16,
     },
     testButton: {
@@ -414,7 +417,7 @@ const styles = StyleSheet.create({
     testButtonText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#003D7A',
+        color: palette.ink,
     },
     warningBox: {
         flexDirection: 'row',
@@ -479,7 +482,7 @@ const styles = StyleSheet.create({
     infoText: {
         flex: 1,
         fontSize: 13,
-        color: '#003D7A',
+        color: palette.ink,
         lineHeight: 18,
     },
     resetButton: {
@@ -491,11 +494,11 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         backgroundColor: '#E3F2FD',
         borderWidth: 1,
-        borderColor: '#003D7A',
+        borderColor: palette.ink,
     },
     resetButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#003D7A',
+        color: palette.ink,
     },
 });

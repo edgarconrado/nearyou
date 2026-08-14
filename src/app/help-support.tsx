@@ -1,3 +1,4 @@
+import { hairline, palette, spacing } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -103,7 +104,7 @@ export default function HelpSupportScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('helpSupport.title')}</Text>
                 <View style={{ width: 24 }} />
@@ -140,7 +141,7 @@ export default function HelpSupportScreen() {
                             onPress={handleWhatsApp}
                         >
                             <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
-                                <Ionicons name="logo-whatsapp" size={28} color="#4CAF50" />
+                                <Ionicons name="logo-whatsapp" size={28} color={palette.success} />
                             </View>
                             <Text style={styles.quickContactLabel}>{t('helpSupport.whatsapp')}</Text>
                         </TouchableOpacity>
@@ -159,7 +160,7 @@ export default function HelpSupportScreen() {
 
                 {/* Horario de atención */}
                 <View style={styles.infoBox}>
-                    <Ionicons name="time-outline" size={20} color="#003D7A" />
+                    <Ionicons name="time-outline" size={20} color={palette.ink} />
                     <View style={styles.infoTextContainer}>
                         <Text style={styles.infoTitle}>{t('helpSupport.scheduleTitle')}</Text>
                         <Text style={styles.infoText}>
@@ -185,7 +186,7 @@ export default function HelpSupportScreen() {
                                     <Ionicons
                                         name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'}
                                         size={20}
-                                        color="#666"
+                                        color={palette.muted}
                                     />
                                 </TouchableOpacity>
 
@@ -210,7 +211,7 @@ export default function HelpSupportScreen() {
                         <TextInput
                             style={styles.messageInput}
                             placeholder={t('helpSupport.messagePlaceholder')}
-                            placeholderTextColor="#999"
+                            placeholderTextColor={palette.muted}
                             multiline
                             numberOfLines={6}
                             value={message}
@@ -225,7 +226,7 @@ export default function HelpSupportScreen() {
                             style={styles.sendButton}
                             onPress={handleSubmitMessage}
                         >
-                            <Ionicons name="send" size={20} color="#FFFFFF" />
+                            <Ionicons name="send" size={20} color={palette.white} />
                             <Text style={styles.sendButtonText}>{t('helpSupport.sendButton')}</Text>
                         </TouchableOpacity>
                     </View>
@@ -236,27 +237,27 @@ export default function HelpSupportScreen() {
                     <Text style={styles.sectionTitle}>{t('helpSupport.usefulLinks')}</Text>
 
                     <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="document-text-outline" size={22} color="#003D7A" />
+                        <Ionicons name="document-text-outline" size={22} color={palette.ink} />
                         <Text style={styles.linkText}>{t('helpSupport.helpCenter')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                        <Ionicons name="chevron-forward" size={20} color={palette.faint} />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="book-outline" size={22} color="#003D7A" />
+                        <Ionicons name="book-outline" size={22} color={palette.ink} />
                         <Text style={styles.linkText}>{t('helpSupport.userGuide')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                        <Ionicons name="chevron-forward" size={20} color={palette.faint} />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="videocam-outline" size={22} color="#003D7A" />
+                        <Ionicons name="videocam-outline" size={22} color={palette.ink} />
                         <Text style={styles.linkText}>{t('helpSupport.videoTutorials')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                        <Ionicons name="chevron-forward" size={20} color={palette.faint} />
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="chatbubbles-outline" size={22} color="#003D7A" />
+                        <Ionicons name="chatbubbles-outline" size={22} color={palette.ink} />
                         <Text style={styles.linkText}>{t('helpSupport.community')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                        <Ionicons name="chevron-forward" size={20} color={palette.faint} />
                     </TouchableOpacity>
                 </View>
 
@@ -269,38 +270,40 @@ export default function HelpSupportScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: palette.white,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.ink,
     },
     content: {
         flex: 1,
     },
     section: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         padding: 20,
         marginTop: 8,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 4,
     },
     sectionDescription: {
         fontSize: 14,
-        color: '#666',
+        color: palette.muted,
         lineHeight: 20,
         marginBottom: 16,
     },
@@ -324,7 +327,7 @@ const styles = StyleSheet.create({
     },
     quickContactLabel: {
         fontSize: 12,
-        color: '#666',
+        color: palette.muted,
         textAlign: 'center',
     },
     infoBox: {
@@ -342,12 +345,12 @@ const styles = StyleSheet.create({
     infoTitle: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#003D7A',
+        color: palette.ink,
         marginBottom: 4,
     },
     infoText: {
         fontSize: 13,
-        color: '#003D7A',
+        color: palette.ink,
         lineHeight: 18,
     },
     faqContainer: {
@@ -367,7 +370,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 15,
         fontWeight: '600',
-        color: '#333',
+        color: palette.ink,
         marginRight: 12,
     },
     faqAnswer: {
@@ -376,7 +379,7 @@ const styles = StyleSheet.create({
     },
     faqAnswerText: {
         fontSize: 14,
-        color: '#666',
+        color: palette.muted,
         lineHeight: 20,
     },
     messageForm: {
@@ -384,17 +387,17 @@ const styles = StyleSheet.create({
     },
     messageInput: {
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: palette.border,
         borderRadius: 12,
         padding: 16,
         fontSize: 15,
-        color: '#333',
+        color: palette.ink,
         minHeight: 120,
         backgroundColor: '#F9F9F9',
     },
     charCount: {
         fontSize: 13,
-        color: '#999',
+        color: palette.muted,
         marginTop: 8,
         textAlign: 'right',
     },
@@ -403,7 +406,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        backgroundColor: '#003D7A',
+        backgroundColor: palette.ink,
         paddingVertical: 14,
         borderRadius: 12,
         marginTop: 16,
@@ -411,7 +414,7 @@ const styles = StyleSheet.create({
     sendButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFFFFF',
+        color: palette.white,
     },
     linkButton: {
         flexDirection: 'row',
@@ -424,6 +427,6 @@ const styles = StyleSheet.create({
     linkText: {
         flex: 1,
         fontSize: 15,
-        color: '#333',
+        color: palette.ink,
     },
 });

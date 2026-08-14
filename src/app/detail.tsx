@@ -1,7 +1,6 @@
 import { AboutTab } from '@/components/details/AboutTab';
 import { BusinessInfo } from '@/components/details/BusinessInfo';
 import { DetailHeader } from '@/components/details/DetailHeader';
-import { FloatingReserveButton } from '@/components/details/FloatingReserveButton';
 import { HoursSection } from '@/components/details/HoursSection';
 import { ImageGallery } from '@/components/details/ImageGallery';
 import { LocationSection } from '@/components/details/LocationSection';
@@ -9,13 +8,14 @@ import { QuickActions } from '@/components/details/QuickActions';
 import { ReviewModal } from '@/components/details/ReviewModal';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
+import { palette } from '@/constants/design';
+import { useAuth, useUser } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
 import { useBusinessFavorite } from '@/hooks/use-favorites';
 import { BusinessesService, type BusinessFull } from '@/services/businesses.service';
 import { ReviewsService } from '@/services/reviews.service';
-import { useAuth, useUser } from '@clerk/clerk-expo';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -34,7 +34,7 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { NewReview, RatingDistribution, Review } from '../../types/types';
+import type { NewReview, RatingDistribution, Review } from '../types/types';
 
 // ========================================
 // UTILIDADES PARA FORMATEO DE HORARIOS
@@ -223,25 +223,25 @@ export default function DetailScreen() {
             dateText = `${t('detail.daysAgo').replace('{days}', diffDays.toString())}`;
           } else if (diffDays < 30) {
             const weeks = Math.floor(diffDays / 7);
-            dateText = weeks === 1 
-              ? t('detail.weekAgo') 
+            dateText = weeks === 1
+              ? t('detail.weekAgo')
               : `${t('detail.weeksAgo').replace('{weeks}', weeks.toString())}`;
           } else if (diffDays < 365) {
             const months = Math.floor(diffDays / 30);
-            dateText = months === 1 
-              ? t('detail.monthAgo') 
+            dateText = months === 1
+              ? t('detail.monthAgo')
               : `${t('detail.monthsAgo').replace('{months}', months.toString())}`;
           } else {
             const years = Math.floor(diffDays / 365);
-            dateText = years === 1 
-              ? t('detail.yearAgo') 
+            dateText = years === 1
+              ? t('detail.yearAgo')
               : `${t('detail.yearsAgo').replace('{years}', years.toString())}`;
           }
 
           return {
             id: review.id,
             userName: review.user?.full_name || t('detail.anonymousUser'),
-            userAvatar: review.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user?.full_name || 'U')}&background=003D7A&color=fff`,
+            userAvatar: review.user?.avatar_url || '',
             rating: review.rating,
             date: dateText,
             comment: review.comment,
@@ -411,7 +411,7 @@ export default function DetailScreen() {
         const formattedReviews: Review[] = updatedReviews.map((review) => ({
           id: review.id,
           userName: review.user?.full_name || t('detail.anonymousUser'),
-          userAvatar: review.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user?.full_name || 'U')}&background=003D7A&color=fff`,
+          userAvatar: review.user?.avatar_url || '',
           rating: review.rating,
           date: new Date(review.created_at || '').toLocaleDateString(),
           comment: review.comment,
@@ -513,7 +513,7 @@ export default function DetailScreen() {
                         const formattedReviews: Review[] = data.map((r) => ({
                           id: r.id,
                           userName: r.user?.full_name || t('detail.anonymousUser'),
-                          userAvatar: r.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.user?.full_name || 'U')}&background=003D7A&color=fff`,
+                          userAvatar: r.user?.avatar_url || '',
                           rating: r.rating,
                           date: new Date(r.created_at || '').toLocaleDateString(),
                           comment: r.comment,
@@ -572,7 +572,7 @@ export default function DetailScreen() {
                           const formattedReviews: Review[] = data.map((r) => ({
                             id: r.id,
                             userName: r.user?.full_name || t('detail.anonymousUser'),
-                            userAvatar: r.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.user?.full_name || 'U')}&background=003D7A&color=fff`,
+                            userAvatar: r.user?.avatar_url || '',
                             rating: r.rating,
                             date: new Date(r.created_at || '').toLocaleDateString(),
                             comment: r.comment,
@@ -670,9 +670,9 @@ export default function DetailScreen() {
   // Loading
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#003D7A" />
+          <ActivityIndicator size="large" color={palette.ink} />
           <Text style={styles.loadingText}>{t('detail.loading')}</Text>
         </View>
       </SafeAreaView>
@@ -682,7 +682,7 @@ export default function DetailScreen() {
   // Error
   if (error || !business) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.center}>
           <Text style={styles.error}>{error ?? t('detail.businessNotFound')}</Text>
           <TouchableOpacity
@@ -728,17 +728,15 @@ export default function DetailScreen() {
     : businessData.rating;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor={palette.white} />
 
-      <DetailHeader
-        businessName={businessData.name ?? ''}
-        onBack={() => router.back()}
-        onShare={handleShare}
-      />
-
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
+      >
         <ImageGallery images={businessData.gallery} />
+
 
         <BusinessInfo
           business={businessData}
@@ -828,12 +826,8 @@ export default function DetailScreen() {
           />
         )}
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 32 }} />
       </ScrollView>
-
-      <FloatingReserveButton
-        onPress={() => Alert.alert(t('detail.reservations'), t('detail.featureInDevelopment'))}
-      />
 
       <ReviewModal
         visible={showReviewModal}
@@ -853,6 +847,12 @@ export default function DetailScreen() {
         onAddPhoto={handleAddPhoto}
         onRemovePhoto={handleRemovePhoto}
       />
+      {/* Flota sobre la galería, por eso va al final del árbol */}
+      <DetailHeader
+        businessName={businessData.name ?? ''}
+        onBack={() => router.back()}
+        onShare={handleShare}
+      />
     </SafeAreaView>
   );
 }
@@ -860,7 +860,7 @@ export default function DetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: palette.white
   },
   center: {
     flex: 1,
@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
   backButton: {
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#003D7A',
+    backgroundColor: palette.ink,
     borderRadius: 8,
   },
   backButtonText: {

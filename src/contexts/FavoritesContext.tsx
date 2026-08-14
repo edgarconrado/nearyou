@@ -1,6 +1,6 @@
 // contexts/FavoritesContext.tsx
 import { FavoritesService, type FavoriteWithBusiness } from '@/services/favorites.service';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth } from '@/contexts/AuthContext';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 interface FavoritesContextType {
@@ -25,7 +25,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
     // Derivado: IDs de negocios favoritos
     const favoriteIds = useMemo(
-        () => new Set(favorites.map(f => f.business_id).filter(Boolean)),
+        () => new Set(favorites.map(f => f.business_id).filter((id): id is string => !!id)),
         [favorites]
     );
 

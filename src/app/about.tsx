@@ -1,9 +1,12 @@
 import { Logo } from '@/components/shared/logo';
+import { hairline, palette, spacing } from '@/constants/design';
+import { PRIVACY_URL, TERMS_URL } from '@/constants/links';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
+    Alert,
     Linking,
     ScrollView,
     StyleSheet,
@@ -17,11 +20,19 @@ export default function AboutScreen() {
     const router = useRouter();
     const { t } = useLanguage();
 
+    const openLink = async (url: string) => {
+        try {
+            await Linking.openURL(url);
+        } catch {
+            Alert.alert('No pudimos abrir el enlace', url);
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('about.title')}</Text>
                 <View style={{ width: 24 }} />
@@ -30,7 +41,7 @@ export default function AboutScreen() {
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Logo y nombre de la app */}
                 <Logo
-                    version={`${t('about.version')} 1.0.12r20`}
+                    version={`${t('about.version')} 1.1.0r1`}
                     slogan={t('about.slogan')}
                 />
 
@@ -76,7 +87,7 @@ export default function AboutScreen() {
 
                     <View style={styles.featureItem}>
                         <View style={[styles.featureIcon, { backgroundColor: '#E8F5E9' }]}>
-                            <Ionicons name="map" size={24} color="#4CAF50" />
+                            <Ionicons name="map" size={24} color={palette.success} />
                         </View>
                         <View style={styles.featureText}>
                             <Text style={styles.featureTitle}>{t('about.interactiveMaps')}</Text>
@@ -150,7 +161,7 @@ export default function AboutScreen() {
                         style={styles.contactItem}
                         onPress={() => Linking.openURL('mailto:contacto@nearyou.com')}
                     >
-                        <Ionicons name="mail-outline" size={22} color="#666" />
+                        <Ionicons name="mail-outline" size={22} color={palette.muted} />
                         <Text style={styles.contactText}>contacto@nearyou.com</Text>
                     </TouchableOpacity>
 
@@ -158,16 +169,16 @@ export default function AboutScreen() {
                         style={styles.contactItem}
                         onPress={() => Linking.openURL('https://www.nearyou.com')}
                     >
-                        <Ionicons name="globe-outline" size={22} color="#666" />
+                        <Ionicons name="globe-outline" size={22} color={palette.muted} />
                         <Text style={styles.contactText}>www.nearyou.com</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.contactItem}
-                        onPress={() => Linking.openURL('tel:+524341234567')}
+                        onPress={() => Linking.openURL('tel:+523531730317')}
                     >
-                        <Ionicons name="call-outline" size={22} color="#666" />
-                        <Text style={styles.contactText}>+52 (434) 123-4567</Text>
+                        <Ionicons name="call-outline" size={22} color={palette.muted} />
+                        <Text style={styles.contactText}>+52 (353) 173-0317</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -175,19 +186,22 @@ export default function AboutScreen() {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{t('about.legal')}</Text>
 
-                    <TouchableOpacity style={styles.legalLink}>
+                    <TouchableOpacity
+                        style={styles.legalLink}
+                        accessibilityRole="link"
+                        onPress={() => openLink(TERMS_URL)}
+                    >
                         <Text style={styles.legalText}>{t('about.termsConditions')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                        <Ionicons name="open-outline" size={18} color={palette.faint} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.legalLink}>
+                    <TouchableOpacity
+                        style={styles.legalLink}
+                        accessibilityRole="link"
+                        onPress={() => openLink(PRIVACY_URL)}
+                    >
                         <Text style={styles.legalText}>{t('about.privacyPolicy')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>{t('about.openSourceLicenses')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
+                        <Ionicons name="open-outline" size={18} color={palette.faint} />
                     </TouchableOpacity>
                 </View>
 
@@ -210,26 +224,28 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: palette.white,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.ink,
     },
     content: {
         flex: 1,
     },
     logoSection: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         alignItems: 'center',
         paddingVertical: 40,
         marginBottom: 8,
@@ -246,34 +262,34 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#003D7A',
+        color: palette.ink,
         marginBottom: 4,
     },
     appVersion: {
         fontSize: 14,
-        color: '#999',
+        color: palette.muted,
         marginBottom: 12,
     },
     appTagline: {
         fontSize: 15,
-        color: '#666',
+        color: palette.muted,
         textAlign: 'center',
         paddingHorizontal: 40,
     },
     section: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         padding: 20,
         marginTop: 8,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 12,
     },
     paragraph: {
         fontSize: 15,
-        color: '#666',
+        color: palette.muted,
         lineHeight: 22,
         marginBottom: 12,
     },
@@ -296,12 +312,12 @@ const styles = StyleSheet.create({
     featureTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 4,
     },
     featureDescription: {
         fontSize: 14,
-        color: '#666',
+        color: palette.muted,
         lineHeight: 20,
     },
     socialLinks: {
@@ -314,7 +330,7 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 2,
@@ -333,7 +349,7 @@ const styles = StyleSheet.create({
     },
     contactText: {
         fontSize: 15,
-        color: '#003D7A',
+        color: palette.ink,
     },
     legalLink: {
         flexDirection: 'row',
@@ -345,17 +361,17 @@ const styles = StyleSheet.create({
     },
     legalText: {
         fontSize: 15,
-        color: '#333',
+        color: palette.ink,
     },
     footer: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         alignItems: 'center',
         paddingVertical: 24,
         marginTop: 8,
     },
     footerText: {
         fontSize: 13,
-        color: '#999',
+        color: palette.muted,
         marginBottom: 4,
     },
 });

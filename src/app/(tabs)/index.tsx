@@ -1,186 +1,145 @@
 import { Header } from '@/components/home/Header';
 import { ZoneGrid } from '@/components/home/ZoneGrid';
+import { palette, radius, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSelectedZone } from '@/contexts/SelectedZoneContext';
 import { useZones } from '@/hooks/use-zones';
 import type { Zone } from '@/services/zones.service';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  ActivityIndicator,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 
 export default function HomeScreen() {
-  const router = useRouter();
-  const { t } = useLanguage();
-  const { zones, loading, error, refetch } = useZones();
+    const router = useRouter();
+    const { t } = useLanguage();
+    const { selectZone } = useSelectedZone();
+    const { zones, loading, error, refetch } = useZones();
 
-  const handleZonePress = (zone: Zone) => {
-    router.push({
-      pathname: '/explore',
-      params: {
-        zoneId: zone.id,
-        zoneName: zone.name,
-        zoneLocation: zone.state,
-        zoneImage: zone.image_url || '',
-      },
-    });
-  };
+    const handleZonePress = (zone: Zone) => {
+        selectZone({
+            id: zone.id,
+            name: zone.name,
+            location: zone.state,
+            image: zone.image_url || undefined,
+        });
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
-      
-      {/* Header moderno */}
-      <Header />
+        router.push({
+            pathname: '/explore',
+            params: {
+                zoneId: zone.id,
+                zoneName: zone.name,
+                zoneLocation: zone.state,
+                zoneImage: zone.image_url || '',
+            },
+        });
+    };
 
-      {/* Sección de exploración */}
-      <View style={styles.exploreBanner}>
-        <Text style={styles.exploreEmoji}>🗺️</Text>
-        <Text style={styles.exploreTitle}>{t('home.exploreByZone')}</Text>
-        <Text style={styles.exploreSubtitle}>{t('home.discoverExperiences')}</Text>
-      </View>
+    return (
+        <View style={styles.screen}>
+            <Header />
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#003D7A" />
-            <Text style={styles.loadingText}>{t('home.loadingZones')}</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorEmoji}>😕</Text>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-              <Text style={styles.retryText}>🔄 {t('home.retry')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : zones.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>🏝️</Text>
-            <Text style={styles.emptyText}>{t('home.noZones')}</Text>
-            <Text style={styles.emptySubtext}>{t('home.noZonesDescription')}</Text>
-          </View>
-        ) : (
-          <ZoneGrid zones={zones} onZonePress={handleZonePress} />
-        )}
-      </ScrollView>
-    </View>
-  );
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scroll}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={loading && zones.length > 0}
+                        onRefresh={refetch}
+                        tintColor={palette.muted}
+                    />
+                }
+            >
+                <View style={styles.intro}>
+                    <Text style={styles.title}>{t('home.exploreByZone')}</Text>
+                    <Text style={styles.subtitle}>{t('home.discoverExperiences')}</Text>
+                </View>
+
+                {loading && zones.length === 0 ? (
+                    <View style={styles.state}>
+                        <ActivityIndicator color={palette.ink} />
+                    </View>
+                ) : error ? (
+                    <View style={styles.state}>
+                        <Text style={styles.stateTitle}>No pudimos cargar las zonas</Text>
+                        <Text style={styles.stateBody}>{error}</Text>
+                        <Pressable
+                            onPress={refetch}
+                            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+                        >
+                            <Text style={styles.buttonText}>{t('home.retry')}</Text>
+                        </Pressable>
+                    </View>
+                ) : zones.length === 0 ? (
+                    <View style={styles.state}>
+                        <Text style={styles.stateTitle}>{t('home.noZones')}</Text>
+                        <Text style={styles.stateBody}>{t('home.noZonesDescription')}</Text>
+                    </View>
+                ) : (
+                    <ZoneGrid zones={zones} onZonePress={handleZonePress} />
+                )}
+            </ScrollView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  exploreBanner: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 8,
-  },
-  exploreEmoji: {
-    fontSize: 32,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  exploreTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#003D7A',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  exploreSubtitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 8,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 15,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 24,
-  },
-  errorEmoji: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 15,
-    color: '#DC2626',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  retryButton: {
-    backgroundColor: '#003D7A',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 24,
-    shadowColor: '#003D7A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  retryText: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-    paddingHorizontal: 24,
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: '#374151',
-    textAlign: 'center',
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
+    screen: {
+        flex: 1,
+        backgroundColor: palette.white,
+    },
+    scroll: {
+        flexGrow: 1,
+    },
+    intro: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.xl,
+        paddingBottom: spacing.lg,
+    },
+    title: {
+        ...type.title,
+    },
+    subtitle: {
+        ...type.body,
+        color: palette.muted,
+        marginTop: spacing.xs,
+    },
+    state: {
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.xxxl,
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    stateTitle: {
+        ...type.subheading,
+        textAlign: 'center',
+    },
+    stateBody: {
+        ...type.small,
+        textAlign: 'center',
+    },
+    button: {
+        marginTop: spacing.lg,
+        height: 48,
+        paddingHorizontal: spacing.xl,
+        borderRadius: radius.sm,
+        backgroundColor: palette.ink,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonPressed: {
+        opacity: 0.8,
+    },
+    buttonText: {
+        ...type.smallStrong,
+        color: palette.white,
+        fontSize: 15,
+    },
 });

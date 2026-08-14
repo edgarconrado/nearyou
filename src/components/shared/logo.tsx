@@ -1,3 +1,4 @@
+import { palette } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -13,7 +14,7 @@ export const Logo: React.FC<LogoProps> = ({
     return (
         <View style={styles.logoSection}>
             <View style={styles.logoContainer}>
-                <Ionicons name="location" size={60} color="#003D7A" />
+                <Ionicons name="location" size={60} color={palette.ink} />
             </View>
             <Text style={styles.appName}>NearYou</Text>
             <Text style={styles.appVersion}>{version}</Text>
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#003D7A',
+        color: palette.ink,
         marginBottom: 4,
     },
     appVersion: {

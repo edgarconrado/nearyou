@@ -1,3 +1,4 @@
+import { palette } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -129,16 +130,16 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
                     <View style={styles.logoOuter}>
                         <View style={styles.logoInner}>
                             {/* <Text style={styles.logoText}>N</Text> */}
-                            <Ionicons name="location" size={60} color="#003D7A" />
+                            <Ionicons name="location" size={60} color={palette.ink} />
                         </View>
                     </View>
                 </Animated.View>
 
-                {/* Texto principal */}         
+                {/* Texto principal */}
                 <View style={styles.textContainer}>
                     <Text style={styles.appName}>NearYou</Text>
                     <Text style={styles.tagline}>Descubre, explora y comparte experiencias</Text>
-                </View> 
+                </View>
 
 
                 {/* Barra de progreso - CORREGIDO */}
@@ -165,7 +166,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
                     },
                 ]}
             >
-                <Text style={styles.version}>Version 1.0.12r20</Text>
+                <Text style={styles.version}>Version 1.1.0r2</Text>
             </Animated.View>
         </View>
     );
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: 48,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.white,
         marginBottom: 10,
         letterSpacing: 2,
         textShadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     progressBar: {
         width: '100%',
         height: '100%',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         borderRadius: 2,
         transformOrigin: 'left',
     },

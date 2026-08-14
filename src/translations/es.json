@@ -183,7 +183,10 @@
     "wednesday": "Miércoles",
     "thursday": "Jueves",
     "friday": "Viernes",
-    "saturday": "Sábado"
+    "saturday": "Sábado",
+    "directions": "Direcciones",
+    "call": "Llamar",
+    "share": "Compartir"
   },
   "reviews": {
     "title": "Mis reseñas",
@@ -199,21 +202,6 @@
     "thisYear": "Este año",
     "noVisits": "No has visitado lugares",
     "noVisitsDesc": "Empieza a explorar y registra tus visitas"
-  },
-  "notifications": {
-    "title": "Notificaciones",
-    "pushNotifications": "Notificaciones push",
-    "pushNotificationsDesc": "Recibe alertas en tu dispositivo",
-    "emailNotifications": "Notificaciones por correo",
-    "emailNotificationsDesc": "Recibe actualizaciones por email",
-    "newPlaces": "Nuevos lugares",
-    "newPlacesDesc": "Notificaciones de lugares nuevos",
-    "offers": "Ofertas",
-    "offersDesc": "Recibe ofertas y promociones",
-    "messages": "Mensajes",
-    "messagesDesc": "Notificaciones de mensajes",
-    "reviews": "Reseñas",
-    "reviewsDesc": "Cuando alguien responde a tus reseñas"
   },
   "editProfile": {
     "title": "Editar perfil",
@@ -331,8 +319,6 @@
     "activeNotifications": "Notificaciones activas",
     "activeNotificationsDesc": "Recibirás notificaciones sobre:",
     "places": "Lugares",
-    "offers": "Ofertas",
-    "reviews": "Reseñas",
     "messagesShort": "Mensajes",
     "updatesShort": "Actualizaciones",
     "notificationsSummary": "Notificaciones configuradas",
@@ -343,7 +329,11 @@
     "resetDefaults": "Restaurar valores por defecto",
     "resetDefaultsTitle": "Restaurar valores por defecto",
     "resetDefaultsDesc": "¿Estás seguro de que deseas restaurar las notificaciones a sus valores por defecto?",
-    "restore": "Restaurar"
+    "restore": "Restaurar",
+    "pushNotifications": "Notificaciones push",
+    "pushNotificationsDesc": "Recibe alertas en tu dispositivo",
+    "emailNotifications": "Notificaciones por correo",
+    "emailNotificationsDesc": "Recibe actualizaciones por email"  
   },
   "reviewModal": {
     "writeReview": "Escribir reseña",

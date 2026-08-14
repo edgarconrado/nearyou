@@ -1,61 +1,66 @@
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 interface SearchBarProps {
-    searchQuery: string;
-    onChangeText: (text: string) => void;
-    onClear: () => void;
+  searchQuery: string;
+  onChangeText: (text: string) => void;
+  onClear: () => void;
+  placeholder?: string;
 }
 
 export const SearchBar = ({
-    searchQuery,
-    onChangeText,
-    onClear,
+  searchQuery,
+  onChangeText,
+  onClear,
+  placeholder = 'Buscar en esta zona',
 }: SearchBarProps) => {
-    return (
-        <View style={styles.searchContainer}>
-            <View style={styles.searchBox}>
-                <Ionicons name="search" size={20} color="#999" />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Buscar negocios, restaurantes, hoteles..."
-                    placeholderTextColor="#999"
-                    value={searchQuery}
-                    onChangeText={onChangeText}
-                    returnKeyType="search"
-                />
-                {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={onClear}>
-                        <Ionicons name="close-circle" size={20} color="#999" />
-                    </TouchableOpacity>
-                )}
-            </View>
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      <View style={styles.box}>
+        <Ionicons name="search" size={18} color={palette.ink} />
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor={palette.muted}
+          value={searchQuery}
+          onChangeText={onChangeText}
+          returnKeyType="search"
+          autoCorrect={false}
+          clearButtonMode="never"
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={onClear} hitSlop={10} accessibilityLabel="Borrar búsqueda">
+            <Ionicons name="close-circle" size={18} color={palette.muted} />
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    searchContainer: {
-        backgroundColor: '#FFFFFF',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-    },
-    searchBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F5F5F5',
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        gap: 8,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 15,
-        color: '#333',
-        paddingVertical: 0,
-    },
+  container: {
+    backgroundColor: palette.white,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  box: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    height: 48,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.pill,
+    borderWidth: hairline,
+    borderColor: palette.border,
+    backgroundColor: palette.white,
+  },
+  input: {
+    ...type.small,
+    color: palette.ink,
+    flex: 1,
+    paddingVertical: 0,
+  },
 });

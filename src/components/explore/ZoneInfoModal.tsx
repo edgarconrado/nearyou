@@ -1,4 +1,5 @@
 // components/explore/ZoneInfoModal.tsx
+import { palette } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -62,7 +63,7 @@ export function ZoneInfoModal({
                 {/* Header */}
                 <View style={styles.header}>
                     <Pressable onPress={onClose} style={styles.closeButton}>
-                        <Ionicons name="close" size={28} color="#333" />
+                        <Ionicons name="close" size={28} color={palette.ink} />
                     </Pressable>
                     <Text style={styles.headerTitle} numberOfLines={1}>
                         {zoneName}
@@ -72,7 +73,7 @@ export function ZoneInfoModal({
 
                 {loading ? (
                     <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#003D7A" />
+                        <ActivityIndicator size="large" color={palette.ink} />
                         <Text style={styles.loadingText}>Cargando información...</Text>
                     </View>
                 ) : (
@@ -121,7 +122,7 @@ export function ZoneInfoModal({
 
                                 {/* Contador de imágenes */}
                                 <View style={styles.imageCounter}>
-                                    <Ionicons name="images" size={16} color="#FFF" />
+                                    <Ionicons name="images" size={16} color={palette.white} />
                                     <Text style={styles.imageCounterText}>
                                         {activeImageIndex + 1} / {allImages.length}
                                     </Text>
@@ -133,7 +134,7 @@ export function ZoneInfoModal({
                         {hasDescription && (
                             <View style={styles.descriptionSection}>
                                 <View style={styles.sectionHeader}>
-                                    <Ionicons name="book-outline" size={24} color="#003D7A" />
+                                    <Ionicons name="book-outline" size={24} color={palette.ink} />
                                     <Text style={styles.sectionTitle}>Historia del Lugar</Text>
                                 </View>
                                 <Text style={styles.descriptionText}>{zoneDescription}</Text>
@@ -143,7 +144,7 @@ export function ZoneInfoModal({
                         {/* Mensaje cuando no hay información */}
                         {!hasImages && !hasDescription && (
                             <View style={styles.emptyState}>
-                                <Ionicons name="information-circle-outline" size={64} color="#CCC" />
+                                <Ionicons name="information-circle-outline" size={64} color={palette.faint} />
                                 <Text style={styles.emptyStateText}>
                                     No hay información adicional disponible para esta zona
                                 </Text>
@@ -162,7 +163,7 @@ export function ZoneInfoModal({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.surface,
     },
     header: {
         flexDirection: 'row',
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#FFF',
+        backgroundColor: palette.white,
         borderBottomWidth: 1,
         borderBottomColor: '#E0E0E0',
         elevation: 2,
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 18,
         fontWeight: '700',
-        color: '#333',
+        color: palette.ink,
         textAlign: 'center',
     },
     headerSpacer: {
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 12,
         fontSize: 16,
-        color: '#666',
+        color: palette.muted,
     },
     gallerySection: {
         marginBottom: 24,
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
         marginRight: 0,
         borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: '#E0E0E0',
+        backgroundColor: palette.border,
     },
     galleryImage: {
         width: '100%',
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     },
     paginationDotActive: {
         width: 24,
-        backgroundColor: '#003D7A',
+        backgroundColor: palette.ink,
     },
     imageCounter: {
         position: 'absolute',
@@ -255,12 +256,12 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     imageCounterText: {
-        color: '#FFF',
+        color: palette.white,
         fontSize: 12,
         fontWeight: '600',
     },
     descriptionSection: {
-        backgroundColor: '#FFF',
+        backgroundColor: palette.white,
         marginHorizontal: 16,
         marginBottom: 24,
         padding: 20,
@@ -280,7 +281,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#333',
+        color: palette.ink,
     },
     descriptionText: {
         fontSize: 16,
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
     emptyStateText: {
         marginTop: 16,
         fontSize: 16,
-        color: '#999',
+        color: palette.muted,
         textAlign: 'center',
     },
     bottomSpacer: {

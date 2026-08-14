@@ -1,3 +1,4 @@
+import { hairline, palette, spacing } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -41,7 +42,7 @@ export default function MyReviewsScreen() {
                 key={i}
                 name={i < rating ? 'star' : 'star-outline'}
                 size={16}
-                color="#FFB800"
+                color={palette.ink}
             />
         ));
     };
@@ -59,12 +60,12 @@ export default function MyReviewsScreen() {
             <Text style={styles.comment}>{item.comment}</Text>
             <View style={styles.actions}>
                 <TouchableOpacity style={styles.actionButton}>
-                    <Ionicons name="create-outline" size={18} color="#003D7A" />
+                    <Ionicons name="create-outline" size={18} color={palette.ink} />
                     <Text style={styles.actionText}>{t('reviews.edit')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
-                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-                    <Text style={[styles.actionText, { color: '#FF3B30' }]}>{t('reviews.delete')}</Text>
+                    <Ionicons name="trash-outline" size={18} color={palette.danger} />
+                    <Text style={[styles.actionText, { color: palette.danger }]}>{t('reviews.delete')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -72,7 +73,7 @@ export default function MyReviewsScreen() {
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <Ionicons name="star-outline" size={80} color="#CCC" />
+            <Ionicons name="star-outline" size={80} color={palette.faint} />
             <Text style={styles.emptyTitle}>{t('reviews.noReviews')}</Text>
             <Text style={styles.emptyText}>{t('reviews.noReviewsDesc')}</Text>
         </View>
@@ -82,7 +83,7 @@ export default function MyReviewsScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('reviews.title')}</Text>
                 <View style={{ width: 24 }} />
@@ -106,20 +107,22 @@ export default function MyReviewsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: palette.white,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.ink,
     },
     list: {
         padding: 16,
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     card: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
@@ -155,7 +158,7 @@ const styles = StyleSheet.create({
     businessName: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 4,
     },
     starsRow: {
@@ -165,11 +168,11 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 12,
-        color: '#999',
+        color: palette.muted,
     },
     comment: {
         fontSize: 14,
-        color: '#666',
+        color: palette.muted,
         lineHeight: 20,
         marginBottom: 12,
     },
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     actionText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#003D7A',
+        color: palette.ink,
     },
     emptyContainer: {
         flex: 1,
@@ -200,13 +203,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginTop: 16,
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 14,
-        color: '#666',
+        color: palette.muted,
         textAlign: 'center',
     },
 });

@@ -14,8 +14,10 @@ import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { ZoneInfoButton } from '@/components/explore/ZoneInfoButton';
 import { ZoneInfoModal } from '@/components/explore/ZoneInfoModal';
+import { palette, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
+import { useSelectedZone } from '@/contexts/SelectedZoneContext';
 import { useBusinesses } from '@/hooks/use-businesses';
 import { useZoneDetails } from '@/hooks/use-zone-details';
 import type { BusinessFull } from '@/services/businesses.service';
@@ -49,7 +51,28 @@ export default function ExploreScreen() {
     setShowLocationPrompt(false);
   };
 
-  const { zoneName, zoneLocation, zoneImage, zoneId } = params;
+  // La zona activa vive en el contexto, no en los params: al entrar por la
+  // pestaña (en vez de venir desde Inicio) los params llegan vacíos, y sin
+  // zoneId la búsqueda consultaba TODO el catálogo.
+  const { zone: selectedZone, selectZone } = useSelectedZone();
+
+  const zoneId = (params.zoneId as string) || selectedZone?.id;
+  const zoneName = (params.zoneName as string) || selectedZone?.name;
+  const zoneLocation = (params.zoneLocation as string) || selectedZone?.location;
+  const zoneImage = (params.zoneImage as string) || selectedZone?.image;
+
+  // Si llegamos con params, sincronizar el contexto para que la pestaña
+  // recuerde la zona en la siguiente visita.
+  useEffect(() => {
+    if (params.zoneId && params.zoneId !== selectedZone?.id) {
+      selectZone({
+        id: params.zoneId as string,
+        name: (params.zoneName as string) ?? '',
+        location: (params.zoneLocation as string) ?? '',
+        image: (params.zoneImage as string) || undefined,
+      });
+    }
+  }, [params.zoneId, selectedZone?.id, selectZone, params.zoneName, params.zoneLocation, params.zoneImage]);
 
   // Obtener información detallada de la zona
   const {
@@ -119,27 +142,27 @@ export default function ExploreScreen() {
   const getResultsText = () => {
     const count = filteredAndSortedBusinesses.length;
     const placeWord = count === 1 ? t('explore.place') : t('explore.places');
-    
+
     let text = `${count} ${placeWord}`;
-    
+
     if (searchQuery.length > 0) {
       text += ` ${t('explore.foundFor')} "${searchQuery}"`;
     }
-    
+
     if (selectedFilter !== 'Todos') {
       text += ` ${t('explore.in')} ${selectedFilter}`;
     }
-    
+
     if (userLocation && filteredAndSortedBusinesses.length > 0) {
       text += ` • ${t('explore.sortedByDistance')}`;
     }
-    
+
     return text;
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#003D7A" />
+      <StatusBar barStyle="dark-content" backgroundColor={palette.white} />
 
       <ExploreHeader
         zoneName={zoneName as string}
@@ -225,22 +248,18 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: palette.white,
   },
   mainContent: {
     flex: 1,
-    paddingTop: 60, // Espacio para el badge flotante
   },
   resultsCount: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '600',
-    backgroundColor: '#F5F5F5',
+    ...type.small,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
   businessesContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.lg,
   },
 });
