@@ -100,7 +100,7 @@ function GuestProfile() {
         />
       </View>
 
-      <Text style={styles.version}>{t('profile.version')} 1.1.2r1</Text>
+      <Text style={styles.version}>{t('profile.version')} 1.1.0</Text>
     </ScrollView>
   );
 }
@@ -353,12 +353,8 @@ export default function ProfileScreen() {
 
         <View style={styles.group}>
           <Text style={styles.groupTitle}>{t('profile.configuration')}</Text>
-          <MenuRow
-            icon="notifications-outline"
-            label={t('profile.notifications')}
-            value={settings?.push_enabled ? t('profile.active') : t('profile.disabled')}
-            onPress={() => router.push('/notifications-settings')}
-          />
+          {/* Notificaciones ocultas hasta que el envío push funcione:
+              una opción que no hace nada es rechazo por la guía 2.1. */}
           <MenuRow
             icon="lock-closed-outline"
             label={t('profile.privacy')}
@@ -401,7 +397,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={styles.version}>{t('profile.version')} 1.1.2r1</Text>
+        <Text style={styles.version}>{t('profile.version')} 1.1.0</Text>
       </ScrollView>
     </View>
   );

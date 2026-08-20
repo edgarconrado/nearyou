@@ -36,6 +36,8 @@ export interface Offer {
 export interface Review {
   // UUID de Supabase, no autoincremental
   id: string;
+  /** Autor de la reseña. Necesario para reportar y bloquear. */
+  userId?: string | null;
   userName: string;
   userAvatar: string;
   rating: number;

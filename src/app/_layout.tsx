@@ -1,7 +1,7 @@
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -31,9 +31,6 @@ const NearYouTheme = {
 
 function InitialLayout() {
   const { isLoaded } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
-
   const [splashFinished, setSplashFinished] = useState(false);
 
   /**
@@ -47,16 +44,6 @@ function InitialLayout() {
    * Antes se redirigía a /(auth)/sign-in cuando no había sesión, lo que
    * bloqueaba toda la app tras un muro de registro.
    */
-  useEffect(() => {
-    if (!isLoaded || !splashFinished) return;
-
-    // Nadie es expulsado de las pestañas por no tener sesión.
-    // Las pantallas que sí requieren cuenta piden login por su cuenta.
-    if (segments.length === 0) {
-      router.replace('/(tabs)');
-    }
-  }, [isLoaded, splashFinished, segments]);
-
   if (!splashFinished || !isLoaded) {
     return <SplashScreen onFinish={() => setSplashFinished(true)} />;
   }

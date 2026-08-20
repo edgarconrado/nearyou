@@ -19,6 +19,13 @@ export const REPORT_REASONS = [
 
 export type ReportReason = (typeof REPORT_REASONS)[number]['key'];
 
+export type BlockedUser = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  blockedAt: string;
+};
+
 export class ModerationService {
   /** Registra un reporte sobre una reseña. */
   static async reportReview(params: {
@@ -115,6 +122,35 @@ export class ModerationService {
       return new Set(data.map((r) => r.blocked_id as string));
     } catch {
       return new Set();
+    }
+  }
+
+  /**
+   * Lista de usuarios bloqueados con nombre y avatar, para poder mostrarlos
+   * y desbloquearlos desde Privacidad.
+   */
+  static async getBlockedUsers(): Promise<BlockedUser[]> {
+    try {
+      const { data: session } = await supabase.auth.getUser();
+      const blockerId = session.user?.id;
+      if (!blockerId) return [];
+
+      const { data, error } = await supabase
+        .from('blocked_users')
+        .select('blocked_id, created_at, profiles!blocked_users_blocked_id_fkey(full_name, avatar_url)')
+        .eq('blocker_id', blockerId)
+        .order('created_at', { ascending: false });
+
+      if (error || !data) return [];
+
+      return data.map((row: any) => ({
+        id: row.blocked_id,
+        name: row.profiles?.full_name || 'Usuario',
+        avatarUrl: row.profiles?.avatar_url ?? null,
+        blockedAt: row.created_at,
+      }));
+    } catch {
+      return [];
     }
   }
 }

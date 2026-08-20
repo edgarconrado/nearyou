@@ -56,7 +56,7 @@ export default function MyVisitsScreen() {
         <TouchableOpacity
             style={styles.card}
             onPress={() => router.push({
-                pathname: '/business-details',
+                pathname: '/detail',
                 params: { businessId: item.id, businessName: item.name }
             })}
         >
