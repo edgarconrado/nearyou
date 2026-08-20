@@ -6,7 +6,11 @@ import { useFavorites } from '@/hooks/use-favorites';
 import { useProfile } from '@/hooks/use-profile';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { useUserStats } from '@/hooks/use-user-stats';
-import { AccountService, GRACE_PERIOD_DAYS, type DeletionStatus } from '@/services/account.service';
+import {
+  AccountService,
+  GRACE_PERIOD_DAYS,
+  type DeletionStatus,
+} from '@/services/account.service';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -31,45 +35,73 @@ const LANGUAGE_NAMES: Record<string, string> = {
   pt: 'Português',
 };
 
-/** Bloque de estadísticas: tres números separados por hairlines verticales. */
-function Stats({
-  favorites,
-  reviews,
-  visits,
-  onFavorites,
-  onReviews,
-  onVisits,
-}: {
-  favorites: number;
-  reviews: number;
-  visits: number;
-  onFavorites: () => void;
-  onReviews: () => void;
-  onVisits: () => void;
-}) {
+/**
+ * Perfil para quien todavía no ha iniciado sesión.
+ *
+ * Existe por la guía 5.1.1(v) de App Store: la app se puede explorar sin
+ * cuenta, así que esta pestaña tiene que mostrar algo útil en vez de quedarse
+ * cargando para siempre esperando un userId que no existe.
+ */
+function GuestProfile() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useLanguage();
 
-  const items = [
-    { value: favorites, label: t('profile.favorites'), onPress: onFavorites },
-    { value: reviews, label: t('profile.reviews'), onPress: onReviews },
-    { value: visits, label: t('profile.visits'), onPress: onVisits },
-  ];
-
   return (
-    <View style={styles.stats}>
-      {items.map((item, i) => (
-        <React.Fragment key={item.label}>
-          {i > 0 && <View style={styles.statDivider} />}
-          <Pressable
-            onPress={item.onPress}
-            style={({ pressed }) => [styles.stat, pressed && styles.statPressed]}
-          >
-            <Text style={styles.statValue}>{item.value}</Text>
-            <Text style={styles.statLabel}>{item.label}</Text>
-          </Pressable>
-        </React.Fragment>
-      ))}
-    </View>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[
+        styles.scroll,
+        { paddingTop: insets.top + spacing.xxl, paddingBottom: spacing.xxxl },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.guestHeader}>
+        <View style={[styles.avatar, styles.avatarFallback]}>
+          <Ionicons name="person-outline" size={40} color={palette.white} />
+        </View>
+
+        <Text style={styles.name}>Explora sin cuenta</Text>
+        <Text style={styles.guestBody}>
+          Puedes seguir descubriendo lugares libremente. Crea una cuenta si
+          quieres guardar favoritos y escribir reseñas.
+        </Text>
+
+        <Pressable
+          onPress={() => router.push('/(auth)/sign-in')}
+          style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryPressed]}
+        >
+          <Text style={styles.primaryText}>Iniciar sesión</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>{t('profile.configuration')}</Text>
+        <MenuRow
+          icon="language-outline"
+          label={t('profile.language')}
+          onPress={() => router.push('/language')}
+          last
+        />
+      </View>
+
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>{t('profile.support')}</Text>
+        <MenuRow
+          icon="help-circle-outline"
+          label={t('profile.helpSupport')}
+          onPress={() => router.push('/help-support')}
+        />
+        <MenuRow
+          icon="information-circle-outline"
+          label={t('profile.about')}
+          onPress={() => router.push('/about')}
+          last
+        />
+      </View>
+
+      <Text style={styles.version}>{t('profile.version')} 1.1.2r1</Text>
+    </ScrollView>
   );
 }
 
@@ -77,12 +109,11 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
-  const { signOut, userId } = useAuth();
+  const { signOut, userId, isSignedIn } = useAuth();
   const { user } = useUser();
 
-  const safeUserId = userId ?? null;
-  const { profile, loading: profileLoading, error, refetch } = useProfile(safeUserId);
-  const { stats, loading: statsLoading } = useUserStats(safeUserId);
+  const { profile, loading: profileLoading, error, refetch } = useProfile(userId ?? null);
+  const { stats, loading: statsLoading } = useUserStats(userId ?? null);
   const { favorites } = useFavorites();
   const { settings, loading: settingsLoading } = useUserSettings(userId);
 
@@ -90,7 +121,10 @@ export default function ProfileScreen() {
   const [deletionStatus, setDeletionStatus] = useState<DeletionStatus | null>(null);
 
   const refreshDeletionStatus = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setDeletionStatus(null);
+      return;
+    }
     setDeletionStatus(await AccountService.getDeletionStatus(userId));
   }, [userId]);
 
@@ -98,19 +132,11 @@ export default function ProfileScreen() {
     refreshDeletionStatus();
   }, [refreshDeletionStatus]);
 
-  const handleCancelDeletion = async () => {
-    const { success, error: cancelError } = await AccountService.cancelDeletion();
-    if (success) {
-      await refreshDeletionStatus();
-      refetch();
-      Alert.alert('Cuenta restaurada', 'Tu cuenta ya no se eliminará.');
-    } else {
-      Alert.alert(
-        'No pudimos restaurar la cuenta',
-        cancelError?.message ?? 'Inténtalo de nuevo.'
-      );
-    }
-  };
+  // Sin sesión: pantalla de invitado. Va DESPUÉS de los hooks para no
+  // romper el orden de llamadas de React entre renders.
+  if (!isSignedIn || !userId) {
+    return <GuestProfile />;
+  }
 
   const loading = profileLoading || statsLoading || settingsLoading;
 
@@ -141,17 +167,37 @@ export default function ProfileScreen() {
     .join('')
     .toUpperCase();
 
+  const handleCancelDeletion = async () => {
+    const { success, error: cancelError } = await AccountService.cancelDeletion();
+    if (success) {
+      await refreshDeletionStatus();
+      refetch();
+      Alert.alert('Cuenta restaurada', 'Tu cuenta ya no se eliminará.');
+    } else {
+      Alert.alert(
+        'No pudimos restaurar la cuenta',
+        cancelError?.message ?? 'Inténtalo de nuevo.'
+      );
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
       { text: 'Cancelar', style: 'cancel' },
-      { text: t('profile.logout'), style: 'destructive', onPress: () => signOut() },
+      {
+        text: t('profile.logout'),
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          // Al cerrar sesión, isSignedIn pasa a false y esta misma pantalla
+          // se vuelve a renderizar como GuestProfile. Limpiamos lo local
+          // para que no quede nada del usuario anterior en memoria.
+          setDeletionStatus(null);
+        },
+      },
     ]);
   };
 
-  /**
-   * Eliminación de cuenta — requisito de App Store 5.1.1(v).
-   * No borra al instante: marca la cuenta y deja 30 días para arrepentirse.
-   */
   const handleDeleteAccount = () => {
     Alert.alert(
       'Eliminar cuenta',
@@ -163,7 +209,6 @@ export default function ProfileScreen() {
           text: 'Eliminar cuenta',
           style: 'destructive',
           onPress: async () => {
-            if (!userId) return;
             setDeleting(true);
             const { success, error: delError } = await AccountService.requestDeletion();
             setDeleting(false);
@@ -206,6 +251,13 @@ export default function ProfileScreen() {
 
   const showActivity = settings?.show_activity ?? true;
 
+  const stat = (value: number, label: string, onPress: () => void) => (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.stat, pressed && styles.statPressed]}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </Pressable>
+  );
+
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -231,7 +283,6 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Identidad */}
         <View style={styles.header}>
           <View style={styles.avatarWrap}>
             {avatarUrl ? (
@@ -258,30 +309,25 @@ export default function ProfileScreen() {
         </View>
 
         {showActivity ? (
-          <Stats
-            favorites={favorites.length}
-            reviews={stats?.reviews ?? 0}
-            visits={stats?.visits ?? 0}
-            onFavorites={() => router.push('/my-favorites')}
-            onReviews={() => router.push('/my-reviews')}
-            onVisits={() => router.push('/my-visits')}
-          />
+          <View style={styles.stats}>
+            {stat(favorites.length, t('profile.favorites'), () => router.push('/my-favorites'))}
+            <View style={styles.statDivider} />
+            {stat(stats?.reviews ?? 0, t('profile.reviews'), () => router.push('/my-reviews'))}
+            <View style={styles.statDivider} />
+            {stat(stats?.visits ?? 0, t('profile.visits'), () => router.push('/my-visits'))}
+          </View>
         ) : (
           <View style={styles.hiddenNotice}>
             <Ionicons name="eye-off-outline" size={18} color={palette.muted} />
             <Text style={styles.hiddenText}>
               {t('profile.activityHidden')}{' '}
-              <Text
-                style={styles.link}
-                onPress={() => router.push('/privacy-settings')}
-              >
+              <Text style={styles.link} onPress={() => router.push('/privacy-settings')}>
                 {t('profile.privacySettings')}
               </Text>
             </Text>
           </View>
         )}
 
-        {/* Actividad */}
         <View style={styles.group}>
           <Text style={styles.groupTitle}>{t('profile.myActivity')}</Text>
           <MenuRow
@@ -305,7 +351,6 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Configuración */}
         <View style={styles.group}>
           <Text style={styles.groupTitle}>{t('profile.configuration')}</Text>
           <MenuRow
@@ -329,7 +374,6 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Soporte */}
         <View style={styles.group}>
           <Text style={styles.groupTitle}>{t('profile.support')}</Text>
           <MenuRow
@@ -345,14 +389,9 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Cuenta */}
         <View style={styles.group}>
           <Text style={styles.groupTitle}>Cuenta</Text>
-          <MenuRow
-            icon="log-out-outline"
-            label={t('profile.logout')}
-            onPress={handleLogout}
-          />
+          <MenuRow icon="log-out-outline" label={t('profile.logout')} onPress={handleLogout} />
           <MenuRow
             icon="trash-outline"
             label={deleting ? 'Eliminando…' : 'Eliminar cuenta'}
@@ -362,7 +401,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={styles.version}>{t('profile.version')} 1.1.0</Text>
+        <Text style={styles.version}>{t('profile.version')} 1.1.2r1</Text>
       </ScrollView>
     </View>
   );
@@ -374,21 +413,37 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg },
 
   header: { alignItems: 'center', paddingBottom: spacing.xl },
-  avatarWrap: { marginBottom: spacing.lg },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: palette.skeleton,
+  guestHeader: { alignItems: 'center', paddingBottom: spacing.xxl },
+  guestBody: {
+    ...type.body,
+    color: palette.muted,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
+  avatarWrap: { marginBottom: spacing.lg },
+  avatar: { width: 96, height: 96, borderRadius: 48, backgroundColor: palette.skeleton },
   avatarFallback: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.ink,
+    marginBottom: spacing.lg,
   },
   initials: { ...type.heading, color: palette.white },
   name: { ...type.title, textAlign: 'center' },
   meta: { ...type.small, textAlign: 'center', marginTop: 2 },
+
+  primaryButton: {
+    marginTop: spacing.xl,
+    height: 48,
+    paddingHorizontal: spacing.xxl,
+    borderRadius: radius.sm,
+    backgroundColor: palette.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryPressed: { opacity: 0.85 },
+  primaryText: { ...type.smallStrong, color: palette.white, fontSize: 15 },
 
   outlineButton: {
     marginTop: spacing.lg,

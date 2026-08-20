@@ -166,7 +166,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
                     },
                 ]}
             >
-                <Text style={styles.version}>Version 1.1.0r2</Text>
+                <Text style={styles.version}>Version 1.1.2r1</Text>
             </Animated.View>
         </View>
     );

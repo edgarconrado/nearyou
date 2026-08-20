@@ -4,8 +4,8 @@
 // Expone `useAuth()` y `useUser()` con la misma forma que tenían los hooks de
 // Clerk, para que el resto de la app siga funcionando cambiando solo el import.
 
-import { supabase } from '@/lib/supabase';
 import { ProfileService } from '@/services/profile.service';
+import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 import React, {
   createContext,
@@ -36,14 +36,16 @@ const MISSING_NATIVE =
   '(eas build --profile development) e instálalo para poder iniciar sesión.';
 
 /**
- * ¿Existe este módulo nativo en el binario?
+ * ¿Existe este TurboModule clásico de React Native en el binario?
  *
- * Hay que preguntar ANTES de hacer el require. El paquete llama a
+ * Hay que preguntar ANTES de hacer el require: el paquete de Google llama a
  * `TurboModuleRegistry.getEnforcing()` al evaluarse, y esa función lanza en
- * lugar de devolver null: aunque envolvamos el require en try/catch, Metro
- * ya reportó el error a LogBox y sale la pantalla roja en desarrollo.
+ * lugar de devolver null. `TurboModuleRegistry.get()` (sin "Enforcing")
+ * devuelve null y no revienta.
  *
- * `TurboModuleRegistry.get()` (sin "Enforcing") devuelve null en vez de lanzar.
+ * OJO: esto NO sirve para los módulos de Expo (expo-apple-authentication,
+ * expo-crypto). Esos usan el registro propio de expo-modules-core y aquí
+ * siempre darían null, aunque estén perfectamente instalados.
  */
 function hasNativeModule(name: string): boolean {
   try {
@@ -81,13 +83,17 @@ function loadGoogleSignin() {
   }
 }
 
-/** Devuelve el módulo de Apple, o null si no está en el binario. */
+/**
+ * Devuelve el módulo de Apple, o null si no está en el binario.
+ *
+ * Se valida comprobando que exponga `isAvailableAsync`, en vez de consultar
+ * TurboModuleRegistry: los módulos de Expo no aparecen en ese registro.
+ */
 function loadAppleAuth() {
-  if (!hasNativeModule('ExpoAppleAuthentication')) return null;
-
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('expo-apple-authentication');
+    const mod = require('expo-apple-authentication');
+    return typeof mod?.isAvailableAsync === 'function' ? mod : null;
   } catch {
     return null;
   }
@@ -95,10 +101,10 @@ function loadAppleAuth() {
 
 /** Devuelve expo-crypto, o null si no está en el binario. */
 function loadCrypto() {
-  if (!hasNativeModule('ExpoCrypto')) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('expo-crypto');
+    const mod = require('expo-crypto');
+    return typeof mod?.getRandomBytesAsync === 'function' ? mod : null;
   } catch {
     return null;
   }
@@ -139,6 +145,60 @@ async function createNonce(): Promise<{ raw: string; hashed: string } | null> {
     return { raw, hashed };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Lee el claim `nonce` de un id_token sin verificar la firma.
+ *
+ * Hace falta porque Supabase exige que el nonce exista en AMBOS lados o en
+ * ninguno. Si le mandamos el nonce crudo pero el proveedor no lo incrustó en
+ * el token (pasa si el SDK ignora la opción o si el binario instalado es de
+ * una versión anterior), Supabase responde:
+ *
+ *   "Passed nonce and nonce in id_token should either both exist or not"
+ *
+ * Comprobando el token antes de llamar a Supabase, el login funciona en los
+ * dos escenarios en vez de romperse en uno.
+ */
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/** Decodifica base64 sin depender de `atob`, que no existe en todos los runtimes. */
+function decodeBase64(input: string): string {
+  if (typeof atob === 'function') return atob(input);
+
+  let out = '';
+  const clean = input.replace(/=+$/, '');
+
+  for (let bits = 0, buffer = 0, i = 0; i < clean.length; i++) {
+    const index = B64.indexOf(clean[i]);
+    if (index === -1) continue;
+
+    buffer = (buffer << 6) | index;
+    bits += 6;
+
+    if (bits >= 8) {
+      bits -= 8;
+      out += String.fromCharCode((buffer >> bits) & 0xff);
+    }
+  }
+
+  return out;
+}
+
+function tokenHasNonce(idToken: string): boolean {
+  try {
+    const payload = idToken.split('.')[1];
+    if (!payload) return false;
+
+    // base64url -> base64
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+
+    const json = JSON.parse(decodeBase64(padded));
+    return typeof json?.nonce === 'string' && json.nonce.length > 0;
+  } catch {
+    return false;
   }
 }
 
@@ -267,11 +327,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
+      // Solo mandar el nonce si de verdad viajó dentro del token
+      const sendNonce = !!nonce && tokenHasNonce(idToken);
+
       const { error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: idToken,
         // El crudo: Supabase lo hashea y lo compara con el del token
-        ...(nonce ? { nonce: nonce.raw } : {}),
+        ...(sendNonce ? { nonce: nonce!.raw } : {}),
       });
 
       if (error) return { error: { code: 'supabase', message: error.message } };
@@ -321,10 +384,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
+      const sendNonce = !!nonce && tokenHasNonce(credential.identityToken);
+
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
-        ...(nonce ? { nonce: nonce.raw } : {}),
+        ...(sendNonce ? { nonce: nonce!.raw } : {}),
       });
 
       if (error) return { error: { code: 'supabase', message: error.message } };
@@ -361,7 +426,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isGoogle = session?.user?.app_metadata?.provider === 'google';
       if (isGoogle) {
         const google = loadGoogleSignin();
-        await google?.GoogleSignin.signOut().catch(() => { });
+        await google?.GoogleSignin.signOut().catch(() => {});
       }
     } finally {
       syncedUserRef.current = null;

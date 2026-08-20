@@ -1,25 +1,32 @@
 // app/(auth)/sign-in.tsx
 import { SocialButton } from '@/components/auth/SocialButton';
 import { hairline, palette, radius, spacing, type } from '@/constants/design';
-import { PRIVACY_URL, TERMS_URL } from '@/constants/links';
-import { isAppleAuthAvailable, isCancelled, useAuth } from '@/contexts/AuthContext';
+import { openExternalLink, PRIVACY_URL, TERMS_URL } from '@/constants/links';
+import { isCancelled, useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import React, { useEffect, useState } from 'react';
-import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Provider = 'google' | 'apple';
 
 export default function SignIn() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [busy, setBusy] = useState<Provider | null>(null);
-  const [appleAvailable, setAppleAvailable] = useState(false);
 
-  useEffect(() => {
-    isAppleAuthAvailable().then(setAppleAvailable);
-  }, []);
+  /**
+   * En iOS el botón de Apple se muestra SIEMPRE — guía 4.8 de App Store.
+   *
+   * Antes se ocultaba según `isAppleAuthAvailable()`. Si esa comprobación
+   * fallaba (por detección del módulo nativo, por ejemplo), el botón
+   * desaparecía y Apple rechazaba la app por no ofrecer Sign in with Apple.
+   * Es preferible mostrarlo y manejar el error al pulsarlo, que esconderlo.
+   */
+  const showApple = Platform.OS === 'ios';
 
   const run = async (provider: Provider) => {
     if (busy) return;
@@ -30,21 +37,30 @@ export default function SignIn() {
 
     setBusy(null);
 
-    if (error && !isCancelled(error)) {
-      Alert.alert('No pudimos iniciar sesión', error.message);
+    if (error) {
+      if (!isCancelled(error)) {
+        Alert.alert('No pudimos iniciar sesión', error.message);
+      }
+      return;
     }
-  };
 
-  const openLink = async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch {
-      Alert.alert('No pudimos abrir el enlace', url);
-    }
+    // Sesión iniciada: volver a donde estaba el usuario
+    if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)');
   };
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <Pressable
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel="Cerrar"
+        style={styles.close}
+      >
+        <Ionicons name="close" size={26} color={palette.ink} />
+      </Pressable>
+
       <View style={styles.hero}>
         <Image
           source={require('../../../assets/images/logo_nearyou.png')}
@@ -55,22 +71,14 @@ export default function SignIn() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Descubre lo que tienes cerca</Text>
+        <Text style={styles.title}>Crea tu cuenta</Text>
         <Text style={styles.subtitle}>
-          Lugares, reseñas y ofertas de tu zona. Entra para guardar favoritos y
-          dejar tus propias reseñas.
+          Guarda tus lugares favoritos y comparte reseñas. Puedes seguir
+          explorando sin cuenta cuando quieras.
         </Text>
 
         <View style={styles.actions}>
-          <SocialButton
-            label="Continuar con Google"
-            icon="logo-google"
-            onPress={() => run('google')}
-            loading={busy === 'google'}
-            disabled={!!busy}
-          />
-
-          {appleAvailable && (
+          {showApple && (
             <SocialButton
               label="Continuar con Apple"
               icon="logo-apple"
@@ -79,7 +87,22 @@ export default function SignIn() {
               disabled={!!busy}
             />
           )}
+
+          <SocialButton
+            label="Continuar con Google"
+            icon="logo-google"
+            onPress={() => run('google')}
+            loading={busy === 'google'}
+            disabled={!!busy}
+          />
         </View>
+
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+          style={({ pressed }) => [styles.skip, pressed && styles.skipPressed]}
+        >
+          <Text style={styles.skipText}>Seguir explorando sin cuenta</Text>
+        </Pressable>
 
         <View style={styles.divider}>
           <View style={styles.line} />
@@ -101,7 +124,7 @@ export default function SignIn() {
           <Text
             style={styles.legalLink}
             accessibilityRole="link"
-            onPress={() => openLink(TERMS_URL)}
+            onPress={() => openExternalLink(TERMS_URL)}
           >
             Términos y Condiciones
           </Text>{' '}
@@ -109,7 +132,7 @@ export default function SignIn() {
           <Text
             style={styles.legalLink}
             accessibilityRole="link"
-            onPress={() => openLink(PRIVACY_URL)}
+            onPress={() => openExternalLink(PRIVACY_URL)}
           >
             Aviso de Privacidad
           </Text>{' '}
@@ -122,23 +145,32 @@ export default function SignIn() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.white },
+  close: { position: 'absolute', top: 0, left: spacing.lg, zIndex: 10, padding: spacing.md },
   hero: {
     flex: 1,
-    minHeight: 140,
+    minHeight: 120,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
-  heroImage: { width: 132, height: 132, borderRadius: radius.lg },
+  heroImage: { width: 120, height: 120, borderRadius: radius.lg },
   content: { paddingHorizontal: spacing.xl },
   title: { ...type.title, marginBottom: spacing.sm },
   subtitle: { ...type.body, color: palette.muted, marginBottom: spacing.xl },
   actions: { gap: spacing.md },
+  skip: {
+    marginTop: spacing.lg,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skipPressed: { opacity: 0.6 },
+  skipText: { ...type.smallStrong, textDecorationLine: 'underline' },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    marginVertical: spacing.xl,
+    marginVertical: spacing.lg,
   },
   line: { flex: 1, height: hairline, backgroundColor: palette.border },
   dividerText: { ...type.caption },
@@ -149,7 +181,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   reassuranceText: { ...type.caption },
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl },
+  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg },
   legal: { ...type.caption, textAlign: 'center', lineHeight: 18 },
   legalLink: {
     color: palette.ink,

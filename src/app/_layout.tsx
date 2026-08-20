@@ -17,10 +17,6 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-/**
- * Tema claro fijo. La dirección visual es fondo blanco siempre:
- * un modo oscuro a medias rompería el sistema de hairlines.
- */
 const NearYouTheme = {
   ...DefaultTheme,
   colors: {
@@ -34,23 +30,32 @@ const NearYouTheme = {
 };
 
 function InitialLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   const [splashFinished, setSplashFinished] = useState(false);
 
+  /**
+   * Navegación libre sin sesión — guía 5.1.1(v) de App Store.
+   *
+   * Explorar zonas, ver negocios y leer reseñas NO requieren cuenta, así que
+   * la app arranca directo en las pestañas. El login solo se pide cuando el
+   * usuario intenta algo propio de su cuenta: guardar favoritos, escribir una
+   * reseña o abrir el perfil.
+   *
+   * Antes se redirigía a /(auth)/sign-in cuando no había sesión, lo que
+   * bloqueaba toda la app tras un muro de registro.
+   */
   useEffect(() => {
     if (!isLoaded || !splashFinished) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (isSignedIn && inAuthGroup) {
+    // Nadie es expulsado de las pestañas por no tener sesión.
+    // Las pantallas que sí requieren cuenta piden login por su cuenta.
+    if (segments.length === 0) {
       router.replace('/(tabs)');
-    } else if (!isSignedIn && !inAuthGroup) {
-      router.replace('/(auth)/sign-in');
     }
-  }, [isSignedIn, isLoaded, splashFinished, segments]);
+  }, [isLoaded, splashFinished, segments]);
 
   if (!splashFinished || !isLoaded) {
     return <SplashScreen onFinish={() => setSplashFinished(true)} />;
@@ -65,8 +70,11 @@ function InitialLayout() {
             contentStyle: { backgroundColor: palette.white },
           }}
         >
-          <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="(auth)"
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
           <Stack.Screen name="detail" />
           <Stack.Screen name="my-reviews" />
           <Stack.Screen name="my-visits" />

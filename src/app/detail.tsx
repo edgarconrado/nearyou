@@ -5,17 +5,19 @@ import { HoursSection } from '@/components/details/HoursSection';
 import { ImageGallery } from '@/components/details/ImageGallery';
 import { LocationSection } from '@/components/details/LocationSection';
 import { QuickActions } from '@/components/details/QuickActions';
+import { ReportModal } from '@/components/details/ReportModal';
 import { ReviewModal } from '@/components/details/ReviewModal';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
 import { palette } from '@/constants/design';
-import { useAuth, useUser } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
 import { useBusinessFavorite } from '@/hooks/use-favorites';
 import { BusinessesService, type BusinessFull } from '@/services/businesses.service';
+import { ModerationService } from '@/services/moderation.service';
 import { ReviewsService } from '@/services/reviews.service';
+import { useAuth, useUser } from '@/contexts/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -147,6 +149,9 @@ export default function DetailScreen() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewFilter, setReviewFilter] = useState<number | 'all'>('all');
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTarget, setReportTarget] = useState<Review | null>(null);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false); // 🆕 Estado para el spinner
@@ -223,25 +228,26 @@ export default function DetailScreen() {
             dateText = `${t('detail.daysAgo').replace('{days}', diffDays.toString())}`;
           } else if (diffDays < 30) {
             const weeks = Math.floor(diffDays / 7);
-            dateText = weeks === 1
-              ? t('detail.weekAgo')
+            dateText = weeks === 1 
+              ? t('detail.weekAgo') 
               : `${t('detail.weeksAgo').replace('{weeks}', weeks.toString())}`;
           } else if (diffDays < 365) {
             const months = Math.floor(diffDays / 30);
-            dateText = months === 1
-              ? t('detail.monthAgo')
+            dateText = months === 1 
+              ? t('detail.monthAgo') 
               : `${t('detail.monthsAgo').replace('{months}', months.toString())}`;
           } else {
             const years = Math.floor(diffDays / 365);
-            dateText = years === 1
-              ? t('detail.yearAgo')
+            dateText = years === 1 
+              ? t('detail.yearAgo') 
               : `${t('detail.yearsAgo').replace('{years}', years.toString())}`;
           }
 
           return {
             id: review.id,
+            userId: review.user_id,
             userName: review.user?.full_name || t('detail.anonymousUser'),
-            userAvatar: review.user?.avatar_url || '',
+            userAvatar: review.user?.avatar_url  || '',
             rating: review.rating,
             date: dateText,
             comment: review.comment,
@@ -286,9 +292,14 @@ export default function DetailScreen() {
   // ======================================
 
   const filteredReviews = useMemo(() => {
-    if (reviewFilter === 'all') return reviews;
-    return reviews.filter((review) => review.rating === reviewFilter);
-  }, [reviews, reviewFilter]);
+    // Ocultar reseñas de usuarios que este usuario bloqueó
+    const visible = blockedIds.size
+      ? reviews.filter((r) => !r.userId || !blockedIds.has(r.userId))
+      : reviews;
+
+    if (reviewFilter === 'all') return visible;
+    return visible.filter((review) => review.rating === reviewFilter);
+  }, [reviews, reviewFilter, blockedIds]);
 
   const ratingDistribution: RatingDistribution[] = useMemo(() => {
     const distribution = [
@@ -410,8 +421,9 @@ export default function DetailScreen() {
       if (updatedReviews) {
         const formattedReviews: Review[] = updatedReviews.map((review) => ({
           id: review.id,
+          userId: review.user_id,
           userName: review.user?.full_name || t('detail.anonymousUser'),
-          userAvatar: review.user?.avatar_url || '',
+          userAvatar: review.user?.avatar_url  || '',
           rating: review.rating,
           date: new Date(review.created_at || '').toLocaleDateString(),
           comment: review.comment,
@@ -469,8 +481,33 @@ export default function DetailScreen() {
     }));
   }, []);
 
+  useEffect(() => {
+    ModerationService.getBlockedIds().then(setBlockedIds);
+  }, []);
+
+  const handleBlockUser = useCallback(async (review: Review) => {
+    if (!review.userId) return;
+
+    const { success, error } = await ModerationService.blockUser(review.userId);
+    if (!success) {
+      Alert.alert('No pudimos bloquear al usuario', error?.message ?? 'Inténtalo de nuevo.');
+      return;
+    }
+
+    setBlockedIds((prev) => new Set(prev).add(review.userId!));
+    Alert.alert(
+      'Usuario bloqueado',
+      'Ya no verás reseñas de esta persona. Puedes revertirlo desde Perfil → Privacidad.'
+    );
+  }, []);
+
   const handleReviewOptions = useCallback((review: Review) => {
-    if (!review.isOwn) return;
+    // Reseña ajena: reportar o bloquear (guía 1.2 de App Store)
+    if (!review.isOwn) {
+      setReportTarget(review);
+      setShowReportModal(true);
+      return;
+    }
 
     const options = [t('reviewModal.edit'), t('reviewModal.delete'), t('common.cancel')];
 
@@ -512,8 +549,9 @@ export default function DetailScreen() {
                       if (data) {
                         const formattedReviews: Review[] = data.map((r) => ({
                           id: r.id,
+                          userId: r.user_id,
                           userName: r.user?.full_name || t('detail.anonymousUser'),
-                          userAvatar: r.user?.avatar_url || '',
+                          userAvatar: r.user?.avatar_url  || '',
                           rating: r.rating,
                           date: new Date(r.created_at || '').toLocaleDateString(),
                           comment: r.comment,
@@ -571,8 +609,9 @@ export default function DetailScreen() {
                         if (data) {
                           const formattedReviews: Review[] = data.map((r) => ({
                             id: r.id,
-                            userName: r.user?.full_name || t('detail.anonymousUser'),
-                            userAvatar: r.user?.avatar_url || '',
+                            userId: r.user_id,
+                          userName: r.user?.full_name || t('detail.anonymousUser'),
+                            userAvatar: r.user?.avatar_url  || '',
                             rating: r.rating,
                             date: new Date(r.created_at || '').toLocaleDateString(),
                             comment: r.comment,
@@ -828,6 +867,19 @@ export default function DetailScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+
+      <ReportModal
+        visible={showReportModal}
+        reviewId={reportTarget?.id ?? null}
+        authorName={reportTarget?.userName}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportTarget(null);
+        }}
+        onBlocked={
+          reportTarget?.userId ? () => handleBlockUser(reportTarget) : undefined
+        }
+      />
 
       <ReviewModal
         visible={showReviewModal}
