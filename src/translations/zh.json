@@ -249,7 +249,7 @@
     "pushNotifications": "推播通知",
     "pushNotificationsDesc": "在您的裝置上接收提醒",
     "emailNotifications": "電子郵件通知",
-    "emailNotificationsDesc": "接收電子郵件更新" 
+    "emailNotificationsDesc": "接收電子郵件更新"
   },
   "editProfile": {
     "title": "编辑资料",
@@ -402,6 +402,7 @@
     "save": "保存",
     "cancel": "取消",
     "confirm": "确认",
+    "continue": "继续",
     "delete": "删除",
     "edit": "编辑",
     "loading": "正在加载...",

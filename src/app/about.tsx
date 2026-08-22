@@ -8,7 +8,7 @@ import React from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.3r1';
 
 /**
  * Acerca de.

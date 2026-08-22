@@ -249,7 +249,7 @@
     "pushNotifications": "Notifications push",
     "pushNotificationsDesc": "Recevez des alertes sur votre appareil",
     "emailNotifications": "Notifications par e-mail",
-    "emailNotificationsDesc": "Recevoir des mises à jour par courriel" 
+    "emailNotificationsDesc": "Recevoir des mises à jour par courriel"
   },
   "editProfile": {
     "title": "Modifier le profil",
@@ -402,6 +402,7 @@
     "save": "Enregistrer",
     "cancel": "Annuler",
     "confirm": "Confirmer",
+    "continue": "Continuer",
     "delete": "Supprimer",
     "edit": "Modifier",
     "loading": "Chargement...",

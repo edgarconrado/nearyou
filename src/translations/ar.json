@@ -249,7 +249,7 @@
     "pushNotifications": "الإشعارات الفورية",
     "pushNotificationsDesc": "استقبل التنبيهات على جهازك",
     "emailNotifications": "إشعارات البريد الإلكتروني",
-    "emailNotificationsDesc": "تلقي تحديثات عبر البريد الإلكتروني" 
+    "emailNotificationsDesc": "تلقي تحديثات عبر البريد الإلكتروني"
   },
   "editProfile": {
     "title": "تعديل الملف الشخصي",
@@ -402,6 +402,7 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "confirm": "تأكيد",
+    "continue": "متابعة",
     "delete": "حذف",
     "edit": "تعديل",
     "loading": "جارٍ التحميل...",

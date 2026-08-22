@@ -100,7 +100,7 @@ function GuestProfile() {
         />
       </View>
 
-      <Text style={styles.version}>{t('profile.version')} 1.1.0</Text>
+      <Text style={styles.version}>{t('profile.version')} 1.1.3r1</Text>
     </ScrollView>
   );
 }
@@ -397,7 +397,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={styles.version}>{t('profile.version')} 1.1.0</Text>
+        <Text style={styles.version}>{t('profile.version')} 1.1.3r1</Text>
       </ScrollView>
     </View>
   );

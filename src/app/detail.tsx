@@ -10,6 +10,7 @@ import { ReviewModal } from '@/components/details/ReviewModal';
 import { ReviewsTab } from '@/components/details/ReviewsTab';
 import { TabsNavigation } from '@/components/details/TabsNavigation';
 import { palette } from '@/constants/design';
+import { useAuth, useUser } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { useBusinessHours } from '@/hooks/use-business-hours';
@@ -17,7 +18,7 @@ import { useBusinessFavorite } from '@/hooks/use-favorites';
 import { BusinessesService, type BusinessFull } from '@/services/businesses.service';
 import { ModerationService } from '@/services/moderation.service';
 import { ReviewsService } from '@/services/reviews.service';
-import { useAuth, useUser } from '@/contexts/AuthContext';
+import { openDirections } from '@/utils/directions.utils';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -228,18 +229,18 @@ export default function DetailScreen() {
             dateText = `${t('detail.daysAgo').replace('{days}', diffDays.toString())}`;
           } else if (diffDays < 30) {
             const weeks = Math.floor(diffDays / 7);
-            dateText = weeks === 1 
-              ? t('detail.weekAgo') 
+            dateText = weeks === 1
+              ? t('detail.weekAgo')
               : `${t('detail.weeksAgo').replace('{weeks}', weeks.toString())}`;
           } else if (diffDays < 365) {
             const months = Math.floor(diffDays / 30);
-            dateText = months === 1 
-              ? t('detail.monthAgo') 
+            dateText = months === 1
+              ? t('detail.monthAgo')
               : `${t('detail.monthsAgo').replace('{months}', months.toString())}`;
           } else {
             const years = Math.floor(diffDays / 365);
-            dateText = years === 1 
-              ? t('detail.yearAgo') 
+            dateText = years === 1
+              ? t('detail.yearAgo')
               : `${t('detail.yearsAgo').replace('{years}', years.toString())}`;
           }
 
@@ -247,7 +248,7 @@ export default function DetailScreen() {
             id: review.id,
             userId: review.user_id,
             userName: review.user?.full_name || t('detail.anonymousUser'),
-            userAvatar: review.user?.avatar_url  || '',
+            userAvatar: review.user?.avatar_url || '',
             rating: review.rating,
             date: dateText,
             comment: review.comment,
@@ -423,7 +424,7 @@ export default function DetailScreen() {
           id: review.id,
           userId: review.user_id,
           userName: review.user?.full_name || t('detail.anonymousUser'),
-          userAvatar: review.user?.avatar_url  || '',
+          userAvatar: review.user?.avatar_url || '',
           rating: review.rating,
           date: new Date(review.created_at || '').toLocaleDateString(),
           comment: review.comment,
@@ -551,7 +552,7 @@ export default function DetailScreen() {
                           id: r.id,
                           userId: r.user_id,
                           userName: r.user?.full_name || t('detail.anonymousUser'),
-                          userAvatar: r.user?.avatar_url  || '',
+                          userAvatar: r.user?.avatar_url || '',
                           rating: r.rating,
                           date: new Date(r.created_at || '').toLocaleDateString(),
                           comment: r.comment,
@@ -610,8 +611,8 @@ export default function DetailScreen() {
                           const formattedReviews: Review[] = data.map((r) => ({
                             id: r.id,
                             userId: r.user_id,
-                          userName: r.user?.full_name || t('detail.anonymousUser'),
-                            userAvatar: r.user?.avatar_url  || '',
+                            userName: r.user?.full_name || t('detail.anonymousUser'),
+                            userAvatar: r.user?.avatar_url || '',
                             rating: r.rating,
                             date: new Date(r.created_at || '').toLocaleDateString(),
                             comment: r.comment,
@@ -798,13 +799,9 @@ export default function DetailScreen() {
               Linking.openURL(businessData.website);
             }
           }}
-          onDirections={() => {
-            if (businessData.coordinates.latitude && businessData.coordinates.longitude) {
-              Linking.openURL(
-                `https://maps.google.com/?q=${businessData.coordinates.latitude},${businessData.coordinates.longitude}`
-              );
-            }
-          }}
+          onDirections={() =>
+            openDirections(businessData.coordinates, businessData.name ?? undefined)
+          }
           onShare={handleShare}
         />
 
@@ -815,11 +812,9 @@ export default function DetailScreen() {
             address={businessData.address}
             city={businessData.city}
             postalCode={businessData.postalCode}
-            onDirections={() => {
-              Linking.openURL(
-                `https://maps.google.com/?q=${businessData.coordinates.latitude},${businessData.coordinates.longitude}`
-              );
-            }}
+            onDirections={() =>
+              openDirections(businessData.coordinates, businessData.name ?? undefined)
+            }
           />
         )}
 

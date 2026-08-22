@@ -249,7 +249,7 @@
     "pushNotifications": "Push-уведомления",
     "pushNotificationsDesc": "Получайте уведомления на своё устройство",
     "emailNotifications": "Уведомления по электронной почте",
-    "emailNotificationsDesc": "Получайте обновления по электронной почте" 
+    "emailNotificationsDesc": "Получайте обновления по электронной почте"
   },
   "editProfile": {
     "title": "Редактировать профиль",
@@ -402,6 +402,7 @@
     "save": "Сохранить",
     "cancel": "Отмена",
     "confirm": "Подтвердить",
+    "continue": "Продолжить",
     "delete": "Удалить",
     "edit": "Редактировать",
     "loading": "Загрузка...",

@@ -249,7 +249,7 @@
     "pushNotifications": "푸시 알림",
     "pushNotificationsDesc": "기기에서 알림을 받으세요",
     "emailNotifications": "이메일 알림",
-    "emailNotificationsDesc": "이메일 업데이트를 받으세요" 
+    "emailNotificationsDesc": "이메일 업데이트를 받으세요"
   },
   "editProfile": {
     "title": "프로필 수정",
@@ -402,6 +402,7 @@
     "save": "저장",
     "cancel": "취소",
     "confirm": "확인",
+    "continue": "계속",
     "delete": "삭제",
     "edit": "수정",
     "loading": "로드 중...",

@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/explore/EmptyState';
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { FiltersSection } from '@/components/explore/FiltersSection';
 import { FloatingLocationBadge } from '@/components/explore/FloatingLocationBadge';
-import LocationPermissionScreen from '@/components/explore/LocationPermissionScreen';
+import { LocationPermissionScreen } from '@/components/explore/LocationPermissionScreen';
 import { OffersSection } from '@/components/explore/OffersSection';
 import { SearchBar } from '@/components/explore/SearchBar';
 import { ZoneInfoButton } from '@/components/explore/ZoneInfoButton';
@@ -22,6 +22,7 @@ import { useBusinesses } from '@/hooks/use-businesses';
 import { useZoneDetails } from '@/hooks/use-zone-details';
 import type { BusinessFull } from '@/services/businesses.service';
 import { sortByDistance } from '@/utils/distance.utils';
+import * as Location from 'expo-location';
 
 export default function ExploreScreen() {
   const params = useLocalSearchParams();
@@ -160,6 +161,19 @@ export default function ExploreScreen() {
     return text;
   };
 
+  /**
+ * Guía 5.1.1(iv): el mensaje previo debe llevar siempre al diálogo del
+ * sistema. Aquí se lanza la solicitud; si el usuario la rechaza, la app
+ * sigue funcionando, solo sin distancias ni orden por cercanía.
+ */
+  const handleRequestLocation = async () => {
+    try {
+      await Location.requestForegroundPermissionsAsync();
+    } catch {
+      // El usuario rechazó o el sistema falló: no hay nada que hacer aquí.
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={palette.white} />
@@ -239,7 +253,9 @@ export default function ExploreScreen() {
         transparent={false}
         onRequestClose={handleDismiss}
       >
-        <LocationPermissionScreen onClose={handleDismiss} />
+        <LocationPermissionScreen
+          onRequestPermission={handleRequestLocation} />
+
       </Modal>
     </SafeAreaView>
   );
