@@ -1,112 +1,281 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Modal, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { BusinessList } from '@/components/explore/BusinessList';
+import { EmptyState } from '@/components/explore/EmptyState';
+import { ExploreHeader } from '@/components/explore/ExploreHeader';
+import { FiltersSection } from '@/components/explore/FiltersSection';
+import { FloatingLocationBadge } from '@/components/explore/FloatingLocationBadge';
+import { LocationPermissionScreen } from '@/components/explore/LocationPermissionScreen';
+import { OffersSection } from '@/components/explore/OffersSection';
+import { SearchBar } from '@/components/explore/SearchBar';
+import { ZoneInfoButton } from '@/components/explore/ZoneInfoButton';
+import { ZoneInfoModal } from '@/components/explore/ZoneInfoModal';
+import { palette, spacing, type } from '@/constants/design';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useUserLocation } from '@/contexts/LocationContext';
+import { useSelectedZone } from '@/contexts/SelectedZoneContext';
+import { useBusinesses } from '@/hooks/use-businesses';
+import { useZoneDetails } from '@/hooks/use-zone-details';
+import type { BusinessFull } from '@/services/businesses.service';
+import { sortByDistance } from '@/utils/distance.utils';
+import * as Location from 'expo-location';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const params = useLocalSearchParams();
+  const router = useRouter();
+  const { t } = useLanguage();
+  const [selectedFilter, setSelectedFilter] = useState('Todos');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showZoneInfoModal, setShowZoneInfoModal] = useState(false);
+
+  const { hasPermission } = useUserLocation();
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+
+  useEffect(() => {
+    checkLocationOnFirstVisit();
+  }, []);
+
+  const checkLocationOnFirstVisit = async () => {
+    const hasVisitedExplore = await AsyncStorage.getItem('visited_explore');
+
+    if (!hasVisitedExplore && !hasPermission) {
+      setShowLocationPrompt(true);
+      await AsyncStorage.setItem('visited_explore', 'true');
+    }
+  };
+
+  const handleDismiss = () => {
+    setShowLocationPrompt(false);
+  };
+
+  // La zona activa vive en el contexto, no en los params: al entrar por la
+  // pestaña (en vez de venir desde Inicio) los params llegan vacíos, y sin
+  // zoneId la búsqueda consultaba TODO el catálogo.
+  const { zone: selectedZone, selectZone } = useSelectedZone();
+
+  const zoneId = (params.zoneId as string) || selectedZone?.id;
+  const zoneName = (params.zoneName as string) || selectedZone?.name;
+  const zoneLocation = (params.zoneLocation as string) || selectedZone?.location;
+  const zoneImage = (params.zoneImage as string) || selectedZone?.image;
+
+  // Si llegamos con params, sincronizar el contexto para que la pestaña
+  // recuerde la zona en la siguiente visita.
+  useEffect(() => {
+    if (params.zoneId && params.zoneId !== selectedZone?.id) {
+      selectZone({
+        id: params.zoneId as string,
+        name: (params.zoneName as string) ?? '',
+        location: (params.zoneLocation as string) ?? '',
+        image: (params.zoneImage as string) || undefined,
+      });
+    }
+  }, [params.zoneId, selectedZone?.id, selectZone, params.zoneName, params.zoneLocation, params.zoneImage]);
+
+  // Obtener información detallada de la zona
+  const {
+    zone,
+    loading: loadingZone,
+    hasDescription,
+    hasGallery
+  } = useZoneDetails(zoneId as string);
+
+  // Mostrar el botón solo si hay información disponible
+  const showZoneInfoButton = hasDescription || hasGallery;
+
+  // Obtener ubicación del usuario
+  const { location: userLocation } = useUserLocation();
+
+  // Obtener negocios desde Supabase con filtros
+  const {
+    businesses,
+    loading: loadingBusinesses,
+    error: errorBusinesses,
+    refetch: refetchBusinesses
+  } = useBusinesses({
+    zoneId: zoneId as string,
+    searchQuery: searchQuery.trim().length > 0 ? searchQuery : undefined,
+    useFull: true,
+    autoRefresh: true,
+  });
+
+  // Filtrar y ordenar negocios por categoría y distancia
+  const filteredAndSortedBusinesses = useMemo(() => {
+    // Primero filtrar por categoría
+    const filtered = businesses.filter(business => {
+      const matchesFilter = selectedFilter === 'Todos' || business.category_name === selectedFilter;
+      return matchesFilter;
+    });
+
+    // Luego ordenar por distancia si tenemos la ubicación del usuario
+    if (userLocation) {
+      return sortByDistance(filtered, userLocation);
+    }
+
+    return filtered;
+  }, [businesses, selectedFilter, userLocation, t]);
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSelectedFilter('Todos');
+  };
+
+  const handleSeeAllOffers = () => {
+    // Navegar a pantalla de todas las ofertas
+    router.push({
+      pathname: '/detail',
+      params: { zoneId, zoneName }
+    });
+  };
+
+  const handleOpenZoneInfo = () => {
+    setShowZoneInfoModal(true);
+  };
+
+  const handleCloseZoneInfo = () => {
+    setShowZoneInfoModal(false);
+  };
+
+  // Construir el texto de resultados
+  const getResultsText = () => {
+    const count = filteredAndSortedBusinesses.length;
+    const placeWord = count === 1 ? t('explore.place') : t('explore.places');
+
+    let text = `${count} ${placeWord}`;
+
+    if (searchQuery.length > 0) {
+      text += ` ${t('explore.foundFor')} "${searchQuery}"`;
+    }
+
+    if (selectedFilter !== 'Todos') {
+      text += ` ${t('explore.in')} ${selectedFilter}`;
+    }
+
+    if (userLocation && filteredAndSortedBusinesses.length > 0) {
+      text += ` • ${t('explore.sortedByDistance')}`;
+    }
+
+    return text;
+  };
+
+  /**
+ * Guía 5.1.1(iv): el mensaje previo debe llevar siempre al diálogo del
+ * sistema. Aquí se lanza la solicitud; si el usuario la rechaza, la app
+ * sigue funcionando, solo sin distancias ni orden por cercanía.
+ */
+  const handleRequestLocation = async () => {
+    try {
+      await Location.requestForegroundPermissionsAsync();
+    } catch {
+      // El usuario rechazó o el sistema falló: no hay nada que hacer aquí.
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor={palette.white} />
+
+      <ExploreHeader
+        zoneName={zoneName as string}
+        zoneLocation={zoneLocation as string}
+        zoneImage={zoneImage as string}
+        onBack={() => router.back()}
+      />
+
+      <SearchBar
+        searchQuery={searchQuery}
+        onChangeText={(text) => setSearchQuery(text)}
+        onClear={() => setSearchQuery('')}
+      />
+
+      <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
+        <FloatingLocationBadge businessCount={filteredAndSortedBusinesses.length} />
+
+        <OffersSection
+          zoneId={zoneId as string}
+          onSeeAll={handleSeeAllOffers}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
+
+        {/* Botón de información de la zona - Después de ofertas */}
+        {showZoneInfoButton && (
+          <ZoneInfoButton onPress={handleOpenZoneInfo} />
+        )}
+
+        {/* Sección de Filtros de Categorías */}
+        <FiltersSection
+          selectedFilter={selectedFilter}
+          onFilterChange={setSelectedFilter}
         />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+
+        <Text style={styles.resultsCount}>
+          {getResultsText()}
+        </Text>
+
+        <View style={styles.businessesContainer}>
+          {filteredAndSortedBusinesses.length > 0 ? (
+            <BusinessList
+              businesses={filteredAndSortedBusinesses}
+              loading={loadingBusinesses}
+              error={errorBusinesses}
+              onBusinessPress={(business: BusinessFull) => router.push({
+                pathname: '/detail',
+                params: {
+                  businessId: business.id,
+                  businessName: business.name,
+                }
+              })}
+              onRetry={refetchBusinesses}
+            />
+          ) : (
+            <EmptyState onClear={handleClearSearch} />
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Modal de información de la zona */}
+      <ZoneInfoModal
+        visible={showZoneInfoModal}
+        onClose={handleCloseZoneInfo}
+        zoneName={zoneName as string}
+        zoneDescription={zone?.description}
+        galleryImages={zone?.gallery_urls || []}
+        coverImage={zone?.cover_image_url || zone?.image_url}
+        loading={loadingZone}
+      />
+
+      {/* Modal de permisos de ubicación */}
+      <Modal
+        visible={showLocationPrompt}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={handleDismiss}
+      >
+        <LocationPermissionScreen
+          onRequestPermission={handleRequestLocation} />
+
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: palette.white,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  mainContent: {
+    flex: 1,
+  },
+  resultsCount: {
+    ...type.small,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  businessesContainer: {
+    paddingHorizontal: spacing.lg,
   },
 });

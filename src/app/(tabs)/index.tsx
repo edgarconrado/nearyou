@@ -1,98 +1,145 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Header } from '@/components/home/Header';
+import { ZoneGrid } from '@/components/home/ZoneGrid';
+import { palette, radius, spacing, type } from '@/constants/design';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useSelectedZone } from '@/contexts/SelectedZoneContext';
+import { useZones } from '@/hooks/use-zones';
+import type { Zone } from '@/services/zones.service';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    const router = useRouter();
+    const { t } = useLanguage();
+    const { selectZone } = useSelectedZone();
+    const { zones, loading, error, refetch } = useZones();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+    const handleZonePress = (zone: Zone) => {
+        selectZone({
+            id: zone.id,
+            name: zone.name,
+            location: zone.state,
+            image: zone.image_url || undefined,
+        });
+
+        router.push({
+            pathname: '/explore',
+            params: {
+                zoneId: zone.id,
+                zoneName: zone.name,
+                zoneLocation: zone.state,
+                zoneImage: zone.image_url || '',
+            },
+        });
+    };
+
+    return (
+        <View style={styles.screen}>
+            <Header />
+
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scroll}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={loading && zones.length > 0}
+                        onRefresh={refetch}
+                        tintColor={palette.muted}
+                    />
+                }
+            >
+                <View style={styles.intro}>
+                    <Text style={styles.title}>{t('home.exploreByZone')}</Text>
+                    <Text style={styles.subtitle}>{t('home.discoverExperiences')}</Text>
+                </View>
+
+                {loading && zones.length === 0 ? (
+                    <View style={styles.state}>
+                        <ActivityIndicator color={palette.ink} />
+                    </View>
+                ) : error ? (
+                    <View style={styles.state}>
+                        <Text style={styles.stateTitle}>No pudimos cargar las zonas</Text>
+                        <Text style={styles.stateBody}>{error}</Text>
+                        <Pressable
+                            onPress={refetch}
+                            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+                        >
+                            <Text style={styles.buttonText}>{t('home.retry')}</Text>
+                        </Pressable>
+                    </View>
+                ) : zones.length === 0 ? (
+                    <View style={styles.state}>
+                        <Text style={styles.stateTitle}>{t('home.noZones')}</Text>
+                        <Text style={styles.stateBody}>{t('home.noZonesDescription')}</Text>
+                    </View>
+                ) : (
+                    <ZoneGrid zones={zones} onZonePress={handleZonePress} />
+                )}
+            </ScrollView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+    screen: {
+        flex: 1,
+        backgroundColor: palette.white,
+    },
+    scroll: {
+        flexGrow: 1,
+    },
+    intro: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.xl,
+        paddingBottom: spacing.lg,
+    },
+    title: {
+        ...type.title,
+    },
+    subtitle: {
+        ...type.body,
+        color: palette.muted,
+        marginTop: spacing.xs,
+    },
+    state: {
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.xxxl,
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    stateTitle: {
+        ...type.subheading,
+        textAlign: 'center',
+    },
+    stateBody: {
+        ...type.small,
+        textAlign: 'center',
+    },
+    button: {
+        marginTop: spacing.lg,
+        height: 48,
+        paddingHorizontal: spacing.xl,
+        borderRadius: radius.sm,
+        backgroundColor: palette.ink,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonPressed: {
+        opacity: 0.8,
+    },
+    buttonText: {
+        ...type.smallStrong,
+        color: palette.white,
+        fontSize: 15,
+    },
 });

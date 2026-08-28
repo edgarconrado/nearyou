@@ -1,57 +1,60 @@
-🌎 NearYou
+# 🌎 NearYou
 
-ES 🇪🇸
-LocalExplorer es una aplicación creada con Expo y React Native que te permite descubrir lugares de interés cerca de ti. Explora tu localidad, gana puntos y disfruta nuevas experiencias. 🎯✨
+ES 🇪🇸 NearYou es una aplicación creada con Expo y React Native que te permite descubrir lugares de interés cerca de ti. Explora tu localidad, gana puntos y disfruta nuevas experiencias. 🎯✨
 
-EN 🇬🇧
-LocalExplorer is an app built with Expo and React Native that lets you discover nearby places of interest. Explore your city, earn points, and enjoy new experiences. 🎯✨
+EN 🇬🇧 NearYou is an app built with Expo and React Native that lets you discover nearby places of interest. Explore your city, earn points, and enjoy new experiences. 🎯✨
 
-📱 Capturas de pantalla / Screenshots
-Inicio / Home	Lugares / Places	Perfil / Profile
-<img src="assets/screenshots/home.png" width="250" />	<img src="assets/screenshots/places.png" width="250" />	<img src="assets/screenshots/profile.png" width="250" />
+## 🚀 Demo
 
-📸 Coloca tus capturas de pantalla en la carpeta assets/screenshots/ y usa los nombres de archivo correspondientes.
+Incluye un enlace a una demo (si está disponible) o captura de pantalla de la app.
 
-⚙️ Instalación / Installation
-📦 Clonar el repositorio / Clone the repository
-git clone https://github.com/tu-usuario/localexplorer.git
-cd localexplorer
+<p align="center">
+  <img src="https://jacaranda-lab.com/purepechaLink/2c06d471-fc0f-46ea-b965-dd820d18d1a9.jfif" width="250" />
+</p>
 
-🚀 Instalar dependencias / Install dependencies
+## ⚙️ Instalacion / Installation
+
+📦 Clonar el repositorio / Clone the repository 
+
+```bash
+git clone https://github.com/edgarconrado/nearyou.git 
+cd nearyou
+```
+
+🚀 Instalar dependencias / Install dependencies 
+```bash
 npm install
-# o / or
-yarn install
+```
 
-▶️ Ejecutar la aplicación / Run the app
+## ▶️ Ejecutar la aplicación / Run the app
+```bash
 npx expo start
+```
+
+## 🛠️ Tecnologías / Technologies
+* Expo
+* React Native
+* Expo Router
+* Supabase
 
 
-Esto abrirá Expo Developer Tools en tu navegador.
-Desde ahí podrás ejecutar la app en un emulador o dispositivo físico usando la app Expo Go.
-
-🛠️ Tecnologías / Technologies
-
-Expo
-
-React Native
-
-Expo Router
-
-Supabase
-
-React Navigation
-
-🧭 Objetivo / Goal
+## 🧭 Objetivo / Goal
 
 ES: Fomentar la exploración local mediante una experiencia interactiva que recompensa al usuario por descubrir nuevos lugares.
+
 EN: Encourage local exploration through an interactive experience that rewards users for discovering new places.
 
 💡 Próximas mejoras / Next Features
 
-🗺️ Filtros avanzados por tipo de lugar.
+* 🗺️ Filtros avanzados por tipo de lugar.
 
-🏆 Sistema de logros y niveles.
+* 🏆 Sistema de logros y niveles.
 
-💬 Reseñas y calificaciones de usuarios.
+* 💬 Reseñas y calificaciones de usuarios.
 
-🌐 Modo multilenguaje (ES / EN).
+* 🌐 Modo multilenguaje (ES / EN).
+
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
