@@ -1,7 +1,8 @@
+import { hairline, palette, spacing } from '@/constants/design';
+import { useAuth, useUser } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useProfile } from '@/hooks/use-profile';
 import { supabase } from '@/lib/supabase';
-import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -22,7 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function EditProfileScreen() {
   const router = useRouter();
   const { userId } = useAuth();
-  const { user } = useUser();
+  const { user, refreshUser } = useUser();
   const { profile, loading, updateProfile } = useProfile(userId ?? null);
   const { t } = useLanguage();
 
@@ -74,28 +75,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  // ✨ Convertir imagen a base64
-  const convertToBase64 = async (uri: string): Promise<string | null> => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64String = reader.result as string;
-          // Extraer solo la parte base64 (sin el prefijo data:image/...)
-          const base64Data = base64String.split(',')[1];
-          resolve(base64Data);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    } catch (error) {
-      return null;
-    }
-  };
-
   // ✨ Subir imagen a Supabase Storage
   const uploadToSupabase = async (uri: string): Promise<string | null> => {
     try {
@@ -124,34 +103,25 @@ export default function EditProfileScreen() {
         .getPublicUrl(filePath);
 
       const publicUrl = `${data.publicUrl}?t=${timestamp}`;
-  
+
       return publicUrl;
     } catch (error) {
       return null;
     }
   };
 
-  // ✨ Actualizar avatar en Clerk (requiere base64)
-  const updateClerkAvatar = async (imageUri: string): Promise<boolean> => {
+  // Reflejar el avatar en los metadatos de Supabase Auth,
+  // para que user_metadata.avatar_url quede alineado con el perfil.
+  const syncAuthAvatar = async (publicUrl: string): Promise<boolean> => {
     try {
-      if (!user) {
-        return false;
-      }
-
-      const base64 = await convertToBase64(imageUri);
-      
-      if (!base64) {
-        return false;
-      }
-
-      // ✅ Clerk requiere un File o base64 string
-      await user.setProfileImage({
-        file: `data:image/jpeg;base64,${base64}`,
+      const { error } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl },
       });
-
+      if (error) return false;
+      await refreshUser();
       return true;
-    } catch (error: any) {
-      // No bloquear el guardado si Clerk falla
+    } catch {
+      // No bloquear el guardado si esto falla: la fuente de verdad es profiles.
       return false;
     }
   };
@@ -178,12 +148,12 @@ export default function EditProfileScreen() {
         try {
           // 1. Subir a Supabase primero
           const supabaseUrl = await uploadToSupabase(localImageUri);
-          
+
           if (supabaseUrl) {
             newAvatarUrl = supabaseUrl;
-            
-            // 2. Intentar actualizar Clerk (no bloquear si falla)
-            await updateClerkAvatar(localImageUri);
+
+            // 2. Reflejarlo en Supabase Auth (no bloquear si falla)
+            await syncAuthAvatar(supabaseUrl);
           } else {
             Alert.alert(t('common.error'), t('editProfile.uploadError'));
             return;
@@ -236,13 +206,13 @@ export default function EditProfileScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            <Ionicons name="chevron-back" size={24} color={palette.ink} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
           <View style={{ width: 60 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#003D7A" />
+          <ActivityIndicator size="large" color={palette.ink} />
           <Text style={styles.loadingText}>{t('editProfile.loading')}</Text>
         </View>
       </SafeAreaView>
@@ -255,12 +225,12 @@ export default function EditProfileScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} disabled={saving}>
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={24} color={palette.ink} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('editProfile.title')}</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving || uploadingImage}>
           {saving ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={palette.white} />
           ) : (
             <Text style={styles.saveText}>{t('editProfile.save')}</Text>
           )}
@@ -269,14 +239,14 @@ export default function EditProfileScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarSection}>
-          <Image 
+          <Image
             key={displayAvatar}
-            source={{ uri: displayAvatar }} 
+            source={{ uri: displayAvatar }}
             style={styles.avatar}
           />
           {uploadingImage && (
             <View style={styles.uploadingOverlay}>
-              <ActivityIndicator size="large" color="#003D7A" />
+              <ActivityIndicator size="large" color={palette.ink} />
               <Text style={styles.uploadingText}>{t('editProfile.uploading')}</Text>
             </View>
           )}
@@ -285,12 +255,12 @@ export default function EditProfileScreen() {
             onPress={pickImage}
             disabled={uploadingImage || saving}
           >
-            <Ionicons name="camera" size={20} color="#003D7A" />
+            <Ionicons name="camera" size={20} color={palette.ink} />
             <Text style={styles.changePhotoText}>
               {uploadingImage ? t('editProfile.uploading') : localImageUri ? t('editProfile.changePhotoAgain') : t('editProfile.changePhoto')}
             </Text>
           </TouchableOpacity>
-          
+
           {localImageUri && !uploadingImage && (
             <View style={styles.pendingBadge}>
               <Ionicons name="alert-circle" size={16} color="#FF9800" />
@@ -399,7 +369,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: palette.white,
   },
   loadingContainer: {
     flex: 1,
@@ -409,31 +379,33 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: palette.muted,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#003D7A',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: palette.white,
+    borderBottomWidth: hairline,
+    borderBottomColor: palette.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: palette.ink,
   },
   saveText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: palette.white,
   },
   content: {
     flex: 1,
   },
   avatarSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     alignItems: 'center',
     paddingVertical: 32,
     marginBottom: 8,
@@ -445,7 +417,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 16,
     borderWidth: 3,
-    borderColor: '#003D7A',
+    borderColor: palette.ink,
   },
   uploadingOverlay: {
     position: 'absolute',
@@ -460,7 +432,7 @@ const styles = StyleSheet.create({
   uploadingText: {
     marginTop: 8,
     fontSize: 12,
-    color: '#FFFFFF',
+    color: palette.white,
     fontWeight: '600',
   },
   changePhotoButton: {
@@ -471,12 +443,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#003D7A',
+    borderColor: palette.ink,
   },
   changePhotoText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#003D7A',
+    color: palette.ink,
   },
   pendingBadge: {
     flexDirection: 'row',
@@ -496,7 +468,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   form: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     padding: 20,
   },
   inputGroup: {
@@ -505,22 +477,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: palette.ink,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: palette.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#333',
+    color: palette.ink,
     backgroundColor: '#F9F9F9',
   },
   disabledInput: {
     backgroundColor: '#F0F0F0',
-    color: '#999',
+    color: palette.muted,
   },
   textArea: {
     height: 100,
@@ -528,12 +500,12 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 12,
-    color: '#999',
+    color: palette.muted,
     marginTop: 4,
   },
   charCount: {
     fontSize: 12,
-    color: '#999',
+    color: palette.muted,
     marginTop: 4,
     textAlign: 'right',
   },

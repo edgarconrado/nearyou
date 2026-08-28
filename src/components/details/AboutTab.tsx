@@ -1,6 +1,7 @@
+import { hairline, palette, spacing, type } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface AboutTabProps {
     phone: string;
@@ -11,6 +12,7 @@ interface AboutTabProps {
     onWebsite: () => void;
 }
 
+/** Contacto en filas con hairline; los datos vacíos no se muestran. */
 export const AboutTab: React.FC<AboutTabProps> = ({
     phone,
     email,
@@ -19,42 +21,46 @@ export const AboutTab: React.FC<AboutTabProps> = ({
     onEmail,
     onWebsite,
 }) => {
+    const rows = [
+        { key: 'phone', icon: 'call-outline', value: phone, onPress: onCall },
+        { key: 'email', icon: 'mail-outline', value: email, onPress: onEmail },
+        { key: 'website', icon: 'globe-outline', value: website, onPress: onWebsite },
+    ].filter((r) => !!r.value);
+
+    if (rows.length === 0) return null;
+
     return (
         <View style={styles.section}>
-            <View style={styles.contactInfo}>
-                <TouchableOpacity style={styles.contactRow} onPress={onCall}>
-                    <Ionicons name="call-outline" size={22} color="#666" />
-                    <Text style={styles.contactText}>{phone}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.contactRow} onPress={onEmail}>
-                    <Ionicons name="mail-outline" size={22} color="#666" />
-                    <Text style={styles.contactText}>{email}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.contactRow} onPress={onWebsite}>
-                    <Ionicons name="globe-outline" size={22} color="#666" />
-                    <Text style={styles.contactText}>{website}</Text>
-                </TouchableOpacity>
-            </View>
+            {rows.map((row, i) => (
+                <Pressable
+                    key={row.key}
+                    onPress={row.onPress}
+                    style={({ pressed }) => [
+                        styles.row,
+                        i < rows.length - 1 && styles.divider,
+                        pressed && styles.pressed,
+                    ]}
+                >
+                    <Ionicons name={row.icon as any} size={20} color={palette.ink} />
+                    <Text style={styles.value} numberOfLines={1}>
+                        {row.value}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={16} color={palette.faint} />
+                </Pressable>
+            ))}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    section: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        marginTop: 8,
-    },
-    contactInfo: {
-        gap: 16,
-    },
-    contactRow: {
+    section: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+    row: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: spacing.lg,
+        paddingVertical: spacing.lg,
     },
-    contactText: {
-        fontSize: 15,
-        color: '#003D7A',
-    },
+    divider: { borderBottomWidth: hairline, borderBottomColor: palette.borderSoft },
+    pressed: { opacity: 0.55 },
+    value: { ...type.body, flex: 1 },
 });

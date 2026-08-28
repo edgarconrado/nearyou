@@ -1,51 +1,52 @@
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface HeaderProps {
   showBackButton?: boolean;
   onBackPress?: () => void;
+  onSearchPress?: () => void;
 }
 
-export function Header({ showBackButton = false, onBackPress }: HeaderProps = {}) {
+/**
+ * Barra de búsqueda tipo "píldora" de Airbnb: es lo primero que se ve
+ * y sustituye a la cabecera de marca en azul.
+ */
+export function Header({
+  showBackButton = false,
+  onBackPress,
+  onSearchPress,
+}: HeaderProps = {}) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.header}>
-      <View style={styles.content}>
-        {/* Logo/Icono lado izquierdo */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoCircle}>
-            {/* <Text style={styles.logoIcon}>🏖️</Text> */}
-            <Ionicons name="location" size={16} color="#FFFF" />
-          </View>
-        </View>
+    <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+      <View style={styles.row}>
+        {showBackButton && (
+          <Pressable
+            onPress={onBackPress}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+            style={styles.back}
+          >
+            <Ionicons name="chevron-back" size={22} color={palette.ink} />
+          </Pressable>
+        )}
 
-        {/* Información central */}
-        <View style={styles.infoSection}>
-          <Text style={styles.appName}>NearYou</Text>
-          <View style={styles.metaInfo}>
-            <Text style={styles.versionBadge}>v1.0.12r20</Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.subtitle}>Explora México</Text>
+        <Pressable
+          onPress={onSearchPress}
+          accessibilityRole="search"
+          style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
+        >
+          <Ionicons name="search" size={18} color={palette.ink} />
+          <View style={styles.pillText}>
+            <Text style={styles.pillTitle}>¿A dónde vas?</Text>
+            <Text style={styles.pillSubtitle}>Zona · Categoría · Cerca de ti</Text>
           </View>
-        </View>
-
-        {/* Botón de menú o back */}
-        <View style={styles.actionSection}>
-          {showBackButton ? (
-            <TouchableOpacity style={styles.iconButton} onPress={onBackPress}>
-              <Text style={styles.iconText}>←</Text>
-            </TouchableOpacity>
-          ) : (
-            <View />
-/*             <TouchableOpacity style={styles.iconButton}>
-              <View style={styles.menuIcon}>
-                <View style={styles.menuDot} />
-                <View style={styles.menuDot} />
-                <View style={styles.menuDot} />
-              </View>
-            </TouchableOpacity> */
-          )}
-        </View>
+        </Pressable>
       </View>
     </View>
   );
@@ -53,89 +54,44 @@ export function Header({ showBackButton = false, onBackPress }: HeaderProps = {}
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#003D7A',
-    paddingTop: 50,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    backgroundColor: palette.white,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomWidth: hairline,
+    borderBottomColor: palette.border,
   },
-  content: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.sm,
   },
-  logoSection: {
-    marginRight: 12,
+  back: {
+    width: 32,
+    alignItems: 'flex-start',
   },
-  logoCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    justifyContent: 'center',
+  pill: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    gap: spacing.md,
+    height: 52,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.pill,
+    borderWidth: hairline,
+    borderColor: palette.border,
+    backgroundColor: palette.white,
   },
-  logoIcon: {
-    fontSize: 24,
+  pillPressed: {
+    backgroundColor: palette.surface,
   },
-  infoSection: {
+  pillText: {
     flex: 1,
   },
-  appName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    letterSpacing: 0.3,
+  pillTitle: {
+    ...type.smallStrong,
   },
-  metaInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  versionBadge: {
+  pillSubtitle: {
+    ...type.caption,
     fontSize: 11,
-    fontWeight: '600',
-    color: '#FFD700',
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  separator: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 6,
-  },
-  subtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#B8D4F1',
-  },
-  actionSection: {
-    marginLeft: 12,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconText: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  menuIcon: {
-    flexDirection: 'column',
-    gap: 3,
-  },
-  menuDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#FFFFFF',
   },
 });

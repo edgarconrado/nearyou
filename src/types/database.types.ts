@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_users_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "user_stats"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "blocked_users_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "user_stats"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       business_hours: {
         Row: {
           business_id: string | null
@@ -380,11 +430,13 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string | null
+          deletion_requested_at: string | null
           email: string
           full_name: string | null
           id: string
           is_active: boolean | null
           is_verified: boolean | null
+          legacy_clerk_id: string | null
           location: string | null
           member_since: string | null
           phone: string | null
@@ -397,11 +449,13 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          deletion_requested_at?: string | null
           email: string
           full_name?: string | null
           id: string
           is_active?: boolean | null
           is_verified?: boolean | null
+          legacy_clerk_id?: string | null
           location?: string | null
           member_since?: string | null
           phone?: string | null
@@ -414,11 +468,13 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          deletion_requested_at?: string | null
           email?: string
           full_name?: string | null
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
+          legacy_clerk_id?: string | null
           location?: string | null
           member_since?: string | null
           phone?: string | null
@@ -994,6 +1050,7 @@ export type Database = {
             }
             Returns: string
           }
+      cancel_account_deletion: { Args: never; Returns: boolean }
       current_user_id: { Args: never; Returns: string }
       current_user_uuid: { Args: never; Returns: string }
       disablelongtransactions: { Args: never; Returns: string }
@@ -1169,6 +1226,8 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      purge_deleted_accounts: { Args: never; Returns: number }
+      request_account_deletion: { Args: never; Returns: string }
       requesting_user_id: { Args: never; Returns: string }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }

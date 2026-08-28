@@ -1,5 +1,5 @@
+import { hairline, palette, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { BusinessHours } from '../../types/types';
@@ -8,27 +8,21 @@ interface HoursSectionProps {
     businessHours: BusinessHours[];
 }
 
+/** El día de hoy se destaca con peso, no con fondo de color. */
 export const HoursSection: React.FC<HoursSectionProps> = ({ businessHours }) => {
-
     const { t } = useLanguage();
 
     return (
         <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-                <Ionicons name="time" size={24} color="#003D7A" />
-                <Text style={styles.sectionTitle}>{t('detail.schedules')}</Text>
-            </View>
+            <Text style={styles.title}>{t('detail.schedules')}</Text>
 
-            <View style={styles.hoursContainer}>
+            <View style={styles.list}>
                 {businessHours.map((schedule, index) => (
-                    <View
-                        key={index}
-                        style={[styles.hourRow, schedule.isToday && styles.hourRowToday]}
-                    >
-                        <Text style={[styles.dayText, schedule.isToday && styles.dayTextToday]}>
+                    <View key={index} style={styles.row}>
+                        <Text style={[styles.day, schedule.isToday && styles.today]}>
                             {schedule.day}
                         </Text>
-                        <Text style={[styles.hoursText, schedule.isToday && styles.hoursTextToday]}>
+                        <Text style={[styles.hours, schedule.isToday && styles.today]}>
                             {schedule.hours}
                         </Text>
                     </View>
@@ -40,48 +34,15 @@ export const HoursSection: React.FC<HoursSectionProps> = ({ businessHours }) => 
 
 const styles = StyleSheet.create({
     section: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        marginTop: 8,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.xl,
+        borderTopWidth: hairline,
+        borderTopColor: palette.border,
     },
-    sectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 16,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    hoursContainer: {
-        gap: 12,
-    },
-    hourRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-    },
-    hourRowToday: {
-        backgroundColor: '#E3F2FD',
-        paddingHorizontal: 12,
-        borderRadius: 8,
-    },
-    dayText: {
-        fontSize: 15,
-        color: '#666',
-    },
-    dayTextToday: {
-        fontWeight: '600',
-        color: '#003D7A',
-    },
-    hoursText: {
-        fontSize: 15,
-        color: '#666',
-    },
-    hoursTextToday: {
-        fontWeight: '600',
-        color: '#003D7A',
-    },
+    title: { ...type.heading, marginBottom: spacing.lg },
+    list: { gap: spacing.md },
+    row: { flexDirection: 'row', justifyContent: 'space-between' },
+    day: { ...type.body, color: palette.muted },
+    hours: { ...type.body, color: palette.muted },
+    today: { color: palette.ink, fontWeight: '600' },
 });

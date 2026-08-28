@@ -1,3 +1,4 @@
+import { palette } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -62,15 +63,15 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <Text style={styles.modalLabel}>{t('reviewModal.rating')}</Text>
                 <View style={styles.starsSelector}>
                     {[1, 2, 3, 4, 5].map((star) => (
-                        <TouchableOpacity 
-                            key={star} 
+                        <TouchableOpacity
+                            key={star}
                             onPress={() => onRatingChange(star)}
                             disabled={isSubmitting} // 🆕 Deshabilitar mientras se envía
                         >
                             <Ionicons
                                 name={star <= review.rating ? 'star' : 'star-outline'}
                                 size={40}
-                                color={isSubmitting ? '#CCC' : '#FFB800'} // 🆕 Color gris si está enviando
+                                color={isSubmitting ? palette.faint : palette.ink} // 🆕 Color gris si está enviando
                             />
                         </TouchableOpacity>
                     ))}
@@ -100,19 +101,19 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         <Text style={styles.modalTitle}>
                             {isEditing ? t('reviewModal.editReview') : t('reviewModal.writeReview')}
                         </Text>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={onClose}
                             disabled={isSubmitting} // 🆕 Deshabilitar mientras se envía
                         >
-                            <Ionicons 
-                                name="close" 
-                                size={28} 
-                                color={isSubmitting ? '#CCC' : '#333'} // 🆕 Color gris si está enviando
+                            <Ionicons
+                                name="close"
+                                size={28}
+                                color={isSubmitting ? palette.faint : palette.ink} // 🆕 Color gris si está enviando
                             />
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView 
+                    <ScrollView
                         showsVerticalScrollIndicator={false}
                         scrollEnabled={!isSubmitting} // 🆕 Deshabilitar scroll mientras se envía
                     >
@@ -128,7 +129,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                     isSubmitting && styles.commentInputDisabled // 🆕 Estilo deshabilitado
                                 ]}
                                 placeholder={t('reviewModal.commentPlaceholder')}
-                                placeholderTextColor="#999"
+                                placeholderTextColor={palette.muted}
                                 multiline
                                 numberOfLines={6}
                                 value={review.comment}
@@ -160,17 +161,17 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                             onPress={() => onRemovePhoto(index)}
                                             disabled={isSubmitting} // 🆕 Deshabilitar mientras se envía
                                         >
-                                            <Ionicons 
-                                                name="close-circle" 
-                                                size={24} 
-                                                color={isSubmitting ? '#CCC' : '#FF3B30'} // 🆕 Color gris si está enviando
+                                            <Ionicons
+                                                name="close-circle"
+                                                size={24}
+                                                color={isSubmitting ? palette.faint : palette.danger} // 🆕 Color gris si está enviando
                                             />
                                         </TouchableOpacity>
                                     </View>
                                 ))}
 
                                 {review.images.length < 5 && (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={[
                                             styles.addPhotoButton,
                                             isSubmitting && styles.addPhotoButtonDisabled // 🆕 Estilo deshabilitado
@@ -178,10 +179,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                         onPress={onAddPhoto}
                                         disabled={isSubmitting} // 🆕 Deshabilitar mientras se envía
                                     >
-                                        <Ionicons 
-                                            name="camera" 
-                                            size={32} 
-                                            color={isSubmitting ? '#CCC' : '#003D7A'} // 🆕 Color gris si está enviando
+                                        <Ionicons
+                                            name="camera"
+                                            size={32}
+                                            color={isSubmitting ? palette.faint : palette.ink} // 🆕 Color gris si está enviando
                                         />
                                         <Text style={[
                                             styles.addPhotoText,
@@ -195,7 +196,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         </View>
 
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={[
                                     styles.cancelButton,
                                     isSubmitting && styles.buttonDisabled // 🆕 Estilo deshabilitado
@@ -210,8 +211,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                     {t('reviewModal.cancel')}
                                 </Text>
                             </TouchableOpacity>
-                            
-                            <TouchableOpacity 
+
+                            <TouchableOpacity
                                 style={[
                                     styles.submitButton,
                                     isSubmitting && styles.submitButtonLoading // 🆕 Estilo de carga
@@ -240,10 +241,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     {isSubmitting && (
                         <View style={styles.loadingOverlay}>
                             <View style={styles.loadingBox}>
-                                <ActivityIndicator size="large" color="#003D7A" />
+                                <ActivityIndicator size="large" color={palette.ink} />
                                 <Text style={styles.loadingText}>
-                                    {isEditing 
-                                        ? t('reviewModal.updatingReview') 
+                                    {isEditing
+                                        ? t('reviewModal.updatingReview')
                                         : t('reviewModal.publishingReview')
                                     }
                                 </Text>
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         padding: 24,
@@ -278,17 +279,17 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
     },
     modalSubtitle: {
         fontSize: 16,
-        color: '#666',
+        color: palette.muted,
         marginBottom: 24,
     },
     modalLabel: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 12,
     },
     ratingSelector: {
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     },
     ratingLabel: {
         fontSize: 16,
-        color: '#003D7A',
+        color: palette.ink,
         fontWeight: '600',
     },
     commentSection: {
@@ -309,22 +310,22 @@ const styles = StyleSheet.create({
     },
     commentInput: {
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: palette.border,
         borderRadius: 12,
         padding: 16,
         fontSize: 15,
-        color: '#333',
+        color: palette.ink,
         minHeight: 120,
         backgroundColor: '#F9F9F9',
     },
     // 🆕 Estilo para input deshabilitado
     commentInputDisabled: {
-        backgroundColor: '#F5F5F5',
-        color: '#999',
+        backgroundColor: palette.surface,
+        color: palette.muted,
     },
     charCount: {
         fontSize: 13,
-        color: '#999',
+        color: palette.muted,
         marginTop: 8,
         textAlign: 'right',
     },
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
     },
     photosHint: {
         fontSize: 13,
-        color: '#999',
+        color: palette.muted,
         marginBottom: 12,
     },
     photosScroll: {
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: -8,
         right: -8,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         borderRadius: 12,
     },
     addPhotoButton: {
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
         height: 100,
         borderRadius: 8,
         borderWidth: 2,
-        borderColor: '#E0E0E0',
+        borderColor: palette.border,
         borderStyle: 'dashed',
         justifyContent: 'center',
         alignItems: 'center',
@@ -369,18 +370,18 @@ const styles = StyleSheet.create({
     },
     // 🆕 Estilo para botón de foto deshabilitado
     addPhotoButtonDisabled: {
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.surface,
         borderColor: '#D0D0D0',
     },
     addPhotoText: {
         fontSize: 12,
-        color: '#003D7A',
+        color: palette.ink,
         fontWeight: '600',
         marginTop: 4,
     },
     // 🆕 Estilo para texto de foto deshabilitado
     addPhotoTextDisabled: {
-        color: '#CCC',
+        color: palette.faint,
     },
     modalButtons: {
         flexDirection: 'row',
@@ -391,19 +392,19 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: palette.border,
         alignItems: 'center',
     },
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#666',
+        color: palette.muted,
     },
     submitButton: {
         flex: 1,
         paddingVertical: 14,
         borderRadius: 12,
-        backgroundColor: '#003D7A',
+        backgroundColor: palette.ink,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -414,14 +415,14 @@ const styles = StyleSheet.create({
     submitButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.white,
     },
     // 🆕 Estilos para botones deshabilitados
     buttonDisabled: {
         opacity: 0.5,
     },
     buttonTextDisabled: {
-        color: '#CCC',
+        color: palette.faint,
     },
     // 🆕 Container para el spinner dentro del botón
     loadingContainer: {
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 24,
     },
     loadingBox: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         padding: 24,
         borderRadius: 16,
         alignItems: 'center',
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 16,
         fontSize: 16,
-        color: '#333',
+        color: palette.ink,
         fontWeight: '600',
     },
 });

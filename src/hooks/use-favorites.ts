@@ -1,7 +1,7 @@
 // hooks/use-favorites.ts
 import { useFavoritesContext } from '@/contexts/FavoritesContext';
 import { FavoritesService } from '@/services/favorites.service';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCallback, useEffect, useState } from 'react';
 
 /**

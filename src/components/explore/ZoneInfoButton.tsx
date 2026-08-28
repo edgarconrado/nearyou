@@ -1,4 +1,5 @@
 // components/explore/ZoneInfoButton.tsx
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -8,20 +9,18 @@ interface ZoneInfoButtonProps {
   onPress: () => void;
 }
 
+/** Acción secundaria: contorno, no relleno. */
 export function ZoneInfoButton({ onPress }: ZoneInfoButtonProps) {
-
   const { t } = useLanguage();
 
   return (
-    <Pressable 
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.buttonPressed
-      ]}
+    <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <Ionicons name="information-circle" size={20} color="#FFF" />
-      <Text style={styles.buttonText}>{t('detail.aboutThisPlace')}</Text>
+      <Ionicons name="information-circle-outline" size={18} color={palette.ink} />
+      <Text style={styles.text}>{t('detail.aboutThisPlace')}</Text>
     </Pressable>
   );
 }
@@ -31,26 +30,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#003D7A',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-    gap: 8,
+    gap: spacing.sm,
+    height: 44,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.sm,
+    borderRadius: radius.sm,
+    borderWidth: hairline,
+    borderColor: palette.border,
+    backgroundColor: palette.white,
   },
-  buttonPressed: {
-    backgroundColor: '#002A5A',
-    transform: [{ scale: 0.98 }],
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  pressed: { backgroundColor: palette.surface },
+  text: { ...type.smallStrong },
 });

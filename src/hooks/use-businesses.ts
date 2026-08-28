@@ -13,14 +13,14 @@ interface UseBusinessesOptions {
 }
 
 export function useBusinesses(options: UseBusinessesOptions = {}) {
-  const { 
-    zoneId, 
-    categoryId, 
-    searchQuery, 
-    useFull = true, 
-    autoRefresh = false 
+  const {
+    zoneId,
+    categoryId,
+    searchQuery,
+    useFull = true,
+    autoRefresh = false
   } = options;
-  
+
   const [businesses, setBusinesses] = useState<BusinessFull[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +45,21 @@ export function useBusinesses(options: UseBusinessesOptions = {}) {
       let data: BusinessFull[] | Business[] | null = null;
       let fetchError: Error | null = null;
 
-      // Si hay búsqueda, priorizar eso
+      // Guarda: buscar sin zona traería el catálogo completo de todas las
+      // zonas, que es justo el bug que esto corrige. Mejor no devolver nada.
+      if (searchQuery && searchQuery.trim().length > 0 && !zoneId && !categoryId) {
+        setBusinesses([]);
+        setLoading(false);
+        return;
+      }
+
+      // La búsqueda manda, pero SIEMPRE dentro de la zona y categoría activas
       if (searchQuery && searchQuery.trim().length > 0) {
-        const result = await BusinessesService.searchBusinesses(searchQuery);
+        const result = await BusinessesService.searchBusinesses(searchQuery, {
+          zoneId,
+          categoryId,
+          useFull,
+        });
         data = result.data;
         fetchError = result.error;
       }
@@ -150,8 +162,8 @@ export function useSearchBusinesses(searchQuery: string) {
 
 // Hook especializado para negocios de zona y categoría
 export function useZoneCategoryBusinesses(
-  zoneId: string, 
-  categoryId: string, 
+  zoneId: string,
+  categoryId: string,
   autoRefresh = false
 ) {
   return useBusinesses({ zoneId, categoryId, useFull: false, autoRefresh });

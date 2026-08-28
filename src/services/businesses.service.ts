@@ -191,15 +191,33 @@ export class BusinessesService {
   /**
    * Buscar negocios por nombre
    */
-  static async searchBusinesses(query: string): Promise<{ data: Business[] | null; error: Error | null }> {
+  /**
+   * Buscar negocios por nombre o descripción.
+   *
+   * `zoneId` y `categoryId` acotan la búsqueda. Sin ellos busca en todo el
+   * catálogo, que es justo lo que NO se quiere cuando el usuario ya eligió
+   * una zona: escribir en el buscador no debe sacarlo de donde está.
+   */
+  static async searchBusinesses(
+    query: string,
+    options?: { zoneId?: string; categoryId?: string; useFull?: boolean }
+  ): Promise<{ data: BusinessFull[] | Business[] | null; error: Error | null }> {
     try {
-      const { data, error } = await supabase
-        .from('businesses')
+      const term = query.trim();
+      const table = options?.useFull ? 'businesses_full' : 'businesses';
+
+      let request = supabase
+        .from(table)
         .select('*')
-        .ilike('name', `%${query}%`)
-        .eq('is_active', true)
+        .or(`name.ilike.%${term}%,description.ilike.%${term}%`)
+        .eq('is_active', true);
+
+      if (options?.zoneId) request = request.eq('zone_id', options.zoneId);
+      if (options?.categoryId) request = request.eq('category_id', options.categoryId);
+
+      const { data, error } = await request
         .order('name', { ascending: true })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
 

@@ -1,16 +1,12 @@
+import { palette, radius, spacing, type } from '@/constants/design';
 import type { Zone } from '@/services/zones.service';
+import { Image } from 'expo-image';
 import React from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2; // 16px padding on each side + 16px gap
+const GUTTER = spacing.lg;
+const GAP = spacing.md;
+const CARD_WIDTH = (Dimensions.get('window').width - GUTTER * 2 - GAP) / 2;
 
 type Props = {
   zone: Zone;
@@ -18,76 +14,70 @@ type Props = {
   onPress: (zone: Zone) => void;
 };
 
-export function ZoneCard({ zone, index, onPress }: Props) {
+/**
+ * Tarjeta de zona: foto cuadrada con esquinas redondeadas y el texto FUERA
+ * de la imagen. Sin overlay oscuro, sin sombra — así se lee el color de la foto.
+ */
+export function ZoneCard({ zone, onPress }: Props) {
   return (
-    <TouchableOpacity
-      style={[styles.card, index % 2 === 0 ? styles.cardLeft : styles.cardRight]}
+    <Pressable
       onPress={() => onPress(zone)}
-      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`${zone.name}, ${zone.state}`}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      <Image
-        source={{ 
-          uri: zone.image_url || 'https://via.placeholder.com/400x300?text=Sin+imagen' 
-        }}
-        style={styles.image}
-        resizeMode="cover"
-      />
-      <View style={styles.overlay} />
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>
-          {zone.name}
-        </Text>
-        <Text style={styles.location} numberOfLines={1}>
-          {zone.state}
-        </Text>
+      <View style={styles.imageWrap}>
+        {zone.image_url ? (
+          <Image
+            source={{ uri: zone.image_url }}
+            style={styles.image}
+            contentFit="cover"
+            transition={180}
+          />
+        ) : (
+          <View style={styles.placeholder} />
+        )}
       </View>
-    </TouchableOpacity>
+
+      <Text style={styles.name} numberOfLines={1}>
+        {zone.name}
+      </Text>
+      <Text style={styles.state} numberOfLines={1}>
+        {zone.state}
+      </Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    width: cardWidth,
-    height: 200,
-    borderRadius: 12,
+    width: CARD_WIDTH,
+  },
+  pressed: {
+    opacity: 0.75,
+  },
+  imageWrap: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: radius.md,
     overflow: 'hidden',
-    marginBottom: 16,
-    backgroundColor: '#FFF',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardLeft: {
-    marginRight: 8,
-  },
-  cardRight: {
-    marginLeft: 8,
+    backgroundColor: palette.skeleton,
+    marginBottom: spacing.sm,
   },
   image: {
     width: '100%',
     height: '100%',
-    position: 'absolute',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  content: {
+  placeholder: {
     flex: 1,
-    justifyContent: 'flex-end',
-    padding: 12,
+    backgroundColor: palette.skeleton,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 4,
+  name: {
+    ...type.smallStrong,
+    fontSize: 15,
   },
-  location: {
-    fontSize: 13,
-    color: '#FFF',
-    opacity: 0.9,
+  state: {
+    ...type.small,
+    fontSize: 14,
   },
 });

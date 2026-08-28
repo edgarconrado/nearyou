@@ -1,101 +1,78 @@
 // components/explore/FiltersSection.tsx
+import { hairline, palette, spacing, type } from '@/constants/design';
 import { useCategories } from '@/hooks/use-categories';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import {
-    ActivityIndicator,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface FiltersSectionProps {
   selectedFilter: string;
   onFilterChange: (filter: string) => void;
 }
 
+type ChipProps = {
+  label: string;
+  icon?: string;
+  active: boolean;
+  onPress: () => void;
+};
+
+/**
+ * Categorías al estilo Airbnb: icono + etiqueta en columna, sin fondo,
+ * y la selección se marca con un subrayado grueso. Nada de píldoras de color.
+ */
+function CategoryChip({ label, icon, active, onPress }: ChipProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+    >
+      {!!icon && (
+        <Ionicons
+          name={icon as any}
+          size={22}
+          color={active ? palette.ink : palette.muted}
+        />
+      )}
+      <Text style={[styles.chipLabel, active && styles.chipLabelActive]} numberOfLines={1}>
+        {label}
+      </Text>
+      <View style={[styles.underline, active && styles.underlineActive]} />
+    </Pressable>
+  );
+}
+
 export function FiltersSection({ selectedFilter, onFilterChange }: FiltersSectionProps) {
   const { categories, loading, error } = useCategories();
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#003D7A" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return null; // Silently fail, just show "Todos"
-  }
+  if (error) return null;
 
   return (
     <View style={styles.container}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scroll}
       >
-        {/* Filtro "Todos" */}
-        <Pressable
-          style={[
-            styles.filterChip,
-            selectedFilter === 'Todos' && styles.filterChipActive,
-          ]}
+        <CategoryChip
+          label="Todos"
+          icon="apps-outline"
+          active={selectedFilter === 'Todos'}
           onPress={() => onFilterChange('Todos')}
-        >
-          <Ionicons
-            name="grid-outline"
-            size={18}
-            color={selectedFilter === 'Todos' ? '#FFF' : '#666'}
-          />
-          <Text
-            style={[
-              styles.filterText,
-              selectedFilter === 'Todos' && styles.filterTextActive,
-            ]}
-          >
-            Todos
-          </Text>
-        </Pressable>
+        />
 
-        {/* Filtros de categorías dinámicas */}
-        {categories.map((category) => (
-          <Pressable
-            key={category.id}
-            style={[
-              styles.filterChip,
-              selectedFilter === category.name && styles.filterChipActive,
-            ]}
-            onPress={() => onFilterChange(category.name)}
-          >
-            {category.icon && (
-              <Ionicons
-                name={category.icon as any}
-                size={18}
-                color={selectedFilter === category.name ? '#FFF' : '#666'}
-              />
-            )}
-            <Text
-              style={[
-                styles.filterText,
-                selectedFilter === category.name && styles.filterTextActive,
-              ]}
-            >
-              {category.name}
-            </Text>
-            {category.color && selectedFilter === category.name && (
-              <View
-                style={[
-                  styles.colorDot,
-                  { backgroundColor: category.color }
-                ]}
-              />
-            )}
-          </Pressable>
-        ))}
+        {!loading &&
+          categories.map((category) => (
+            <CategoryChip
+              key={category.id}
+              label={category.name}
+              icon={category.icon ?? 'pricetag-outline'}
+              active={selectedFilter === category.name}
+              onPress={() => onFilterChange(category.name)}
+            />
+          ))}
       </ScrollView>
     </View>
   );
@@ -103,46 +80,37 @@ export function FiltersSection({ selectedFilter, onFilterChange }: FiltersSectio
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFF',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    backgroundColor: palette.white,
+    borderBottomWidth: hairline,
+    borderBottomColor: palette.border,
   },
-  loadingContainer: {
-    backgroundColor: '#FFF',
-    paddingVertical: 20,
+  scroll: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xl,
+  },
+  chip: {
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    gap: spacing.xs,
+    paddingTop: spacing.md,
+    minWidth: 56,
   },
-  scrollContent: {
-    paddingHorizontal: 16,
-    gap: 10,
+  chipPressed: {
+    opacity: 0.6,
   },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: '#F0F0F0',
-    gap: 6,
-  },
-  filterChipActive: {
-    backgroundColor: '#003D7A',
-  },
-  filterText: {
-    fontSize: 14,
+  chipLabel: {
+    ...type.caption,
     fontWeight: '600',
-    color: '#666',
   },
-  filterTextActive: {
-    color: '#FFF',
+  chipLabelActive: {
+    color: palette.ink,
   },
-  colorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: 2,
+  underline: {
+    height: 2,
+    width: '100%',
+    marginTop: spacing.sm,
+    backgroundColor: 'transparent',
+  },
+  underlineActive: {
+    backgroundColor: palette.ink,
   },
 });

@@ -1,5 +1,5 @@
 // components/UserProfile.tsx
-import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { Button, Image, StyleSheet, Text, View } from 'react-native';
 
@@ -18,14 +18,14 @@ export default function UserProfile() {
   return (
     <View style={styles.container}>
       <Image 
-        source={{ uri: user.imageUrl }} 
+        source={{ uri: user.imageUrl ?? undefined }} 
         style={styles.avatar}
       />
       <Text style={styles.name}>
         {user.fullName || user.firstName}
       </Text>
       <Text style={styles.email}>
-        {user.primaryEmailAddress?.emailAddress}
+        {user.email}
       </Text>
       <Button title="Cerrar sesión" onPress={handleSignOut} />
     </View>

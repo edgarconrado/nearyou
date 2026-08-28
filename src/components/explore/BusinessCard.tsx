@@ -1,97 +1,124 @@
 // components/explore/BusinessCard.tsx
+import { palette, radius, spacing, type } from '@/constants/design';
+import { useFavoritesContext } from '@/contexts/FavoritesContext';
 import { Ionicons } from '@expo/vector-icons';
 import type { BusinessFull } from '@services/businesses.service';
-import React from 'react';
-import { Dimensions, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import React, { useCallback } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+/**
+ * La vista `businesses_full` agrega el conteo de ofertas y `sortByDistance`
+ * inyecta la distancia en tiempo de ejecución: ninguno está en los tipos
+ * generados, así que se declaran aquí.
+ */
+export type BusinessListItem = BusinessFull & {
+  active_offers_count?: number | null;
+  distance?: number | null;
+};
 
 interface BusinessCardProps {
-  business: BusinessFull;
+  business: BusinessListItem;
   onPress: () => void;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-// Ancho de cada tarjeta: (ancho total - padding lateral - gap entre tarjetas) / 2
-const CARD_WIDTH = (SCREEN_WIDTH - 32 - 12) / 2;
+function formatDistance(km: number) {
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+}
 
+/**
+ * Tarjeta de negocio en una sola columna, como un anuncio de Airbnb:
+ * foto grande 4:3, corazón sobre la foto, y debajo tres líneas de texto
+ * jerarquizadas solo por peso y color. Sin badges de colores ni sombras.
+ */
 export function BusinessCard({ business, onPress }: BusinessCardProps) {
-  const hasOffers = business.active_offers_count && business.active_offers_count > 0;
-  const hasDistance = business.distance !== undefined && business.distance !== null;
-  
-  // Determinar si está abierto basado en el campo is_open
-  const isOpen = business.is_open ?? true; // Por defecto abierto si no está definido
+  const { isFavorite, toggleFavorite } = useFavoritesContext();
+  const favorite = isFavorite(String(business.id));
 
-  // Usar cover_image_url o main_image_url
-  const imageUrl = business.main_image_url;
+  const hasOffers = !!business.active_offers_count && business.active_offers_count > 0;
+  const hasDistance = business.distance !== undefined && business.distance !== null;
+  const isOpen = business.is_open ?? true;
+  const rating = business.average_rating ?? null;
+  const reviews = business.total_reviews ?? 0;
+
+  const businessId = String(business.id);
+
+  const onToggleFavorite = useCallback(() => {
+    toggleFavorite(businessId);
+  }, [businessId, toggleFavorite]);
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed,
-      ]}
+      accessibilityRole="button"
+      accessibilityLabel={business.name ?? undefined}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {/* Imagen del negocio */}
-      <View style={styles.imageContainer}>
-        {imageUrl ? (
+      <View style={styles.imageWrap}>
+        {business.main_image_url ? (
           <Image
-            source={{ uri: imageUrl }}
+            source={{ uri: business.main_image_url }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={180}
           />
         ) : (
-          <View style={styles.placeholderImage}>
-            <Ionicons name="business" size={40} color="#CCC" />
+          <View style={styles.placeholder}>
+            <Ionicons name="image-outline" size={28} color={palette.faint} />
           </View>
         )}
 
-        {/* Badge de ofertas - Esquina superior derecha */}
         {hasOffers && (
-          <View style={styles.offerBadge}>
-            <Ionicons name="pricetag" size={12} color="#FFF" />
-            <Text style={styles.offerBadgeText}>{business.active_offers_count}</Text>
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>
+              {business.active_offers_count === 1
+                ? '1 oferta'
+                : `${business.active_offers_count} ofertas`}
+            </Text>
           </View>
         )}
+
+        <Pressable
+          onPress={onToggleFavorite}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={favorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+          style={styles.heart}
+        >
+          <Ionicons
+            name={favorite ? 'heart' : 'heart-outline'}
+            size={22}
+            color={favorite ? palette.accent : palette.white}
+            style={styles.heartIcon}
+          />
+        </Pressable>
       </View>
 
-      {/* Información del negocio */}
-      <View style={styles.content}>
-        <Text style={styles.businessName} numberOfLines={2}>
-          {business.name}
+      <View style={styles.body}>
+        <View style={styles.titleRow}>
+          <Text style={styles.name} numberOfLines={1}>
+            {business.name}
+          </Text>
+          {rating !== null && (
+            <View style={styles.rating}>
+              <Ionicons name="star" size={11} color={palette.ink} />
+              <Text style={styles.ratingText}>
+                {Number(rating).toFixed(1)}
+                {reviews > 0 ? ` (${reviews})` : ''}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <Text style={styles.meta} numberOfLines={1}>
+          {[business.category_name, hasDistance && formatDistance(business.distance!)]
+            .filter(Boolean)
+            .join(' · ')}
         </Text>
 
-        {/* Indicador de abierto/cerrado - Debajo del nombre */}
-        <View style={[styles.statusBadge, isOpen ? styles.openBadge : styles.closedBadge]}>
-          <View style={[styles.statusDot, isOpen ? styles.openDot : styles.closedDot]} />
-          <Text style={[styles.statusText, isOpen ? styles.openText : styles.closedText]}>
-            {isOpen ? 'Abierto' : 'Cerrado'}
-          </Text>
-        </View>
-
-        {/* Categoría y Distancia en la misma fila */}
-        <View style={styles.bottomRow}>
-          {/* Categoría */}
-          {business.category_name && (
-            <View style={styles.categoryContainer}>
-              <Ionicons name="pricetags-outline" size={11} color="#666" />
-              <Text style={styles.categoryText} numberOfLines={1}>
-                {business.category_name}
-              </Text>
-            </View>
-          )}
-
-          {/* Distancia */}
-          {hasDistance && (
-            <View style={styles.distanceContainer}>
-              <Ionicons name="location" size={12} color="#003D7A" />
-              <Text style={styles.distanceText}>
-                {business.distance! < 1
-                  ? `${Math.round(business.distance! * 1000)} m`
-                  : `${business.distance!.toFixed(1)} km`}
-              </Text>
-            </View>
-          )}
-        </View>
+        <Text style={[styles.status, isOpen ? styles.open : styles.closed]}>
+          {isOpen ? 'Abierto ahora' : 'Cerrado'}
+        </Text>
       </View>
     </Pressable>
   );
@@ -99,135 +126,85 @@ export function BusinessCard({ business, onPress }: BusinessCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    width: CARD_WIDTH,
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // flex:1 dentro de la fila de dos columnas del FlatList
+    flex: 1,
   },
-  cardPressed: {
+  pressed: {
     opacity: 0.8,
-    transform: [{ scale: 0.98 }],
   },
-  imageContainer: {
+  imageWrap: {
     width: '100%',
-    height: 120,
-    position: 'relative',
+    // Cuadrada: en media pantalla el 4:3 se veía achatado
+    aspectRatio: 1,
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    backgroundColor: palette.skeleton,
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  placeholderImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F0F0F0',
+  placeholder: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  offerBadge: {
+  tag: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#D32F2F',
-    paddingHorizontal: 8,
+    top: spacing.sm,
+    left: spacing.sm,
+    backgroundColor: palette.white,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: radius.pill,
   },
-  offerBadgeText: {
-    color: '#FFF',
-    fontSize: 11,
-    fontWeight: '700',
+  tagText: {
+    ...type.captionStrong,
   },
-  content: {
-    padding: 12,
-    gap: 5,
+  heart: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
+    padding: spacing.xs,
   },
-  businessName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#333',
-    lineHeight: 18,
-    minHeight: 36, // Espacio para 2 líneas
+  heartIcon: {
+    textShadowColor: 'rgba(0, 0, 0, 0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  statusBadge: {
+  body: {
+    paddingTop: spacing.sm,
+    gap: 1,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 8,
+    gap: spacing.sm,
+  },
+  name: {
+    ...type.smallStrong,
+    fontSize: 15,
+    flex: 1,
+  },
+  rating: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 3,
-    alignSelf: 'flex-start',
   },
-  openBadge: {
-    backgroundColor: '#E8F5E9', // Verde muy suave
+  ratingText: {
+    ...type.captionStrong,
   },
-  closedBadge: {
-    backgroundColor: '#FFEBEE', // Rojo muy suave
+  meta: {
+    ...type.caption,
   },
-  statusDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-  },
-  openDot: {
-    backgroundColor: '#4CAF50', // Verde
-  },
-  closedDot: {
-    backgroundColor: '#F44336', // Rojo
-  },
-  statusText: {
-    fontSize: 9,
+  status: {
+    ...type.caption,
     fontWeight: '600',
   },
-  openText: {
-    color: '#2E7D32', // Verde oscuro para texto
+  open: {
+    color: palette.success,
   },
-  closedText: {
-    color: '#C62828', // Rojo oscuro para texto
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 4,
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flex: 1,
-    minWidth: 0, // Permite que se encoja si es necesario
-  },
-  categoryText: {
-    fontSize: 11,
-    color: '#666',
-    flex: 1,
-  },
-  distanceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  distanceText: {
-    fontSize: 11,
-    color: '#003D7A',
-    fontWeight: '700',
+  closed: {
+    color: palette.muted,
   },
 });

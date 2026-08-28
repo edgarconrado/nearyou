@@ -1,24 +1,25 @@
 // components/explore/FloatingLocationBadge.tsx
+import { elevation, hairline, palette, radius, type } from '@/constants/design';
 import { useUserLocation } from '@/contexts/LocationContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import {
-    Animated,
-    StyleSheet,
-    Text,
-    TouchableOpacity
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity
 } from 'react-native';
 
 interface FloatingLocationBadgeProps {
   businessCount?: number;
 }
 
-export const FloatingLocationBadge: React.FC<FloatingLocationBadgeProps> = ({ 
-  businessCount = 0 
+export const FloatingLocationBadge: React.FC<FloatingLocationBadgeProps> = ({
+  businessCount = 0
 }) => {
-  const { 
-    location, 
-    loading, 
+  const {
+    location,
+    loading,
     error,
     hasPermission,
     refreshLocation,
@@ -73,15 +74,15 @@ export const FloatingLocationBadge: React.FC<FloatingLocationBadgeProps> = ({
 
   const getStatusIcon = () => {
     if (loading || refreshing) {
-      return <Ionicons name="location" size={16} color="#003D7A" />;
+      return <Ionicons name="location" size={16} color={palette.ink} />;
     }
     if (error || !hasPermission) {
-      return <Ionicons name="location-outline" size={16} color="#FF3B30" />;
+      return <Ionicons name="location-outline" size={16} color={palette.danger} />;
     }
     if (location) {
-      return <Ionicons name="location" size={16} color="#2E7D32" />;
+      return <Ionicons name="location" size={16} color={palette.ink} />;
     }
-    return <Ionicons name="location-outline" size={16} color="#999" />;
+    return <Ionicons name="location-outline" size={16} color={palette.muted} />;
   };
 
   const getStatusText = () => {
@@ -94,29 +95,23 @@ export const FloatingLocationBadge: React.FC<FloatingLocationBadgeProps> = ({
     return 'Ubicación desactivada';
   };
 
-  const getBackgroundColor = () => {
-    if (error || !hasPermission) return '#FFEBEE';
-    if (location) return '#E8F5E9';
-    return '#F5F5F5';
-  };
-
+  // Fondo siempre blanco: el estado se comunica con el icono y el texto,
+  // no tiñendo toda la píldora de rojo o verde.
   const getTextColor = () => {
-    if (error || !hasPermission) return '#C62828';
-    if (location) return '#2E7D32';
-    return '#666';
+    if (error || !hasPermission) return palette.danger;
+    return palette.ink;
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
-        { 
+        {
           transform: [{ translateY: slideAnim }],
-          backgroundColor: getBackgroundColor(),
         }
       ]}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.content}
         onPress={handlePress}
         activeOpacity={0.7}
@@ -124,16 +119,16 @@ export const FloatingLocationBadge: React.FC<FloatingLocationBadgeProps> = ({
         <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
           {getStatusIcon()}
         </Animated.View>
-        
+
         <Text style={[styles.text, { color: getTextColor() }]}>
           {getStatusText()}
         </Text>
 
         {!loading && !refreshing && (
-          <Ionicons 
-            name={hasPermission ? "refresh" : "chevron-forward"} 
-            size={14} 
-            color={getTextColor()} 
+          <Ionicons
+            name={hasPermission ? "refresh" : "chevron-forward"}
+            size={14}
+            color={getTextColor()}
           />
         )}
       </TouchableOpacity>
@@ -148,12 +143,11 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     zIndex: 10,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: radius.pill,
+    backgroundColor: palette.white,
+    borderWidth: hairline,
+    borderColor: palette.border,
+    ...elevation.float,
   },
   content: {
     flexDirection: 'row',
@@ -163,8 +157,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   text: {
+    ...type.caption,
     flex: 1,
-    fontSize: 13,
     fontWeight: '600',
   },
 });

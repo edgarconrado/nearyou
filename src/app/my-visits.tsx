@@ -1,3 +1,4 @@
+import { hairline, palette, spacing } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -55,7 +56,7 @@ export default function MyVisitsScreen() {
         <TouchableOpacity
             style={styles.card}
             onPress={() => router.push({
-                pathname: '/business-details',
+                pathname: '/detail',
                 params: { businessId: item.id, businessName: item.name }
             })}
         >
@@ -65,11 +66,11 @@ export default function MyVisitsScreen() {
                 <Text style={styles.category}>{item.category}</Text>
                 <View style={styles.footer}>
                     <View style={styles.dateContainer}>
-                        <Ionicons name="calendar-outline" size={14} color="#666" />
+                        <Ionicons name="calendar-outline" size={14} color={palette.muted} />
                         <Text style={styles.date}>{item.visitDate}</Text>
                     </View>
                     <View style={styles.locationContainer}>
-                        <Ionicons name="location-outline" size={14} color="#666" />
+                        <Ionicons name="location-outline" size={14} color={palette.muted} />
                         <Text style={styles.location}>{item.location}</Text>
                     </View>
                 </View>
@@ -79,7 +80,7 @@ export default function MyVisitsScreen() {
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <Ionicons name="location-outline" size={80} color="#CCC" />
+            <Ionicons name="location-outline" size={80} color={palette.faint} />
             <Text style={styles.emptyTitle}>{t('visits.noVisits')}</Text>
             <Text style={styles.emptyText}>{t('visits.noVisitsDesc')}</Text>
         </View>
@@ -89,7 +90,7 @@ export default function MyVisitsScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('visits.title')}</Text>
                 <View style={{ width: 24 }} />
@@ -130,24 +131,26 @@ export default function MyVisitsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: palette.white,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: palette.white,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: palette.ink,
     },
     statsBar: {
         flexDirection: 'row',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         paddingVertical: 20,
         paddingHorizontal: 16,
         marginBottom: 8,
@@ -159,16 +162,16 @@ const styles = StyleSheet.create({
     statNumber: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#003D7A',
+        color: palette.ink,
         marginBottom: 4,
     },
     statLabel: {
         fontSize: 12,
-        color: '#666',
+        color: palette.muted,
     },
     statDivider: {
         width: 1,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: palette.border,
     },
     list: {
         padding: 16,
@@ -178,7 +181,7 @@ const styles = StyleSheet.create({
     },
     card: {
         flexDirection: 'row',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: palette.white,
         borderRadius: 12,
         marginBottom: 12,
         overflow: 'hidden',
@@ -200,12 +203,12 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginBottom: 4,
     },
     category: {
         fontSize: 13,
-        color: '#666',
+        color: palette.muted,
         marginBottom: 8,
     },
     footer: {
@@ -218,7 +221,7 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 12,
-        color: '#666',
+        color: palette.muted,
     },
     locationContainer: {
         flexDirection: 'row',
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     },
     location: {
         fontSize: 12,
-        color: '#666',
+        color: palette.muted,
     },
     emptyContainer: {
         flex: 1,
@@ -239,13 +242,13 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
+        color: palette.ink,
         marginTop: 16,
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 14,
-        color: '#666',
+        color: palette.muted,
         textAlign: 'center',
     },
 });

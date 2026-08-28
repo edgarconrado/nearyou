@@ -1,429 +1,200 @@
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
+import { openExternalLink, PRIVACY_URL, SUPPORT_EMAIL, TERMS_URL } from '@/constants/links';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-    Alert,
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const SUPPORT_PHONE = '+523531730317';
+
+/**
+ * Ayuda y soporte.
+ *
+ * Se quitaron el formulario de contacto, los enlaces útiles (centro de ayuda,
+ * tutoriales, comunidad) y los accesos a WhatsApp y Facebook: ninguno estaba
+ * conectado a nada real. Una función que no hace nada es motivo de rechazo
+ * bajo la guía 2.1 de App Store, así que solo queda lo que sí funciona:
+ * correo, teléfono y las preguntas frecuentes.
+ */
 export default function HelpSupportScreen() {
     const router = useRouter();
     const { t } = useLanguage();
-    const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-    const [message, setMessage] = useState('');
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-    const faqs = [
-        {
-            id: 1,
-            question: t('helpSupport.faq1q'),
-            answer: t('helpSupport.faq1a'),
-        },
-        {
-            id: 2,
-            question: t('helpSupport.faq2q'),
-            answer: t('helpSupport.faq2a'),
-        },
-        {
-            id: 3,
-            question: t('helpSupport.faq3q'),
-            answer: t('helpSupport.faq3a'),
-        },
-        {
-            id: 4,
-            question: t('helpSupport.faq4q'),
-            answer: t('helpSupport.faq4a'),
-        },
-        {
-            id: 5,
-            question: t('helpSupport.faq5q'),
-            answer: t('helpSupport.faq5a'),
-        },
-        {
-            id: 6,
-            question: t('helpSupport.faq6q'),
-            answer: t('helpSupport.faq6a'),
-        },
-        {
-            id: 7,
-            question: t('helpSupport.faq7q'),
-            answer: t('helpSupport.faq7a'),
-        },
-        {
-            id: 8,
-            question: t('helpSupport.faq8q'),
-            answer: t('helpSupport.faq8a'),
-        },
-    ];
+    const faqs = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({
+        q: t(`helpSupport.faq${n}q`),
+        a: t(`helpSupport.faq${n}a`),
+    }));
 
-    const toggleFaq = (id: number) => {
-        setExpandedFaq(expandedFaq === id ? null : id);
-    };
-
-    const handleCallSupport = () => {
-        Linking.openURL('tel:+524341234567');
-    };
-
-    const handleEmailSupport = () => {
-        Linking.openURL('mailto:soporte@tuapp.com');
-    };
-
-    const handleWhatsApp = () => {
-        Linking.openURL('https://wa.me/524341234567');
-    };
-
-    const handleSubmitMessage = () => {
-        if (message.trim().length < 10) {
-            Alert.alert(t('common.error'), t('helpSupport.messageTooShort'));
-            return;
+    const openMail = async () => {
+        const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Soporte NearYou')}`;
+        try {
+            await Linking.openURL(url);
+        } catch {
+            Alert.alert('Escríbenos a', SUPPORT_EMAIL);
         }
+    };
 
-        Alert.alert(
-            t('helpSupport.messageSent'),
-            t('helpSupport.messageSentDesc'),
-            [
-                {
-                    text: t('common.ok'),
-                    onPress: () => {
-                        setMessage('');
-                    },
-                },
-            ]
-        );
+    const openPhone = async () => {
+        try {
+            await Linking.openURL(`tel:${SUPPORT_PHONE}`);
+        } catch {
+            Alert.alert('Llámanos al', SUPPORT_PHONE);
+        }
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
+                <Pressable onPress={() => router.back()} hitSlop={10} style={styles.back}>
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
+                </Pressable>
                 <Text style={styles.headerTitle}>{t('helpSupport.title')}</Text>
-                <View style={{ width: 24 }} />
+                <View style={styles.back} />
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Contacto rápido */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('helpSupport.quickContact')}</Text>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                <Text style={styles.intro}>{t('helpSupport.subtitle')}</Text>
 
-                    <View style={styles.quickContactGrid}>
-                        <TouchableOpacity
-                            style={styles.quickContactCard}
-                            onPress={handleCallSupport}
-                        >
-                            <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
-                                <Ionicons name="call" size={28} color="#2196F3" />
-                            </View>
-                            <Text style={styles.quickContactLabel}>{t('helpSupport.call')}</Text>
-                        </TouchableOpacity>
+                {/* Contacto */}
+                <Text style={styles.sectionTitle}>{t('helpSupport.contactUs')}</Text>
 
-                        <TouchableOpacity
-                            style={styles.quickContactCard}
-                            onPress={handleEmailSupport}
-                        >
-                            <View style={[styles.iconCircle, { backgroundColor: '#FFF3E0' }]}>
-                                <Ionicons name="mail" size={28} color="#FF9800" />
-                            </View>
-                            <Text style={styles.quickContactLabel}>{t('helpSupport.email')}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.quickContactCard}
-                            onPress={handleWhatsApp}
-                        >
-                            <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
-                                <Ionicons name="logo-whatsapp" size={28} color="#4CAF50" />
-                            </View>
-                            <Text style={styles.quickContactLabel}>{t('helpSupport.whatsapp')}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.quickContactCard}
-                            onPress={() => Linking.openURL('https://www.facebook.com/tuapp')}
-                        >
-                            <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
-                                <Ionicons name="logo-facebook" size={28} color="#1877F2" />
-                            </View>
-                            <Text style={styles.quickContactLabel}>{t('helpSupport.facebook')}</Text>
-                        </TouchableOpacity>
+                <Pressable
+                    onPress={openMail}
+                    style={({ pressed }) => [styles.row, styles.divider, pressed && styles.pressed]}
+                >
+                    <Ionicons name="mail-outline" size={22} color={palette.ink} />
+                    <View style={styles.rowText}>
+                        <Text style={styles.rowLabel}>{t('helpSupport.email')}</Text>
+                        <Text style={styles.rowValue}>{SUPPORT_EMAIL}</Text>
                     </View>
-                </View>
+                    <Ionicons name="chevron-forward" size={18} color={palette.faint} />
+                </Pressable>
 
-                {/* Horario de atención */}
-                <View style={styles.infoBox}>
-                    <Ionicons name="time-outline" size={20} color="#003D7A" />
-                    <View style={styles.infoTextContainer}>
-                        <Text style={styles.infoTitle}>{t('helpSupport.scheduleTitle')}</Text>
-                        <Text style={styles.infoText}>
-                            {t('helpSupport.scheduleWeekdays')}{'\n'}
-                            {t('helpSupport.scheduleWeekend')}{'\n'}
-                            {t('helpSupport.scheduleSunday')}
-                        </Text>
+                <Pressable
+                    onPress={openPhone}
+                    style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+                >
+                    <Ionicons name="call-outline" size={22} color={palette.ink} />
+                    <View style={styles.rowText}>
+                        <Text style={styles.rowLabel}>{t('helpSupport.phone')}</Text>
+                        <Text style={styles.rowValue}>+52 353 173 0317</Text>
                     </View>
+                    <Ionicons name="chevron-forward" size={18} color={palette.faint} />
+                </Pressable>
+
+                <View style={styles.schedule}>
+                    <Text style={styles.scheduleTitle}>{t('helpSupport.scheduleTitle')}</Text>
+                    <Text style={styles.scheduleLine}>{t('helpSupport.scheduleWeekdays')}</Text>
+                    <Text style={styles.scheduleLine}>{t('helpSupport.scheduleWeekend')}</Text>
+                    <Text style={styles.scheduleLine}>{t('helpSupport.scheduleSunday')}</Text>
                 </View>
 
                 {/* Preguntas frecuentes */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('helpSupport.commonQuestions')}</Text>
+                <Text style={styles.sectionTitle}>{t('helpSupport.commonQuestions')}</Text>
 
-                    <View style={styles.faqContainer}>
-                        {faqs.map((faq) => (
-                            <View key={faq.id} style={styles.faqItem}>
-                                <TouchableOpacity
-                                    style={styles.faqQuestion}
-                                    onPress={() => toggleFaq(faq.id)}
-                                >
-                                    <Text style={styles.faqQuestionText}>{faq.question}</Text>
-                                    <Ionicons
-                                        name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'}
-                                        size={20}
-                                        color="#666"
-                                    />
-                                </TouchableOpacity>
-
-                                {expandedFaq === faq.id && (
-                                    <View style={styles.faqAnswer}>
-                                        <Text style={styles.faqAnswerText}>{faq.answer}</Text>
-                                    </View>
-                                )}
-                            </View>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Formulario de contacto */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('helpSupport.sendMessage')}</Text>
-                    <Text style={styles.sectionDescription}>
-                        {t('helpSupport.sendMessageDesc')}
-                    </Text>
-
-                    <View style={styles.messageForm}>
-                        <TextInput
-                            style={styles.messageInput}
-                            placeholder={t('helpSupport.messagePlaceholder')}
-                            placeholderTextColor="#999"
-                            multiline
-                            numberOfLines={6}
-                            value={message}
-                            onChangeText={setMessage}
-                            textAlignVertical="top"
-                        />
-                        <Text style={styles.charCount}>
-                            {message.length} / 500
-                        </Text>
-
-                        <TouchableOpacity
-                            style={styles.sendButton}
-                            onPress={handleSubmitMessage}
+                {faqs.map((faq, i) => {
+                    const isOpen = openFaq === i;
+                    return (
+                        <Pressable
+                            key={i}
+                            onPress={() => setOpenFaq(isOpen ? null : i)}
+                            style={({ pressed }) => [
+                                styles.faq,
+                                i < faqs.length - 1 && styles.divider,
+                                pressed && styles.pressed,
+                            ]}
                         >
-                            <Ionicons name="send" size={20} color="#FFFFFF" />
-                            <Text style={styles.sendButtonText}>{t('helpSupport.sendButton')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                            <View style={styles.faqHead}>
+                                <Text style={styles.faqQuestion}>{faq.q}</Text>
+                                <Ionicons
+                                    name={isOpen ? 'chevron-up' : 'chevron-down'}
+                                    size={18}
+                                    color={palette.faint}
+                                />
+                            </View>
+                            {isOpen && <Text style={styles.faqAnswer}>{faq.a}</Text>}
+                        </Pressable>
+                    );
+                })}
 
-                {/* Enlaces útiles */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('helpSupport.usefulLinks')}</Text>
+                {/* Legal */}
+                <Text style={styles.sectionTitle}>Legal</Text>
 
-                    <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="document-text-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>{t('helpSupport.helpCenter')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
+                <Pressable
+                    onPress={() => openExternalLink(TERMS_URL)}
+                    style={({ pressed }) => [styles.row, styles.divider, pressed && styles.pressed]}
+                >
+                    <Ionicons name="document-text-outline" size={22} color={palette.ink} />
+                    <Text style={styles.legalLabel}>{t('helpSupport.termsConditions')}</Text>
+                    <Ionicons name="open-outline" size={18} color={palette.faint} />
+                </Pressable>
 
-                    <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="book-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>{t('helpSupport.userGuide')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="videocam-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>{t('helpSupport.videoTutorials')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.linkButton}>
-                        <Ionicons name="chatbubbles-outline" size={22} color="#003D7A" />
-                        <Text style={styles.linkText}>{t('helpSupport.community')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={{ height: 40 }} />
+                <Pressable
+                    onPress={() => openExternalLink(PRIVACY_URL)}
+                    style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+                >
+                    <Ionicons name="lock-closed-outline" size={22} color={palette.ink} />
+                    <Text style={styles.legalLabel}>{t('helpSupport.privacyPolicy')}</Text>
+                    <Ionicons name="open-outline" size={18} color={palette.faint} />
+                </Pressable>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
+    screen: { flex: 1, backgroundColor: palette.white },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.md,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-    },
-    content: {
-        flex: 1,
-    },
-    section: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        marginTop: 8,
-    },
+    back: { width: 32 },
+    headerTitle: { ...type.subheading },
+
+    content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+    intro: { ...type.body, color: palette.muted, marginBottom: spacing.xl },
+
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
+        ...type.captionStrong,
+        color: palette.muted,
+        marginTop: spacing.xl,
+        marginBottom: spacing.xs,
     },
-    sectionDescription: {
-        fontSize: 14,
-        color: '#666',
-        lineHeight: 20,
-        marginBottom: 16,
-    },
-    quickContactGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-        marginTop: 16,
-    },
-    quickContactCard: {
-        width: '22%',
-        alignItems: 'center',
-        gap: 8,
-    },
-    iconCircle: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    quickContactLabel: {
-        fontSize: 12,
-        color: '#666',
-        textAlign: 'center',
-    },
-    infoBox: {
-        flexDirection: 'row',
-        backgroundColor: '#E3F2FD',
-        padding: 16,
-        margin: 16,
-        marginBottom: 8,
-        borderRadius: 12,
-        gap: 12,
-    },
-    infoTextContainer: {
-        flex: 1,
-    },
-    infoTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#003D7A',
-        marginBottom: 4,
-    },
-    infoText: {
-        fontSize: 13,
-        color: '#003D7A',
-        lineHeight: 18,
-    },
-    faqContainer: {
-        marginTop: 8,
-    },
-    faqItem: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
-    },
-    faqQuestion: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 16,
-    },
-    faqQuestionText: {
-        flex: 1,
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#333',
-        marginRight: 12,
-    },
-    faqAnswer: {
-        paddingBottom: 16,
-        paddingRight: 32,
-    },
-    faqAnswerText: {
-        fontSize: 14,
-        color: '#666',
-        lineHeight: 20,
-    },
-    messageForm: {
-        marginTop: 8,
-    },
-    messageInput: {
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 12,
-        padding: 16,
-        fontSize: 15,
-        color: '#333',
-        minHeight: 120,
-        backgroundColor: '#F9F9F9',
-    },
-    charCount: {
-        fontSize: 13,
-        color: '#999',
-        marginTop: 8,
-        textAlign: 'right',
-    },
-    sendButton: {
+
+    row: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        backgroundColor: '#003D7A',
-        paddingVertical: 14,
-        borderRadius: 12,
-        marginTop: 16,
+        gap: spacing.lg,
+        paddingVertical: spacing.lg,
     },
-    sendButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#FFFFFF',
+    divider: { borderBottomWidth: hairline, borderBottomColor: palette.borderSoft },
+    pressed: { opacity: 0.55 },
+    rowText: { flex: 1 },
+    rowLabel: { ...type.body },
+    rowValue: { ...type.caption },
+    legalLabel: { ...type.body, flex: 1 },
+
+    schedule: {
+        marginTop: spacing.lg,
+        padding: spacing.lg,
+        borderWidth: hairline,
+        borderColor: palette.border,
+        borderRadius: radius.md,
+        gap: 2,
     },
-    linkButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
-        gap: 12,
-    },
-    linkText: {
-        flex: 1,
-        fontSize: 15,
-        color: '#333',
-    },
+    scheduleTitle: { ...type.smallStrong, marginBottom: spacing.xs },
+    scheduleLine: { ...type.small },
+
+    faq: { paddingVertical: spacing.lg },
+    faqHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    faqQuestion: { ...type.bodyStrong, flex: 1 },
+    faqAnswer: { ...type.small, marginTop: spacing.sm },
 });

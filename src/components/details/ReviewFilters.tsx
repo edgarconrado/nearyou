@@ -1,109 +1,75 @@
+import { hairline, palette, radius, spacing, type } from '@/constants/design';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface ReviewFiltersProps {
     reviewFilter: number | 'all';
     onFilterChange: (filter: number | 'all') => void;
 }
 
+/** Chips con borde; el activo se invierte a fondo tinta. */
 export const ReviewFilters: React.FC<ReviewFiltersProps> = ({
     reviewFilter,
     onFilterChange,
 }) => {
-
     const { t } = useLanguage();
 
+    const options: (number | 'all')[] = ['all', 5, 4, 3, 2, 1];
+
     return (
-        <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>{t('detail.filterBy')}:</Text>
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.filtersScroll}
-            >
-                <TouchableOpacity
-                    style={[
-                        styles.filterChip,
-                        reviewFilter === 'all' && styles.filterChipActive,
-                    ]}
-                    onPress={() => onFilterChange('all')}
-                >
-                    <Text
-                        style={[
-                            styles.filterChipText,
-                            reviewFilter === 'all' && styles.filterChipTextActive,
-                        ]}
-                    >
-                        {t('detail.all')}
-                    </Text>
-                </TouchableOpacity>
-                {[5, 4, 3, 2, 1].map((star) => (
-                    <TouchableOpacity
-                        key={star}
-                        style={[
-                            styles.filterChip,
-                            reviewFilter === star && styles.filterChipActive,
-                        ]}
-                        onPress={() => onFilterChange(star)}
-                    >
-                        <Ionicons
-                            name="star"
-                            size={16}
-                            color={reviewFilter === star ? '#FFFFFF' : '#FFB800'}
-                        />
-                        <Text
-                            style={[
-                                styles.filterChipText,
-                                reviewFilter === star && styles.filterChipTextActive,
-                            ]}
-                        >
-                            {star}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+        <View style={styles.container}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.row}>
+                    {options.map((option) => {
+                        const active = reviewFilter === option;
+                        return (
+                            <Pressable
+                                key={String(option)}
+                                onPress={() => onFilterChange(option)}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: active }}
+                                style={({ pressed }) => [
+                                    styles.chip,
+                                    active && styles.chipActive,
+                                    pressed && styles.pressed,
+                                ]}
+                            >
+                                {option !== 'all' && (
+                                    <Ionicons
+                                        name="star"
+                                        size={13}
+                                        color={active ? palette.white : palette.ink}
+                                    />
+                                )}
+                                <Text style={[styles.text, active && styles.textActive]}>
+                                    {option === 'all' ? t('detail.all') : option}
+                                </Text>
+                            </Pressable>
+                        );
+                    })}
+                </View>
             </ScrollView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    filterSection: {
-        marginBottom: 24,
-    },
-    filterLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 12,
-    },
-    filtersScroll: {
-        marginHorizontal: -20,
-        paddingHorizontal: 20,
-    },
-    filterChip: {
+    container: { marginBottom: spacing.lg },
+    row: { flexDirection: 'row', gap: spacing.sm },
+    chip: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#F0F0F0',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        marginRight: 8,
+        paddingHorizontal: spacing.lg,
+        height: 34,
+        borderRadius: radius.pill,
+        borderWidth: hairline,
+        borderColor: palette.border,
     },
-    filterChipActive: {
-        backgroundColor: '#003D7A',
-        borderColor: '#003D7A',
-    },
-    filterChipText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#666',
-    },
-    filterChipTextActive: {
-        color: '#FFFFFF',
-    },
+    chipActive: { backgroundColor: palette.ink, borderColor: palette.ink },
+    pressed: { opacity: 0.7 },
+    text: { ...type.caption, color: palette.ink, fontWeight: '600' },
+    textActive: { color: palette.white },
 });

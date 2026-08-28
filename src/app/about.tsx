@@ -1,361 +1,148 @@
 import { Logo } from '@/components/shared/logo';
+import { hairline, palette, spacing, type } from '@/constants/design';
+import { openExternalLink, PRIVACY_URL, SUPPORT_EMAIL, TERMS_URL } from '@/constants/links';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import {
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const APP_VERSION = '1.1.3r1';
+
+/**
+ * Acerca de.
+ *
+ * Se quitó la sección «Síguenos» (no hay redes sociales todavía) y el enlace
+ * a licencias de código abierto, que no llevaba a ninguna parte. Todo lo que
+ * el usuario puede tocar aquí hace algo real.
+ */
 export default function AboutScreen() {
     const router = useRouter();
     const { t } = useLanguage();
 
+    const features = [
+        { icon: 'search-outline', title: t('about.advancedSearch'), desc: t('about.advancedSearchDesc') },
+        { icon: 'star-outline', title: t('about.verifiedReviews'), desc: t('about.verifiedReviewsDesc') },
+        { icon: 'map-outline', title: t('about.interactiveMaps'), desc: t('about.interactiveMapsDesc') },
+        { icon: 'heart-outline', title: t('about.customLists'), desc: t('about.customListsDesc') },
+    ];
+
+    const openMail = async () => {
+        try {
+            await Linking.openURL(`mailto:${SUPPORT_EMAIL}`);
+        } catch {
+            Alert.alert('Escríbenos a', SUPPORT_EMAIL);
+        }
+    };
+
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
+                <Pressable onPress={() => router.back()} hitSlop={10} style={styles.back}>
+                    <Ionicons name="chevron-back" size={24} color={palette.ink} />
+                </Pressable>
                 <Text style={styles.headerTitle}>{t('about.title')}</Text>
-                <View style={{ width: 24 }} />
+                <View style={styles.back} />
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Logo y nombre de la app */}
-                <Logo
-                    version={`${t('about.version')} 1.0.12r20`}
-                    slogan={t('about.slogan')}
-                />
-
-
-                {/* Acerca de nosotros */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('about.ourMission')}</Text>
-                    <Text style={styles.paragraph}>
-                        {t('about.missionText1')}
-                    </Text>
-                    <Text style={styles.paragraph}>
-                        {t('about.missionText2')}
-                    </Text>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                <View style={styles.brand}>
+                    <Logo version={APP_VERSION} slogan={t('about.slogan')} />
                 </View>
 
-                {/* Características principales */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('about.mainFeatures')}</Text>
+                <Text style={styles.sectionTitle}>{t('about.ourMission')}</Text>
+                <Text style={styles.paragraph}>{t('about.missionText1')}</Text>
+                <Text style={styles.paragraph}>{t('about.missionText2')}</Text>
 
-                    <View style={styles.featureItem}>
-                        <View style={[styles.featureIcon, { backgroundColor: '#E3F2FD' }]}>
-                            <Ionicons name="search" size={24} color="#2196F3" />
-                        </View>
+                <Text style={styles.sectionTitle}>{t('about.mainFeatures')}</Text>
+                {features.map((feature, i) => (
+                    <View key={feature.title} style={[styles.feature, i < features.length - 1 && styles.divider]}>
+                        <Ionicons name={feature.icon as any} size={22} color={palette.ink} />
                         <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{t('about.advancedSearch')}</Text>
-                            <Text style={styles.featureDescription}>
-                                {t('about.advancedSearchDesc')}
-                            </Text>
+                            <Text style={styles.featureTitle}>{feature.title}</Text>
+                            <Text style={styles.featureDesc}>{feature.desc}</Text>
                         </View>
                     </View>
+                ))}
 
-                    <View style={styles.featureItem}>
-                        <View style={[styles.featureIcon, { backgroundColor: '#FFF3E0' }]}>
-                            <Ionicons name="star" size={24} color="#FF9800" />
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{t('about.verifiedReviews')}</Text>
-                            <Text style={styles.featureDescription}>
-                                {t('about.verifiedReviewsDesc')}
-                            </Text>
-                        </View>
-                    </View>
+                <Text style={styles.sectionTitle}>{t('about.contact')}</Text>
+                <Pressable
+                    onPress={openMail}
+                    style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+                >
+                    <Ionicons name="mail-outline" size={22} color={palette.ink} />
+                    <Text style={styles.rowLabel}>{SUPPORT_EMAIL}</Text>
+                    <Ionicons name="chevron-forward" size={18} color={palette.faint} />
+                </Pressable>
 
-                    <View style={styles.featureItem}>
-                        <View style={[styles.featureIcon, { backgroundColor: '#E8F5E9' }]}>
-                            <Ionicons name="map" size={24} color="#4CAF50" />
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{t('about.interactiveMaps')}</Text>
-                            <Text style={styles.featureDescription}>
-                                {t('about.interactiveMapsDesc')}
-                            </Text>
-                        </View>
-                    </View>
+                <Text style={styles.sectionTitle}>{t('about.legal')}</Text>
+                <Pressable
+                    onPress={() => openExternalLink(TERMS_URL)}
+                    style={({ pressed }) => [styles.row, styles.divider, pressed && styles.pressed]}
+                >
+                    <Text style={styles.legalLabel}>{t('about.termsConditions')}</Text>
+                    <Ionicons name="open-outline" size={18} color={palette.faint} />
+                </Pressable>
+                <Pressable
+                    onPress={() => openExternalLink(PRIVACY_URL)}
+                    style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+                >
+                    <Text style={styles.legalLabel}>{t('about.privacyPolicy')}</Text>
+                    <Ionicons name="open-outline" size={18} color={palette.faint} />
+                </Pressable>
 
-                    <View style={styles.featureItem}>
-                        <View style={[styles.featureIcon, { backgroundColor: '#FCE4EC' }]}>
-                            <Ionicons name="heart" size={24} color="#E91E63" />
-                        </View>
-                        <View style={styles.featureText}>
-                            <Text style={styles.featureTitle}>{t('about.customLists')}</Text>
-                            <Text style={styles.featureDescription}>
-                                {t('about.customListsDesc')}
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Equipo */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('about.ourTeam')}</Text>
-                    <Text style={styles.paragraph}>
-                        {t('about.teamDescription')}
-                    </Text>
-                </View>
-
-                {/* Redes sociales */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('about.followUs')}</Text>
-
-                    <View style={styles.socialLinks}>
-                        <TouchableOpacity
-                            style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://www.facebook.com/nearyou')}
-                        >
-                            <Ionicons name="logo-facebook" size={28} color="#1877F2" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://www.instagram.com/nearyou')}
-                        >
-                            <Ionicons name="logo-instagram" size={28} color="#E4405F" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://twitter.com/nearyou')}
-                        >
-                            <Ionicons name="logo-twitter" size={28} color="#1DA1F2" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.socialButton}
-                            onPress={() => Linking.openURL('https://www.youtube.com/nearyou')}
-                        >
-                            <Ionicons name="logo-youtube" size={28} color="#FF0000" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                {/* Contacto */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('about.contact')}</Text>
-
-                    <TouchableOpacity
-                        style={styles.contactItem}
-                        onPress={() => Linking.openURL('mailto:contacto@nearyou.com')}
-                    >
-                        <Ionicons name="mail-outline" size={22} color="#666" />
-                        <Text style={styles.contactText}>contacto@nearyou.com</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.contactItem}
-                        onPress={() => Linking.openURL('https://www.nearyou.com')}
-                    >
-                        <Ionicons name="globe-outline" size={22} color="#666" />
-                        <Text style={styles.contactText}>www.nearyou.com</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.contactItem}
-                        onPress={() => Linking.openURL('tel:+524341234567')}
-                    >
-                        <Ionicons name="call-outline" size={22} color="#666" />
-                        <Text style={styles.contactText}>+52 (434) 123-4567</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Legal */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('about.legal')}</Text>
-
-                    <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>{t('about.termsConditions')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>{t('about.privacyPolicy')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.legalLink}>
-                        <Text style={styles.legalText}>{t('about.openSourceLicenses')}</Text>
-                        <Ionicons name="chevron-forward" size={20} color="#CCC" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Footer */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>
-                        {t('about.copyright')}
-                    </Text>
-                    <Text style={styles.footerText}>
-                        {t('about.madeWith')}
-                    </Text>
-                </View>
-
-                <View style={{ height: 40 }} />
+                <Text style={styles.copyright}>{t('about.copyright')}</Text>
+                <Text style={styles.madeWith}>{t('about.madeWith')}</Text>
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
+    screen: { flex: 1, backgroundColor: palette.white },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#003D7A',
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.md,
+        borderBottomWidth: hairline,
+        borderBottomColor: palette.border,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-    },
-    content: {
-        flex: 1,
-    },
-    logoSection: {
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
-        paddingVertical: 40,
-        marginBottom: 8,
-    },
-    logoContainer: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: '#E3F2FD',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    appName: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#003D7A',
-        marginBottom: 4,
-    },
-    appVersion: {
-        fontSize: 14,
-        color: '#999',
-        marginBottom: 12,
-    },
-    appTagline: {
-        fontSize: 15,
-        color: '#666',
-        textAlign: 'center',
-        paddingHorizontal: 40,
-    },
-    section: {
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        marginTop: 8,
-    },
+    back: { width: 32 },
+    headerTitle: { ...type.subheading },
+
+    content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+    brand: { alignItems: 'center', paddingVertical: spacing.xl, gap: 2 },
+    appName: { ...type.title, marginTop: spacing.md },
+    version: { ...type.small },
+    slogan: { ...type.small, textAlign: 'center', marginTop: spacing.xs },
+
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 12,
+        ...type.captionStrong,
+        color: palette.muted,
+        marginTop: spacing.xl,
+        marginBottom: spacing.sm,
     },
-    paragraph: {
-        fontSize: 15,
-        color: '#666',
-        lineHeight: 22,
-        marginBottom: 12,
-    },
-    featureItem: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginBottom: 20,
-        gap: 12,
-    },
-    featureIcon: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    featureText: {
-        flex: 1,
-    },
-    featureTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 4,
-    },
-    featureDescription: {
-        fontSize: 14,
-        color: '#666',
-        lineHeight: 20,
-    },
-    socialLinks: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 20,
-        marginTop: 8,
-    },
-    socialButton: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: '#F5F5F5',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    contactItem: {
+    paragraph: { ...type.body, color: palette.muted, marginBottom: spacing.md },
+
+    feature: { flexDirection: 'row', gap: spacing.lg, paddingVertical: spacing.lg },
+    divider: { borderBottomWidth: hairline, borderBottomColor: palette.borderSoft },
+    featureText: { flex: 1, gap: 2 },
+    featureTitle: { ...type.bodyStrong },
+    featureDesc: { ...type.small },
+
+    row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        gap: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        gap: spacing.lg,
+        paddingVertical: spacing.lg,
     },
-    contactText: {
-        fontSize: 15,
-        color: '#003D7A',
-    },
-    legalLink: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
-    },
-    legalText: {
-        fontSize: 15,
-        color: '#333',
-    },
-    footer: {
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
-        paddingVertical: 24,
-        marginTop: 8,
-    },
-    footerText: {
-        fontSize: 13,
-        color: '#999',
-        marginBottom: 4,
-    },
+    pressed: { opacity: 0.55 },
+    rowLabel: { ...type.body, flex: 1 },
+    legalLabel: { ...type.body, flex: 1 },
+
+    copyright: { ...type.caption, textAlign: 'center', marginTop: spacing.xxl },
+    madeWith: { ...type.caption, textAlign: 'center', marginTop: spacing.xs },
 });
