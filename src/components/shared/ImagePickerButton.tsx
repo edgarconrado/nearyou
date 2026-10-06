@@ -1,15 +1,15 @@
 // components/ImagePickerButton.tsx
 import { StorageService } from '@/services/storage.service';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface ImagePickerButtonProps {

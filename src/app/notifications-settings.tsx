@@ -4,7 +4,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { type UserSettings, useUserSettings } from '@/hooks/use-user-settings';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
 import {
     ActivityIndicator,
     Alert,
