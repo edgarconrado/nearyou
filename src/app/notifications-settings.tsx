@@ -1,7 +1,7 @@
 import { hairline, palette, spacing } from '@/constants/design';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useUserSettings } from '@/hooks/use-user-settings';
+import { type UserSettings, useUserSettings } from '@/hooks/use-user-settings';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -23,9 +23,9 @@ export default function NotificationsSettingsScreen() {
     const { settings, loading, updateSetting, resetToDefaults } = useUserSettings(userId);
     const { t } = useLanguage();
 
-    const handleToggle = async (key: keyof typeof settings, value: boolean) => {
+    const handleToggle = async (key: keyof UserSettings, value: boolean) => {
         if (!settings) return;
-        await updateSetting(key as any, value);
+        await updateSetting(key, value);
     };
 
     const handleResetDefaults = () => {

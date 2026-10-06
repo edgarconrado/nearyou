@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { hairline, palette } from '@/constants/design';
@@ -22,7 +23,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: (props) => <HapticTab {...(props as BottomTabBarButtonProps)} />,
         tabBarActiveTintColor: palette.accent,
         tabBarInactiveTintColor: palette.muted,
         tabBarStyle: {
