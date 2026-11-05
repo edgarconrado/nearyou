@@ -19,6 +19,25 @@ export interface BusinessData {
   total_reviews?: number | null;
   is_open?: boolean | null;
   price_range?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  main_image_url?: string | null;
+  gallery_urls?: string[] | null;
+  slug?: string | null;
+  is_verified?: boolean | null;
+  is_active?: boolean | null;
+  total_visits?: number | null;
+  zone_id?: string | null;
+  category_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 interface BusinessInfoProps {
